@@ -174,6 +174,31 @@ sub find_member
    $result;
 }
 
+sub find_member_class
+{
+   my ($self, $class, $member) = @_;
+   my $classes = $self->{'classes'};
+   my $result;
+   local $@;
+
+   eval
+   {
+      $self->visit_down($class,
+         sub
+         {
+            my $class = shift;
+
+            if (exists $classes->{$class}{member_type}{$member})
+            {
+               $result = $class;
+               die;
+            }
+         })
+   };
+
+   $result;
+}
+
 sub visit_up
 {
    my ($self, $class, $fun) = @_;

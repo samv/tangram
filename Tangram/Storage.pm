@@ -311,37 +311,37 @@ sub _insert
     $self->tx_on_rollback( sub { $self->{set_id}->($obj, undef) } );
 
     $schema->visit_up($class,
-		      sub
-		      {
-			  my ($class) = @_;
+	    sub
+		{
+			my ($class) = @_;
          
-			  my $classdef = $schema->classdef($class);
+			my $classdef = $schema->classdef($class);
 
-			  my $table = $classdef->{table};
-			  my $types = $schema->{types};
-			  my (@cols, @vals);
+			my $table = $classdef->{table};
+			my $types = $schema->{types};
+			my (@cols, @vals);
 
-			  if (!@{$classdef->{bases}})
-			  {
-			      push @cols, 'classId';
-			      push @vals, $classId;
-			  }
+			if (!@{$classdef->{bases}})
+			{
+				push @cols, 'classId';
+				push @vals, $classId;
+			}
 
-			  foreach my $typetag (keys %{$classdef->{members}})
-			  {
-			      $types->{$typetag}->save(\@cols, \@vals, $obj,
-						       $classdef->{members}{$typetag},
-						       $self, $table, $id);
-			  }
+			foreach my $typetag (keys %{$classdef->{members}})
+			{
+				$types->{$typetag}->save(\@cols, \@vals, $obj,
+										 $classdef->{members}{$typetag},
+										 $self, $table, $id);
+			}
 
-			  if (@cols)
-			  {
-			      my $cols = join ', ', 'id', @cols;
-			      my $vals = join ', ', $id, @vals;
-			      my $insert = "INSERT INTO $table ($cols) VALUES ($vals)";
-			      $self->sql_do($insert);
-			  }
-		      } );
+			unless ($classdef->{stateless})
+			{
+				my $cols = join ', ', 'id', @cols;
+				my $vals = join ', ', $id, @vals;
+				my $insert = "INSERT INTO $table ($cols) VALUES ($vals)";
+				$self->sql_do($insert);
+			}
+		} );
 
     return $id;
 }
@@ -741,24 +741,30 @@ sub DESTROY
 
 sub prefetch
 {
-    my ($self, $remote, $member, $filter) = @_;
+	my ($self, $remote, $member, $filter) = @_;
 
-    my $class;
+	my $class;
 
-    if (ref $remote)
-    {
-	$class = $remote->class();
-    }
-    else
-    {
-	$class = $remote;
-	$remote = $self->remote($class);
-    }
+	if (ref $remote)
+	{
+		$class = $remote->class();
+	}
+	else
+	{
+		$class = $remote;
+		$remote = $self->remote($class);
+	}
 
-    my $classdef = $self->{schema}{classes}{$class} or confess "unknown class '$class'";
-    my $type = $classdef->{member_type}{$member} or confess "$class has no member '$member'";
-    my $memdef = $classdef->{MEMDEFS}{$member} or confess;
-    $type->prefetch($self, $memdef, $remote, $class, $member, $filter);
+	my $schema = $self->{schema};
+
+	my $member_class = $schema->find_member_class($class, $member)
+		or die "no member '$member' in class '$class'";
+
+	my $classdef = $schema->{classes}{$member_class};
+	my $type = $classdef->{member_type}{$member};
+	my $memdef = $classdef->{MEMDEFS}{$member};
+
+	$type->prefetch($self, $memdef, $remote, $class, $member, $filter);
 }
 
 package Tangram::Storage;

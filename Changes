@@ -42,3 +42,7 @@ Revision history for Perl extension Tangram.
 
 1.04  Jan 03 2000 - interim version
 	- fixed two bugs related to explicit tables
+
+1.05  Jan 03 2000 - interim version
+	- fixed: Storage::prefetch now works with inherited members
+	- fixed: _insert() ignored collections in stateless classes
