@@ -58,6 +58,8 @@ fields:
 
 =item * null
 
+=item * deep_update
+
 =back
 
 Optional field C<aggreg> specifies that the referenced element (if
@@ -71,6 +73,12 @@ allowed SQL column identifier.
 
 C<null>, if present and set to true, directs deploy() to generate SQL
 code that allows NULL values for that column.
+
+Optional field C<deep_update> specificies that the target object has
+to be updated automatically when C<update> is called on the source
+object. Automatic update ensures consisitency between the Perl
+representation and the DBMS state, but degrades update performance so
+use it with caution. The default is not to do automatic updates.
 
 You may also pass the names of the persistent fields in an array, in
 which case Tangram uses the field names as column names and allows

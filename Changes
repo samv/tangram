@@ -100,3 +100,6 @@ Revision history for Perl extension Tangram.
 1.16  Jul 25 2000 - interim version
 	- fixed deploy() bug: didn't take col names into account for Array, Set and Hash
 	- fixed query_expr bug in Scalar and Ref: used field name instead of col name
+
+1.17  Jul 28 2000 - interim version
+	- Gabor's patches on deep updates

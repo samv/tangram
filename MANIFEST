@@ -77,6 +77,7 @@ t/stateless.t
 t/tx.t
 t/reload.t
 t/unload.t
+t/deep_update.t
 
 # mappings
 t/ref.t

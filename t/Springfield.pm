@@ -73,6 +73,12 @@ $schema = Tangram::Schema->new( {
 		  class => 'NaturalPerson',
 		  table => 'a_children',
 		  aggreg => 1,
+		 },
+		 belongings =>
+		 {
+		  class => 'Item',
+		  aggreg => 1,
+		  deep_update => 1
 		 }
 		},
 
@@ -122,7 +128,7 @@ $schema = Tangram::Schema->new( {
 		flat_array => [ qw( interests ) ],
 
 	        flat_hash => [ qw( opinions ) ],
-	    
+
 	   },
       },
 
@@ -183,6 +189,18 @@ $schema = Tangram::Schema->new( {
 	 {
 	  #int => { limit => { col => 'theLimit' } },
 	  int => { limit => 'theLimit' },
+	 }
+	},
+
+        Item =>
+        {
+	 fields =>
+	 {
+	  string => [ qw(name) ],
+	  ref =>
+	  {
+	   owner => { deep_update => 1 }
+	  }
 	 }
 	},
 
@@ -375,6 +393,9 @@ package Opinion;
 use base qw( SpringfieldObject );
 
 package Credit;
+use base qw( SpringfieldObject );
+
+package Item;
 use base qw( SpringfieldObject );
 
 1;

@@ -406,7 +406,7 @@ sub auto_insert
 {
     # private - convenience sub for Refs, will be moved there someday
 
-    my ($self, $obj, $table, $col, $id) = @_;
+    my ($self, $obj, $table, $col, $id, $deep_update) = @_;
 
     return 'NULL' unless $obj;
 
@@ -426,8 +426,11 @@ sub auto_insert
 	return 'NULL';
     }
 
-    return $self->id($obj)	# already persistent
-	|| $self->_insert($obj); # autosave
+    $self->_save($obj) if $deep_update;
+
+    return $self->id($obj)     # already persistent
+      || $self->_insert($obj); # autosave
+
 }
 
 #############################################################################
@@ -445,44 +448,52 @@ sub update
 		     my ($self, @objs) = @_;
 		     foreach my $obj (@objs)
 		     {
-			 my $id = $self->id($obj) or confess "$obj must be persistent";
-   
 			 local %done = ();
 			 local $self->{defered} = [];
 
-			 my $class = ref $obj;
-			 my $schema = $self->{schema};
-			 my $types = $schema->{types};
-
-			 $schema->visit_up($class,
-					   sub
-					   {
-					       my ($class) = @_;
-
-					       my $classdef = $schema->classdef($class);
-
-					       my $table = $classdef->{table};
-					       my @cols = ();
-					       my @vals = ();
-
-					       foreach my $typetag (keys %{$classdef->{members}})
-					       {
-						   $types->{$typetag}->save(\@cols, \@vals, $obj,
-									    $classdef->{members}{$typetag},
-									    $self, $table, $id);
-					       }
-
-					       if (@cols)
-					       {
-						   my $assigns = join ', ', map { "$_ = " . shift @vals } @cols;
-						   my $update = "UPDATE $table SET $assigns WHERE id = $id";
-						   $self->sql_do($update);
-					       }
-					   } );
-
+			 $self->_update($obj);
 			 $self->do_defered;
-		       }
+		     }
 		   }, $self, @objs);
+}
+
+sub _update
+{
+    my ($self, $obj) = @_;
+
+    my $id = $self->id($obj) or confess "$obj must be persistent";
+   
+    $done{$obj} = 1;
+    
+    my $class = ref $obj;
+    my $schema = $self->{schema};
+    my $types = $schema->{types};
+
+    $schema->visit_up($class,
+		      sub
+		      {
+			my ($class) = @_;
+			
+			my $classdef = $schema->classdef($class);
+			
+			my $table = $classdef->{table};
+			my @cols = ();
+			my @vals = ();
+			
+			foreach my $typetag (keys %{$classdef->{members}})
+			  {
+			    $types->{$typetag}->save(\@cols, \@vals, $obj,
+						     $classdef->{members}{$typetag},
+						     $self, $table, $id);
+			  }
+			
+			if (@cols)
+			  {
+			    my $assigns = join ', ', map { "$_ = " . shift @vals } @cols;
+			    my $update = "UPDATE $table SET $assigns WHERE id = $id";
+			    $self->sql_do($update);
+			  }
+		      } );
 }
 
 #############################################################################
@@ -504,6 +515,23 @@ sub save
 	}
     }
 }
+
+sub _save
+{
+    my $self = shift;
+    foreach my $obj (@_)
+    {
+        if ($self->id($obj))
+	{
+	    $self->_update($obj)
+	}
+	else
+	{
+	    $self->_insert($obj)
+	}
+    }
+}
+
 
 #############################################################################
 # erase

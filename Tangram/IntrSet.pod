@@ -57,6 +57,8 @@ string. The hash uses the following fields:
 
 =item * coll
 
+=item * deep_update
+
 =back
 
 Mandatory field C<class> specifies the class of the elements.
@@ -72,6 +74,12 @@ to the object containing the collection.
 Optional field C<coll> sets the name the column containing the id of
 the containing object. This defaults to 'C_m', where 'C' is the class
 of the containing object, and 'm' is the field name.
+
+Optional field C<deep_update> specificies that all elements have to be
+updated automatically when C<update> is called on the collection
+object. Automatic update ensures consisitency between the Perl
+representation and the DBMS state, but degrades update performance so
+use it with caution. The default is not to do automatic updates.
 
 If the descriptor is a string, it is interpreted as the name of the
 element's class. This is equivalent to specifying only the C<class>

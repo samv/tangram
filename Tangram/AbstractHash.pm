@@ -57,7 +57,11 @@ sub save
 		{
 			Tangram::Coll::bad_type($obj, $coll, $class, $item)
 					if $^W && !$item->isa($class);
-			$storage->insert($item) unless $storage->id($item);
+			if ($members->{$coll}->{deep_update}) {
+				$storage->_save($item);
+			} else {
+				$storage->insert($item)	unless $storage->id($item);
+		        }
 		}
     }
 

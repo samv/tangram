@@ -50,7 +50,7 @@ sub save
    {
       push @$cols, $members->{$member}{col};
       my $tied = tied($obj->{$member});
-      push @$vals, $tied ? $tied->id : $storage->auto_insert($obj->{$member}, $table, $member, $id);
+      push @$vals, $tied ? $tied->id : $storage->auto_insert($obj->{$member}, $table, $member, $id, $members->{$member}->{deep_update});
    }
 }
 
