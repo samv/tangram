@@ -30,8 +30,7 @@ Set::Object
 
 =head1 GUIDED TOUR
 
-In this tour, we will take a simple Person hierarchy and use Tangram
-to add persistence.
+In this tour, we add persistence to a simple Person hierarchy.
 
 =over 4
 
@@ -108,7 +107,9 @@ Here is the equivalent UML diagram:
                  |       |
                  +--->---+
 
-Before we can actually store objects we need to complete two steps:
+B<Note that Tangram does I<not> create the corresponding Perl packages!>.
+
+Before we can actually store objects we must complete two steps:
 
 =over 4
 
@@ -122,7 +123,7 @@ Create a database
 
 =back
 
-=head2 Create a Schema
+=head2 Creating a Schema
 
 A Schema object contains information about the persistent
 aspects of a system of classes.
@@ -183,20 +184,19 @@ For more information on creating Schemas, see L<Tangram::Schema>.
 
 =head2 Setting up a database
 
-Now we need to create a database. The simplest way is to create an
-empty database and let Tangram initialize it. Module
-Tangram::Deploy provides this functionality:
+Now we create a database. The simplest way is to create an
+empty database and let Tangram initialize it:
 
 	use Tangram::Deploy;
 	$dbh = DBI->connect(...); 	
    	$schema->deploy( $dbh );
 
-
 For more information on deploying databases, see L<Tangram::Deploy>.
 
 =head2 Connecting to a database
 
-This is done by calling class method Tangram::Storage::connect. Its
+We are now ready to store objects. First we connect to the database,
+using the class method Tangram::Storage::connect. Its
 first argument is the schema object; the others are passed directly to
 DBI::connect. For example:
 
@@ -210,7 +210,7 @@ For more information on connecting to databases, see L<Tangram::Storage>.
 
 =head2 Inserting objects
 
-Now we can begin to populate the database:
+Now we can populate the database:
 
    $storage->insert( NaturalPerson->new(
       firstName => 'Montgomery', name => 'Burns' ) );
@@ -593,23 +593,23 @@ TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 =head1 SUPPORT
 
 Please send bug reports directly to me (jll@tangram-persistence.org)
-or to the Tangram mailing list
-(users@tangram-persistence.org). Whenever possible, join a short,
-complete script demonstrating the problem.
+or to the Tangram mailing list (tangram-users@lists.sourceforge.net).
+
+Whenever possible, join a short, complete script demonstrating the
+problem.
 
 Questions of general interest should should be posted either to the
-Tangram mailing list (users@tangram-persistence.org) or to
-comp.lang.perl.modules, which I monitor daily. Make sure to include
-'Tangram' in the subject line.
+mailing list or to comp.lang.perl.modules, which I monitor daily. Make
+sure to include 'Tangram' in the subject line.
 
 Commercial support for Tangram is available. Visit the Tangram website
-(www.tangram-persistence.org) for support options or Contact me
+(www.tangram-persistence.org) for support options or contact me
 at jll@skynet.be.
 
 =head1 ACKNOWLEDGEMENTS
 
-I'd like to thank Paul Sharpe and the CPAN testers for helping me test
-Tangram on many popular platforms.
+I'd like to thank all the people that have helped me build Tangram by
+contributing code, testing, sending bug reports and remarks.
 
 =head1 AUTHOR
 
