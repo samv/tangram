@@ -493,9 +493,8 @@ sub erase
 					{
 						my $class = shift;
 						my $classdef = $classes->{$class};
-
-						my $sql = "DELETE FROM $classdef->{table} WHERE id = $id";
-						$self->sql_do($sql);
+						$self->sql_do("DELETE FROM $classdef->{table} WHERE id = $id")
+							unless $classdef->{stateless};
 					} );
 
 				$self->do_defered;
