@@ -245,6 +245,28 @@ sub new
 		$classdef->{table} ||= $self->{normalize}->($class, 'tablename');
 
 		$classdef->{fields} ||= $classdef->{members};
+
+		if ( $classdef->{members} and
+		     $classdef->{fields} != $classdef->{members} ) {
+		    # some other class' definition put something
+		    # in our "members" hash.
+		    while (
+			   my ($type, $fields)
+			   = each %{$classdef->{members}}
+			  )
+		    {
+			# so, we have to merge them.  we could use
+			#  %{ $classdef->{fields} } =
+			#    (%{$classdef->{fields}},
+			#     %{$classdef->{members}});
+			# but I'm not 100% sure that we will never
+			# have common types in the "fields" and
+			# "members" hash.
+			($classdef->{fields}{$type}{$_}
+			 = delete $fields->{$_})
+			    foreach (keys %$fields);
+		    }
+		}
 		$classdef->{members} = $classdef->{fields};
 
 		my $cols = 0;

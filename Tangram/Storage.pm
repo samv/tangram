@@ -112,7 +112,7 @@ sub _open
 	  my $address = 0 + shift();
 	  my $id = $self->{ids}{$address};
 	  return undef unless $id;
-	  return $id if $self->{objects}{$id};
+	  return $id if exists $self->{objects}{$id};
 	  delete $self->{ids}{$address};
 	  delete $self->{objects}{$id};
 	  return undef;
@@ -910,6 +910,8 @@ sub id
 sub disconnect
 {
     my ($self) = @_;
+
+    return unless defined $self->{db};
 
     unless ($self->{no_tx})
     {   

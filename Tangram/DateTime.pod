@@ -32,8 +32,10 @@ doesn't attempt to interpret the strings, it merely passes them down
 to DBI.
 
 C<dmdatetime> is like C<rawdatetime> except that the date is converted
-to the Date::Manip internal format. This mapping was contributed by Gabor Herr
-<herr@iti.informatik.tu-darmstadt.de>.
+to the Date::Manip internal format (ISO-8601, see L<Date::Manip>) when
+in memory, and written out to the database in SQL datetime format
+(C<YYYY-MM-DD HH:MM:SS>). This mapping was contributed by Sam Vilain
+E<lt>sam@vilain.netE<gt>.
 
 The persistent fields may be specified either as a hash or as an array
 of field names.

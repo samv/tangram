@@ -169,9 +169,10 @@ sub Tangram::Scalar::_coldefs
     my ($self, $cols, $members, $sql, $schema) = @_;
 
     for my $def (values %$members)
-    {
-		$cols->{ $def->{col} } = $def->{sql} || "$sql $schema->{sql}{default_null}";
-    }
+	{
+	    $cols->{ $def->{col} } = $def->{sql} ||
+		"$sql " . ($schema->{sql}{default_null} || "");
+	}
 }
 sub Tangram::Integer::coldefs
 {

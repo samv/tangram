@@ -5,16 +5,13 @@ package Tangram::DMDateTime;
 use strict;
 use Tangram::RawDateTime;
 use base qw( Tangram::RawDateTime );
+use Date::Manip qw(ParseDate UnixDate);
 
 $Tangram::Schema::TYPES{dmdatetime} = Tangram::DMDateTime->new;
 
 #
-# Convert SQL DATETIME format to Date::Manip internal format (0):
-#
-#   2000-07-06 13:55:23  --> 20000706135523
-#
-# save is not needed, because most DBMs can directly interpret Date::Manip
-# format. 
+# Convert SQL DATETIME format to Date::Manip internal format; assume
+# that "ParseDate" will magically do The Right Thing(tm)
 #
 sub get_importer
 {
@@ -24,9 +21,27 @@ sub get_importer
   return sub {
 	my ($obj, $row, $context) = @_;
 	my $val = shift @$row;
-	$val =~ s/[-: ]//g;
-	$obj{$name} = $val;
+	$val = ParseDate($val) if defined $val;
+	$obj->{$name} = $val;
   }
 }
 
+#
+# Convert Date::Manip internal format (ISO-8601) to format that should
+# work with most databases (read: I've only tested with MySQL but the
+# value is sensible)
+#
+sub get_exporter
+{
+    my $self = shift;
+
+    my $name = $self->{name};
+
+    return sub {
+	my ($obj, $row, $context) = @_;
+	my $val = $obj->{$name};
+	$val = UnixDate($val, "%Y-%m-%d %H:%M:%S") if defined $val;
+	$row->{$name} = $val;
+    }
+}
 1;
