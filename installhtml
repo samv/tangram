@@ -1,0 +1,45 @@
+#!/usr/local/bin/perl
+
+use FindBin qw( $Bin );
+chdir($Bin);
+
+system 'rm -f `find website/pod -name *.html -print`';
+
+for my $pod (<*.pod>, <Tangram/*.pod>)
+{
+	my $html = $pod;
+	$html =~ s/\.pod$/.html/;
+	$html =~ s:Tangram/::;
+	system "pod2html --infile $pod --outfile website/pod/$html";
+}
+
+my @pods = <website/pod/*.html>;
+
+sub improve (&)
+{
+	my $sub = shift;
+
+	local $/;
+
+	for my $file (@pods)
+	{
+		local *FH;
+
+		open(FH, $file) || die "Cannot open $file for reading, reason: $!";
+		local $_  = <FH>;
+		close(FH);
+
+		&$sub;
+
+		open(FH, ">$file") || die "Cannot open $file for writing, reason: $!";
+		print FH;
+		close(FH);
+	}
+}
+
+improve
+{
+	s{<A HREF="/Tangram/}{<A HREF="}g;
+	s{<body>}{<body text=black bgcolor=white>}gi;
+	s{(www.tangram-persistence.org)}{<a href="http://$1"> $1 </a>}g;
+};
