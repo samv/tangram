@@ -12,6 +12,7 @@ Tangram/Tour.pod
 
 Tangram/Relational.pm
 Tangram/Relational.pod
+Tangram/Relational/Mappings.pod
 
 Tangram/Schema.pm
 Tangram/Storage.pm
@@ -104,4 +105,4 @@ t/iset.t
 t/mysql.t
 #t/sybase.t
 
-t/mapping.t
+t/mappings.t
