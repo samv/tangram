@@ -44,6 +44,7 @@ sub select
 	$self->{-order} = $args{order};
 	$self->{-desc} = $args{desc};
 	$self->{-distinct} = $args{distinct};
+	$self->{-limit} = $args{limit};
 
 	$self->retrieve( @{ $args{retrieve} } ) if exists $args{retrieve};
 
@@ -209,6 +210,8 @@ sub build_select
 	{
 		$select .= ' DESC';
 	}
+
+	$select .= " LIMIT $self->{-limit}" if defined $self->{-limit};
 
 	return $select;
 }
