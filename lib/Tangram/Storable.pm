@@ -56,9 +56,14 @@ sub reschema {
 sub get_importer
 {
 	my ($self, $context) = @_;
-	return("\$obj->{$self->{name}} = \${Storable::thaw(shift \@\$row)}[0];"
+	return("
+my \$data = shift \@\$row;
+print \$Tangram::TRACE \"THAWING (length = \".(length(\$data)).\":\".Data::Dumper::Dumper(\$data)
+   if \$Tangram::TRACE and \$Tangram::DEBUG_LEVEL > 2;
+my \$ref = Storable::thaw(\$data) or die \"thaw failed on data (\".(length(\$data)).\") = \$data\";
+\$obj->{$self->{name}} = \$ref->[0];\n"
 	       ."Tangram::Dump::unflatten(\$context->{storage}, "
-	       ."\$obj->{$self->{name}})");
+	       ."\$obj->{$self->{name}});\n");
   }
 
 sub get_exporter

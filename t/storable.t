@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
+
 use Test::More tests => 4;
 
 use_ok("Tangram::Dump");
@@ -10,6 +11,9 @@ use lib "t";
 use Springfield;
 use Set::Object qw(is_overloaded blessed);
 
+SKIP:{
+    skip "Storable broken on Pg - see lib/Tangram/Pg.pod", 3
+	if $Springfield::vendor eq "Pg";
 my $homer_id;
 
 {
@@ -69,4 +73,5 @@ is(leaked, 0, "leaktest");
     is($homer->{thought}->{marge}, $marge,
        "Storable can store Tangram objects!");
 
+}
 }

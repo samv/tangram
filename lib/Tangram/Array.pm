@@ -50,7 +50,7 @@ sub get_save_closures
 			|| croak "element at $slot has no id";
          
 		$storage->sql_do(
-            "UPDATE $table SET $ic = $item_id WHERE $cc = $eid AND $sc = $slot");
+            "UPDATE\n    $table\nSET\n    $ic = $item_id\nWHERE\n    $cc = $eid   AND\n    $sc = $slot");
 	};
 
 	my $add = sub
@@ -58,14 +58,14 @@ sub get_save_closures
 		my ($slot, $item) = @_;
 		my $item_id = $storage->export_object($item);
 		$storage->sql_do(
-		    "INSERT INTO $table ($cc, $ic, $sc) VALUES ($eid, $item_id, $slot)");
+		    "INSERT INTO $table ($cc, $ic, $sc)\n    VALUES ($eid, $item_id, $slot)");
 	};
 
 	my $remove = sub
 	{
 		my ($new_size) = @_;
 		$storage->sql_do(
-            "DELETE FROM $table WHERE $cc = $eid AND $sc >= $new_size");
+            "DELETE FROM\n    $table\nWHERE\n    $cc = $eid    AND\n    $sc >= $new_size");
 	};
 
 	return ($ne, $modify, $add, $remove);
@@ -84,7 +84,7 @@ sub erase
 		my $table = $def->{table} || $def->{class} . "_$member";
 		my $coll_col = $def->{coll} || 'coll';
      
-		my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
+		my $sql = "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id";
 	  
 		if ($def->{aggreg})
 		{

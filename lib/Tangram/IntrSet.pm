@@ -48,27 +48,51 @@ sub reschema
 sub defered_save
   {
 	my ($self, $storage, $obj, $field, $def) = @_;
-	
+
 	return  if tied $obj->{$field};
-	
+
 	my $coll_id = $storage->export_object($obj);
 	my $classes = $storage->{schema}{classes};
 	my $item_classdef = $classes->{$def->{class}};
 	my $table = $item_classdef->{table};
 	my $item_col = $def->{coll};
-	
-	$self->update($storage, $obj, $field,
-				  sub
-				  {
-					my $sql = "UPDATE $table SET $item_col = $coll_id WHERE $storage->{schema}{sql}{id_col} = @_";
-					$storage->sql_do($sql);
-				  },
-				  
-				  sub
-				  {
-					my $sql = "UPDATE $table SET $item_col = NULL WHERE $storage->{schema}{sql}{id_col} = @_ AND $item_col = $coll_id";
-					$storage->sql_do($sql);
-				  } );
+
+	$self->update
+	    ($storage, $obj, $field,
+	     sub
+	     {
+		 if ( $storage->can("t2_insert_hook") ) {
+		     $storage->t2_insert_hook( ref($obj), $coll_id, $field, $_[1] );
+		 }
+
+		 my $sql = ("UPDATE\n    $table\nSET\n    "
+			    ."$item_col = $coll_id\nWHERE\n    "
+			    ."$storage->{schema}{sql}{id_col} = $_[0]");
+		 $storage->sql_do($sql);
+	     },
+
+	     sub
+	     {
+		 if ( $storage->can("t2_remove_hook") ) {
+		     $storage->t2_remove_hook( ref($obj), $coll_id, $field, $_[1] );
+		 }
+
+		 if ($def->{aggreg}) {
+		     my $id = shift;
+		     my $oid = shift;
+		     print $Tangram::TRACE "Tangram::IntrSet: removing oid $oid\n"
+			 if $Tangram::TRACE;
+		     # FIXME - use dummy object
+		     $storage->erase( $storage->load( $oid ));
+		 } else {
+		     my $sql = ("UPDATE\n    $table\nSET\n    "
+				."$item_col = NULL\nWHERE\n    "
+				."$storage->{schema}{sql}{id_col} = "
+				."$_[0]    AND\n    $item_col = $coll_id");
+		     $storage->sql_do($sql);
+		 }
+	     }
+	    );
   }
 
 sub demand
@@ -112,16 +136,27 @@ sub erase
 	{
 		my $def = $members->{$member};
 
+		if ( $storage->can("t2_remove_hook") ) {
+		    $storage->t2_remove_hook
+			(
+			 ref($obj),
+			 $coll_id,
+			 $member,
+			 (map { $storage->export_object($_) }
+			  $obj->{$member}->members),
+			);
+		}
+
 		if ($def->{aggreg})
 		{
 			$storage->erase( $obj->{$member}->members );
 		}
 		else
 		{
-			my $item_classdef = $storage->{schema}{classes}{$def->{class}};
-			my $table = $item_classdef->{table} || $def->{class};
-			my $item_col = $def->{coll};
-			$storage->sql_do("UPDATE $table SET $item_col = NULL WHERE $item_col = $coll_id");
+		    my $item_classdef = $storage->{schema}{classes}{$def->{class}};
+		    my $table = $item_classdef->{table} || $def->{class};
+		    my $item_col = $def->{coll};
+		    $storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = NULL\nWHERE\n    $item_col = $coll_id");
 		}
 	}
 }

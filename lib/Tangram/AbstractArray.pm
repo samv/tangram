@@ -51,7 +51,7 @@ sub demand
 		}
 	}
 
-	$self->set_load_state($storage, $obj, $member, [ map { ($_) ? $storage->id($_) : (die "No ID for $_") } @coll ]);
+	$self->set_load_state($storage, $obj, $member, [ map { ($_) ? $storage->id($_) : undef } @coll ]);
 
 	return \@coll;
 }

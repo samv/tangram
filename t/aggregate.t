@@ -35,14 +35,18 @@ my $dbh = DBI->connect($cs, $user, $passwd)
        ( undef,
 	 filter => $r_person->{children}->includes($r_child),
 	 group => [ $r_person ],
-	 retrieve => [ $r_child->{id}->count(), $r_child->{age}->sum() ]
+	 retrieve => [ $r_child->{id}->count(), $r_child->{age}->sum() ],
+	 #order => [ $r_child->{id}->count() ],
        );
 
    my @data;
-   while ( my $row = $cursor->next() ) {
+   while ( my $row = $cursor->current() ) {
        push @data, [ $cursor->residue ];
+       $cursor->next();
    }
-   is_deeply(\@data, [ [ 3, 19 ], [1, 38 ] ],
+   @data = sort { $a->[0] <=> $b->[0] } @data;
+   #print Data::Dumper::Dumper(\@data);
+   is_deeply(\@data, [ [ 1, 38 ], [3, 19 ], [3, 19] ],
 	     "GROUP BY, SUM(), COUNT()");
 }
 is(&leaked, 0, "leaktest");

@@ -320,23 +320,5 @@ Revision history for Perl extension Tangram.
           to convert ISO-8601 to MySQL format.
 	- New method Tangram::Storage::unload_all
 
-2.07_05, 31-May-2004
-
-	- fix so that Tangram::Cursor->new() can retrieve no objects,
-	  with no filter (just retrieve => [])
-	- when retrieving no object, Tangram::Storage->select() now
-	  returns the residue as an array ref (or, if only one column
-	  is asked for, simply returns all of the column values as a
-	  list).
-	- the ->in() Tangram::Expr method now works on columns as well
-	  as table aliases.  For now, only integer columns work as no
-	  SQL escaping is performed.
-	- (Pixie API compliance) You can now insert objects of classes
-	  not in the Schema, though only with an "idbif" column in the
-	  class will the type be stored.  Full tests pending.
-	- new function $storage->import_object("ClassName", $id),
-	  which will load an object of the given ID (without the CID)
-	- Tangram::YAML strips YAML header and end of line from dumped
-	  YAML stream.
-	- Added several previously internal Tangram::Storage methods
-	  to the official API.
+2.07_05, 2.07_06
+	- lots of changes.  full list to follow in next release.

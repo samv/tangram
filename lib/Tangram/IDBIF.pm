@@ -119,7 +119,7 @@ use Tangram::Dump qw(flatten unflatten);
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
-use Set::Object qw(reftype);
+use Set::Object qw(reftype blessed);
 
 $Tangram::Schema::TYPES{idbif} = Tangram::IDBIF->new;
 
@@ -168,14 +168,30 @@ sub reschema {
     $options->{dumper_wanted} = $options->{dumper};
     if (lc $options->{dumper} eq "yaml") {
 	require 'YAML.pm';
-	$options->{dumper} = sub { YAML::Dump(shift) };
-	$options->{loader} = sub { YAML::Load(shift) };
+	$options->{dumper} = sub {
+	    local($^W)=0;
+	    YAML::Dump(shift)
+	    };
+	$options->{loader} = sub {
+	    my $stream = shift;
+	    $stream =~ m/^\s*$/s && return undef;
+	    $stream .= "\n";
+	    my $result = eval {
+		local($^W)=0;
+		YAML::Load($stream);
+	    };
+	    if ( $@ ) {
+		die "Error parsing this stream: >-\n$stream\n...; $@";
+	    } else {
+		return $result;
+	    }
+	};
     } elsif (lc $options->{dumper} eq "data::dumper") {
 	require 'Data/Dumper.pm';
 	$options->{dumper} = sub {
-	    local $Data::Dumper::Purity = 1;
-	    #local $Data::Dumper::Varname = 1;
-	    local $Data::Dumper::Terse = 1;
+	    local($Data::Dumper::Purity) = 1;
+	    local $Data::Dumper::Indent = 0;  # compact
+	    local($Data::Dumper::Terse) = 1;
 	    Data::Dumper::Dumper(shift)
 	};
 	$options->{loader} = sub { eval(shift) };
@@ -201,9 +217,12 @@ sub get_importer
     return sub {
 	my ($obj, $row, $context2) = @_;
 	my $col = shift @$row;
-	#print STDERR "About to load: $col\n";
-	my $tmpobj = $self->{loader}->($col);
-	#print STDERR "Got $tmpobj\n";
+	#print STDERR "About to load: `$col'\n";
+	defined(my $tmpobj = $self->{loader}->($col)) or do {
+	    warn "loader for IDBIF on ".ref($obj)."[".$context2->{storage}->id($obj)."] returned no value from >-\n$col\n...";
+	    return $obj;
+	};
+	#print STDERR "Got `$tmpobj'\n";
 	Tangram::Dump::unflatten($context2->{storage}, $tmpobj);
 	if ($self->{save_all}) {
 	    for my $member (keys %$tmpobj) {
@@ -215,11 +234,11 @@ sub get_importer
 		    if exists $tmpobj->{$member};
 	    }
 	}
-	if (ref $tmpobj ne ref $obj) {
+	if (ref $tmpobj ne ref $obj and blessed $tmpobj) {
 	    bless $obj, ref $tmpobj;
 	}
 	%$tmpobj=();
-	bless $tmpobj, "nothing";
+	bless $tmpobj, "nothing";  # "unbless" :-)  skip DESTROY
     };
 }
 

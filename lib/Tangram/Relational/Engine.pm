@@ -526,9 +526,17 @@ sub new
 	bless [ @_ ], $class;
   }
 
+use Set::Scalar;
+
+use vars qw($paren);
+$paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
+	    |   (??{ $paren })  # Group with matching parens
+	   )* \)}x;
+
+
 sub instantiate {
 
-    my ($self, $remote, $xcols, $xfrom, $xwhere) = @_;
+    my ($self, $remote, $xcols, $xfrom, $xwhere, %o) = @_;
     my ($expand, $cols, $from, $where) = @$self;
 
     $xcols ||= [];
@@ -538,23 +546,228 @@ sub instantiate {
 
     if (@$xwhere) {
 	$xwhere[0] = join ' AND ', @$xwhere;
-	$xwhere[0] =~ s[%][%%]g; # FIXME - no, no, no.
+	$xwhere[0] =~ s[%][%%]g;
     }
 
     my @tables = $remote->table_ids() if $remote;
 
-    my $select = sprintf("SELECT %s\n  FROM %s",
-			 join(', ', @$cols, @$xcols),
-			 join(', ', @$from, @$xfrom)
-			);
+    # expand table aliases early
+    my $i = 0;
+    my @cols = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$cols;
+    my @from = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$from;
+    my @where = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$where;
 
-    $select = sprintf("%s\n  WHERE %s",
-		      $select,
-		      join(' AND ', @$where, @xwhere)
-		     )
-	if @$where || @$xwhere;
+    my $selected;
+    if ( my $group = $o{group} ) {
+	# grouping, (make sure that all columns are aggregate)
 
-    sprintf $select, map { $tables[$_] } @$expand;
+	$DB::single = 1; # ?
+
+	# make sure all grouped columns are selected
+	$selected = Set::Scalar->new(@cols, @$xcols);
+
+	push @$xcols, (grep { $selected->insert($_) }
+		       map { ref $_ ? $_->expr : $_ } @$group);
+    }
+
+    if (my $order = $o{order}) {
+	# ordering, make sure that all ordered columns are selected
+	$selected ||= Set::Scalar->new(@cols, @$xcols);
+
+	push @$xcols, (grep {( $selected->has($_)
+			       ? undef
+			       : $selected->insert($_)
+			     )}
+		       map { ref $_ ? $_->expr : $_ } @$order);
+    }
+
+    my $select = sprintf("SELECT%s\n%s\n",
+			 ($o{distinct} ? " DISTINCT" : ""),
+			 (join(",\n", map {"    $_"} @cols, @$xcols)));
+
+    # add outer join clauses
+    if ( my $owhere = $o{owhere} ) {
+
+	#kill 2, $$;
+	my $ofrom = $o{ofrom};
+
+	# ugh.  we need to add a new clause for every join, and in
+	# order of joinedness.  Which means that we have to go and
+	# break up some joins.
+	#print STDERR "owhere: @$owhere\n";
+	$owhere = Set::Scalar->new(map {
+	    my @x;
+	    while ( s{^\(((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)\)$}{$1}is
+		    or s{^((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)$}{$1}is
+		  ) {
+		#print STDERR "got: $2\n";
+		push @x, $2;
+	    }
+	    #print STDERR "left: $_\n";
+	    @x, $_
+	} @{$o{owhere}});
+	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
+	#print STDERR "ofrom: @$ofrom\n";
+	$ofrom = Set::Scalar->new(@{$o{ofrom}});
+	#print STDERR "new ofrom: ".join("/",$ofrom->members)."\n";
+
+	# ugh ugh ugh
+	#my $tmp_sel = sprintf $select, map { $tables[$_] }
+	    #@$expand;
+
+	(my $tmp_sel = $select) =~ s{.*^FROM}{}ms;
+
+	# ook ook
+	my $seen_from = Set::Scalar->new( map { m{\b(tl?\d+)\b}sg }
+					  (@from, @$xfrom) );
+
+	my (@ofrom, @ojoin, %owhen);
+
+	# this loop is heinous
+	while ( $ofrom->size ) {
+	FROM:
+	    my $ofrom_size = $ofrom->size;
+	    my @from_todo = $ofrom->members;
+
+	    while ( my $from = shift @from_todo ) {
+		my ($tnum) = ($from =~ m{\b(tl?\d+)\b})
+		    or die "What? `$from; doesn't m/tl?\\d+/ ?";
+		my @tmpjoin;
+
+		#print STDERR "Checking (outer): $from\n";
+		my @queue = $owhere->members;
+	    JOIN:
+		while ( my $join  = shift @queue ) {
+		    my @tables = ($join =~ m{\b(tl?\d+)\b}g);
+		    next unless ( grep { $_ eq $tnum } @tables );
+		    #print STDERR "Checking: $join for @tables (seen_from = $seen_from)\n";
+		    if ( my @bad = grep { !$seen_from->has($_)
+					     and $_ ne $tnum 
+				      } @tables ) {
+			next JOIN;
+		    } else {
+			my (@others) = (grep { $_ ne $tnum } @tables);
+			(@others == 1)
+			    or die("Can't handle more than two-table "
+				   ."outer join clauses");
+
+			$owhen{$others[0]} = scalar @ofrom;
+			#print STDERR "ADDED JOIN FROM $others[0] to $tnum ($from?): $join\n";
+
+			# hooray!  SQL will accept it in this order!
+			$seen_from->insert($tnum);
+			#print STDERR "SEEN ADDED: $tnum\n";
+			$ofrom-= Set::Scalar->new($from);
+			#print STDERR "OFROM REMOVED: $from\n";
+			$owhere-= Set::Scalar->new($join);
+
+			# we're joining in $from, so add all clauses
+			# that have nothing but seen tables and from
+			@queue = $owhere->members;
+			@from_todo = $ofrom->members;
+
+			push(@tmpjoin, $join);
+		    }
+		}
+		if ( @tmpjoin ) {
+		    push @ofrom, $from;
+		    push @ojoin, \@tmpjoin;
+		}
+	    }
+	    die "failed to join tables: ".join(", ", $ofrom->members)
+		."\nquery: >-\n$select\nowhere:\n".join(", ", $owhere->members)
+		    ."supplied from:\n"
+			.join(", ", @from, @$xfrom)
+		if $ofrom->size;
+	}
+	die "failed to include conditions: ".join(", ", $owhere->members)
+	    if $owhere->size;
+
+	my @tables = (@from, @$xfrom);
+
+	for my $table ( @tables ) {
+	    my ($tnum) = ($table =~ m/\b(tl?\d+)\b/)
+		or die "table without an alias";
+
+	    while ( defined(my $idx = delete $owhen{$tnum}) ) {
+		my $from = $ofrom[$idx];
+		my $join = $ojoin[$idx];
+		$ofrom[$idx] = undef;
+		$table .= (sprintf
+			   ("\n\tLEFT OUTER JOIN\n%s\n\tON\n%s",
+			    join(",\n", map { "\t    $_" } $from),
+			    join("\tAND\n", map { "\t    $_" } @$join),
+			   ));
+		($tnum) = grep { $_ ne $tnum } ($from =~ m/\b(tl?\d+)\b/g);
+	    }
+	}
+	if ( my @missed = grep { defined } @ofrom ) {
+	    die "Couldn't figure out where to stick @missed";
+	}
+	$select .= sprintf ("FROM\n%s\n",
+			    (join(",\n", map {"    $_"} @tables))
+			   );
+    } else {
+	$select .= sprintf ("FROM\n%s\n",
+			    (join(",\n", map {"    $_"} @from, @$xfrom))
+			   );
+    }
+
+    my $max_len = 0;
+
+    foreach (@where, @xwhere) {
+
+	if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL <= 1) {
+	    # In trace mode, split up queries that have an AND clause
+	    # but no parantheses.  be sure not to put parantheses in
+	    # hardcoded queries, inside quotes etc.
+	    while (my ($left, $right) =
+		   m/^((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)$/i) {
+		$_ = $left;
+		push @xwhere, $right;
+	    }
+	}
+	($max_len = length $_) if (length $_ > $max_len);
+    }
+    # don't go insane with the spaces!
+    $max_len = 20 if $max_len > 20;
+
+    $select .= sprintf("WHERE\n%s\n",
+		       join("    AND\n", map {
+			   sprintf("    %-${max_len}s", $_)
+		       } @where, @xwhere)
+		      )
+	if @where || @$xwhere;
+
+    if ( my $group = $o{group} ) {
+	$select .= ("GROUP BY\n".
+		    join ",\n", map { "    ".$_->expr } @$group)."\n";
+    }
+
+    if (my $order = $o{order}) {
+
+	my $desc = $o{desc};
+	if ( ! ref $desc ) {
+	    $desc = [ ($desc) x @$order ];
+	}
+	my $i = 0;
+	$select .= "ORDER BY\n".
+	    join(",\n", (map { ("    ".$_->expr.
+				($desc->[$i++] ? " DESC" : "")) }
+			 @$order))."\n";
+    }
+
+    # FIXME - this needs to be a subselect on Oracle
+    if (defined $o{limit}) {
+	if (ref $o{limit}) {
+	    $select .= "LIMIT\n    ".join(",",@{ $o{limit} })."\n";
+	} else {
+	    $select .= "LIMIT\n    $o{limit}\n";
+	}
+    }
+
+    $select;
+    #sprintf $select, map { $tables[$_] } @$expand;
 }
 
 sub extract {
@@ -742,10 +955,10 @@ sub get_instance_select {
 
 	my $first_table = shift @tables;
 
-	sprintf("SELECT %s FROM %s WHERE %s",
-		join(', ', @cols),
-		join(', ', $first_table, @tables),
-		join(' AND ', "$first_table.$id_col = ?",
+	sprintf("SELECT\n    %s\nFROM\n    %s\nWHERE\n    %s",
+		join(",\n    ", @cols),
+		join(",\n    ", $first_table, @tables),
+		join("\tAND\n    ", "$first_table.$id_col = ?",
 		     (map { "$first_table.$id_col = $_.$id_col" }
 		      @tables)
 		    )
@@ -830,16 +1043,16 @@ sub get_save_cache {
 
 	    next unless @meta > 1 || @$cols;
 
-	    push @inserts, sprintf('INSERT INTO %s (%s) VALUES (%s)',
+	    push @inserts, sprintf("INSERT INTO %s\n    (%s)\nVALUES\n    (%s)",
 				   $table_name,
 				   join(', ', @meta, @$cols),
 				   join(', ', ('?') x (@meta + @$cols)));
 	    push @insert_fields, [ @meta_fields, @$fields ];
 
 	    if (@$cols) {
-		push @updates, sprintf('UPDATE %s SET %s WHERE %s = ?',
+		push @updates, sprintf("UPDATE\n    %s\nSET\n%s\nWHERE\n    %s = ?",
 				       $table_name,
-				       join(', ', map { "$_ = ?" } @$cols),
+				       join(",\n", map { "    $_ = ?" } @$cols),
 				       $id_col);
 		push @update_fields, [ @$fields, 0 ];
 	    }

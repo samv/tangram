@@ -173,7 +173,7 @@ sub expr_hash
    
 	my %hash =
 		(
-		 object => $self, 
+		 _object => $self, 
 		 id => Tangram::Number->expr("t$self->{root}.$storage->{id_col}", $self),
 		 type => Tangram::Number->expr("t$self->{root}.$storage->{class_col}", $self),
 		);
@@ -183,7 +183,8 @@ sub expr_hash
 
 	for my $part ($storage->{engine}->get_parts($schema->classdef($self->{class}))) {
 	  for my $field ($part->direct_fields) {
-		$hash{ $field->{name} } = $field->remote_expr($self, $self->{table_hash}{$part->{name}}, $storage);
+		$hash{ $field->{name} }
+		    = $field->remote_expr($self, $self->{table_hash}{$part->{name}}, $storage);
 	  }
 	}
 													  
@@ -292,6 +293,9 @@ sub as_string
 	return ref($self) . "($self->{expr})";
 }
 
+sub expr {
+    return $_[0]->{expr};
+}
 
 sub sum
 {
@@ -619,8 +623,18 @@ sub binop
 sub like
 {
 	my ($self, $val) = @_;
+	$val =~ s{'}{''}g;
 	return new Tangram::Filter(expr => "$self->{expr} like '$val'", tight => 100,
-							   objects => Set::Object->new($self->objects) );
+				   objects => Set::Object->new($self->objects) );
+}
+
+
+sub regexp_like
+{
+	my ($self, $val) = @_;
+	$val =~ s{'}{''}g;
+	return new Tangram::Filter(expr => "regexp_like($self->{expr}, '$val')", tight => 0,
+				   objects => Set::Object->new($self->objects) );
 }
 
 sub count
@@ -677,6 +691,14 @@ sub in
 
 }
 
+sub log {
+    my $self = shift;
+    my $base = shift || exp(1);
+
+    my $expr = $self->expr(); # the SQL string for this Expr
+    $self->{type}->expr("log($base, $expr)", $self->objects);
+}
+
 sub DESTROY { }
 
 use vars qw( $AUTOLOAD );
@@ -727,17 +749,17 @@ sub new
 
 sub object
 {
-	shift->{object}
+	shift->{_object}
 }
 
 sub table_ids
 {
-	shift->{object}->table_ids()
+	shift->{_object}->table_ids()
 }
 
 sub class
 {
-	shift->{object}{class}
+	shift->{_object}{class}
 }
 
 sub eq
@@ -754,9 +776,9 @@ sub eq
 	}
 	else
 	{
-		my $other_id = $self->{object}{storage}->id($other)
+		my $other_id = $self->{_object}{storage}->id($other)
 			or confess "'$other' is not a persistent object";
-		$self->{id} == $self->{object}{storage}->export_object($other)
+		$self->{id} == $self->{_object}{storage}->export_object($other)
 	}
 }
 
@@ -764,7 +786,7 @@ sub is_kind_of
 {
 	my ($self, $class) = @_;
 
-	my $object = $self->{object};
+	my $object = $self->{_object};
 	my $root = $object->{tables}[0][1];
 	my $storage = $object->{storage};
 
@@ -779,7 +801,7 @@ sub in
 {
 	my $self = shift;
 
-	my $object = $self->{object};
+	my $object = $self->{_object};
 	my $root = $object->{tables}[0][1];
 	my $storage = $object->{storage};
 

@@ -80,6 +80,12 @@ object. Automatic update ensures consisitency between the Perl
 representation and the DBMS state, but degrades update performance so
 use it with caution. The default is not to do automatic updates.
 
+B<warning>: there is currently something of a bug with all deep_update
+collections.  If you (for instance) insert an object, and a property
+of that object that is deep_update, then sometimes things end up
+getting inserted twice - especially in mapping tables.  This is
+currently under investigation.
+
 You may also pass the names of the persistent fields in an array, in
 which case Tangram uses the field names as column names and allows
 NULL values.

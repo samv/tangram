@@ -1,0 +1,167 @@
+=head1 NAME
+
+Tangram - Store pure objects in standard relational databases
+
+=head1 DESCRIPTION
+
+Tangram is an I<object-relational mapper>.
+
+It consists of an I<schema language> that can be built around an
+object structure, or around an existing SQL schema (with some
+limitations).  This schema language is rich enough to express such
+common RDBMS features as links, foreign keys, and link tables.
+
+It also consists of a I<relational database storage> engine, which
+based on the schema structure, will make Perl structures persist in a
+relational (SQL compliant) database.  References to other objects (or
+collections, as represented with foreign keys and link tables) may be
+loaded using I<on demand references> that `lazily' load data when it
+is needed.
+
+Tangram has soundly engineered transaction support, without
+sacrificing excellent data caching abilities.
+
+In short, it implements B<orthogonal object persistence>.
+
+Once your object are persistent, you can build query expressions to
+find them in terms of the schema language that you used to put them
+in.  The schema data structure does not describe a data structure, it
+describes a I<data access pattern>.
+
+If you are looking for a tool that implements I<SQL abstraction> only,
+you have probably missed the point (of this module, anyway), and a
+well-supported module like L<Class::DBI> will likely suit your needs
+better.
+
+Tangram is beginning to include preliminary support for aggregation
+functions, and currently supports grouping, summing and counting.
+
+Tangram currently contains no support for database-side updates, but
+support is planned.
+
+=head1 DOCUMENTATION INDEX
+
+=head1 CONTENTS
+
+=over
+
+=item L<Tangram::Tour>
+
+The original "Guided Tour" of the features of Tangram, by the author
+of Tangram versions 1 through 2.04 (and a somewhat divergant version 3
+;-)), Jean-Louis LeRoy.
+
+=item L<Tangram::Springfield>
+
+The classes and schema used in the Guided Tour.
+
+=item L<Tangram::Storage>
+
+The main database handle class.  Includes details on query syntax.
+
+=item L<Tangram::Cursor>
+
+Return an iterator that retrieves persistent objects in a result set
+one by one.
+
+=item L<Tangram::Schema>
+
+The Tangram schema structure - representing your data model so that
+Tangram can map it.
+
+=item L<Tangram::Relational::Mappings>
+
+An informative text on exactly how Object Relational Mapping is
+accomplished by the Tangram::Relational back-end, what the different
+styles of mapping are, and how each is selected.
+
+=item L<Tangram::Type>
+
+What Tangram types are available.  This page is an index of other
+manual pages that express the data and relationship types available in
+Tangram.
+
+=item L<Tangram::Type::Extending>
+
+How to write your own custom types for Tangram.
+
+=item L<Tangram::Dialect>
+
+Database-specific extensions to Tangram, such as L<Tangram::mysql> and
+L<Tangram::Sybase>.  These extensions only add functionality, and are
+not required for core operation of Tangram.
+
+=head1 COMPATIBILITY
+
+Tangram is known to run in the following environments, however,
+Tangram uses standard SQL and should be usable with any SQL-83
+compliant database.
+
+Note that some functions (e.g. transactions and subselects) may not be
+available in some environments. This is reported during the test suite.
+
+=over 4
+
+=item *
+
+Perl 5.6.1
+
+=item *
+
+Set::Object 1.04
+
+=item *
+
+DBI 1.14
+
+=item *
+
+DBD::mysql 2.0402
+
+=item *
+
+DBD::Oracle 1.06
+
+=item *
+
+DBD::Sybase 0.21
+
+=item *
+
+DBD::Pg 0.93
+
+=back
+
+=head1 LICENSE & WARRANTY
+
+You may use Tangram, free of charge, under the terms of the GPL.
+
+You can obtain a commercial license for old (2.04 and earlier)
+versions of Tangram from Sound Object Logic, see
+http://www.soundobjectlogic.com/tangram/licenses.html.
+
+TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
+
+=head1 SUPPORT
+
+Please send bug reports directly to the Tangram 2 maintainer's mailing
+list <tangram-t2-maintainers@tangram-persistence.org>, and please CC:
+<bug-Tangram@rt.cpan.org> so your fault can be tracked accurately.
+
+Whenever possible, include a short yet complete script demonstrating
+the problem.  (read: if you want it fixed quicker, demonstrate it)
+
+Questions of general interest should should be posted to the mailing
+list, but not sent to rt.cpan.org.
+
+Commercial support for Tangram is available, see
+http://www.soundobjectlogic.com/tangram/support.html.
+
+=head1 AUTHORS
+
+Except where noted, all the code and documentation was written by
+Jean-Louis Leroy (jll@soundobjectlogic.com) and Sound Object Logic.
+
+Sam Vilain <sam@vilain.net> is the current humble maintainer.
+
+=cut

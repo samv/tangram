@@ -63,9 +63,9 @@ sub defered_save {
 		  if ($item_id != $old_state->{$slot})
 			{
 			  # val has changed
-			  $storage->sql_do(
-							   "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$slot$Q" );
-			}
+			  $storage->sql_do
+			      ( "UPDATE\n    $table\nSET\n    $item_col = $item_id\nWHERE\n    $coll_col = $coll_id     AND\n    $slot_col = $Q$slot$Q" );
+		      }
 		}
 	  else
 		{
@@ -76,13 +76,13 @@ sub defered_save {
 			  # recycle an existing line
 			  my $rslot = shift @free;
 			  $storage->sql_do(
-							   "UPDATE $table SET $slot_col = $Q$slot$Q, $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$rslot$Q" );
+					   "UPDATE\n    $table\nSET\n    $slot_col = $Q$slot$Q,\n    $item_col = $item_id\nWHERE\n    $coll_col = $coll_id    AND\n    $slot_col = $Q$rslot$Q" );
 			}
 		  else
 			{
 			  # insert a new line
 			  $storage->sql_do(
-							   "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $Q$slot$Q)" );
+							   "INSERT INTO $table ($coll_col, $item_col, $slot_col)\n     VALUES ($coll_id, $item_id, $Q$slot$Q)" );
 			}
 		}
 	  
@@ -95,7 +95,7 @@ sub defered_save {
   if (@free)
 	{
 	  @free = map { "$Q$_$Q" } @free if $Q;
-	  $storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
+	  $storage->sql_do( "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id     AND\n    $slot_col IN (@free)" );
 	}
   
   $self->set_load_state($storage, $obj, $field, \%new_state );	
@@ -114,7 +114,7 @@ sub erase
 		my $table = $def->{table} || $def->{class} . "_$member";
 		my $coll_col = $def->{coll} || 'coll';
 	
-		my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
+		my $sql = "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id";
 		$storage->sql_do($sql);
     }
 }

@@ -77,7 +77,7 @@ $schema = Tangram::Schema->new
     # Allow InnoDB style tables
     ( $table_type ? ( table_type => $table_type ) : () ),
 
-    #dumper => "Storable",
+    dumper => "Data::Dumper",
    },
 
    class_table => 'Classes',
@@ -184,6 +184,13 @@ $schema = Tangram::Schema->new
 		  table => 's_children',
 		  aggreg => 1,
 		 },
+		 #s_parents =>
+		 #{
+		  #class => 'NaturalPerson',
+		  #table => 's_children',
+		  #coll => "item",
+		  #item => "coll",
+		 #},
 		 s_opinions =>
 		 {
 		  class => 'Opinion',
@@ -213,7 +220,9 @@ $schema = Tangram::Schema->new
 
 		perl_dump => [ qw( brains ) ],
 
-		storable => [ qw( thought ) ],
+		( $vendor !~ m/^Pg$/
+		  ? (storable => [ qw( thought ) ])
+		  : () ),
 	   },
       },
 
@@ -373,12 +382,18 @@ sub begin_tests
    $test = 1;
 }
 
+sub _caller
+{
+	my @caller = caller(1);
+	return "$caller[1] line $caller[2]";
+}
+
 sub test
 {
 	my $ok = shift;
    print 'not ' unless $ok;
    print 'ok ', $test++;
-	print "\n";
+	print " - "._caller()."\n";
 
 	my ($fun, $file, $line) = caller;
 	print "$file($line) : error\n" unless $ok;
@@ -390,12 +405,12 @@ sub leaktest
 {
    if ($SpringfieldObject::pop == 0)
    {
-      print "ok $test\n";
+      print "ok $test - leaktest "._caller()."\n";
    }
    else
    {
 		my ($fun, $file, $line) = caller;
-      print "not ok $test\n";
+      print "not ok $test - leaktest "._caller()."\n";
 		print "$file($line) : error: $SpringfieldObject::pop object(s) leaked\n";
    }
 

@@ -69,37 +69,84 @@ sub select
 	$self->{-distinct} = $args{distinct};
 	$self->{-limit} = $args{limit};
 
-	my $objects = Set::Object->new();
+	# with outer queries, each remote object is either inside or
+	# outside the query.
+	my ($inner_objects, $outer_objects)
+	    = (Set::Object->new(), Set::Object->new());
 
 	if (exists $args{retrieve}) {
 	    $self->retrieve( @{ $args{retrieve} } );
-	    $objects->insert
+	    # assume that objects are outside the query until joined
+	    $outer_objects->insert
 		( map { $_->{objects}->members }
 		  @{ $args{retrieve} } );
 	}
 
 	my $target = $self->{TARGET};
-
 	my (@filter_from, @filter_where);
+	$inner_objects->insert($target->object) if $target;
 
-	my $filter = Tangram::Filter->new( tight => 100, objects => $objects );
+	my $filter = Tangram::Filter->new( tight => 100,
+					   objects => $inner_objects );
+	my ($seen_inner, $outer);
 
-	if (my $user_filter = $args{filter})
-	{
-		$filter->{expr} = $user_filter->{expr};
-		$filter->{objects}->insert($user_filter->{objects}->members);
-		$filter->{objects}->remove($target->object) if $target;
+	# anything mentioned in the `filter' is part of the inner query
+	if (my $user_filter = $args{filter}) {
+	    $seen_inner = 1;
+	    $filter->{expr} = $user_filter->{expr};
+	    $inner_objects->insert($user_filter->{objects}->members);
 	}
+
+	$outer_objects->remove($inner_objects->members);
+
+	# anything mentioned in the `outer_filter' is part of the
+	# outer query
+	if (my $outer_filter = $args{outer_filter}) {
+	    #kill 2, $$;
+	    if ( my $forced_outer = $args{force_outer} ) {
+		$inner_objects->remove(map { $_->object }
+				       @$forced_outer);
+	    }
+
+	    $outer = Tangram::Filter->new( tight => 100,
+					   objects => $outer_objects );
+	    $outer->{expr} = $outer_filter->{expr};
+	    $outer->{objects}->insert($outer_filter->{objects}->members);
+	    $outer->{objects}->remove($inner_objects->members);
+
+	} elsif ( $outer_objects->size ) {
+
+	    # If there is no outer query, then we must add the
+	    # selected tables to the inner query part.
+
+	    # this follows old behaviour, but may result in cartesian
+	    # products.
+	    $inner_objects->insert($outer_objects->members);
+	}
+
+	# insert all inner tables to the inner filter
+	$filter->{objects}->insert($inner_objects->members);
+	$filter->{objects}->remove($target->object) if $target;
 
 	my @polysel = 
 	     $self->{STORAGE}->get_polymorphic_select
-	     ( $target ? $target->class : "");
+	     ( $target
+	       ? ($target->class||confess("argh!"))
+	       : "");
 
 	$self->{SELECTS} =
 	    [
 	     map {
-		 [ $self->build_select( $_, [], [ $filter->from ],
-					[ $filter->where ]), undef, $_ ]
+		 [ $self->build_select( $_,
+					[],
+					[ $filter->from ],
+					[ $filter->where ],
+					( $outer
+					  ? ([ $outer->from ],
+					     [ $outer->where ],
+					    ) : () )
+				      ),
+		   undef, $_ ]
 	     } @polysel
 	    ];
 
@@ -142,66 +189,25 @@ sub prepare_next_statement
 
 sub build_select
 {
-	my ($self, $template, $cols, $from, $where) = @_;
+	my ($self, $template, $cols, $from, $where, $ofrom, $owhere)
+	    = @_;
 
 	if (my $retrieve = $self->{-retrieve})
 	{
 		@$cols = map { $_->{expr} } @$retrieve;
 	}
 
-	my $select = $template->instantiate( $self->{TARGET}, $cols, $from, $where);
+	my $select = $template->instantiate
+	    ( $self->{TARGET}, $cols, $from, $where,
+	      ( $self->{-group} ? (group => $self->{-group}) : () ),
+	      ( $self->{-order} ? (order => $self->{-order}) : () ),
+	      ( $self->{-distinct} ? (distinct => $self->{-distinct}) : () ),
+	      ( $self->{-limit} ? (limit => $self->{-limit}) : () ),
+	      ( $self->{-desc} ? (desc => $self->{-desc}) : () ),
+	      ( $ofrom ? ( ofrom => $ofrom ) : () ),
+	      ( $owhere ? ( owhere => $owhere ) : () ),
+	    );
 	
-	substr($select, length('SELECT'), 0) = ' DISTINCT'
-	  if $self->{-distinct};
-
-	#unless ($self->{-my_rdbms_sucks} or !blessed $cols)
-	    #{
-		#$select .= ("\n\tGROUP BY ".$cols->root_table);
-	#}
-
-
-	if (my $group = $self->{-group})
-	{
-	   $DB::single = 1;
-           # add the fields that we're grouping by to the select part
-           # of the query
-           my @not_in_it = (grep { $select !~ m/ \Q$_\E(?:,|$)/ }
-			    map { $_->expr } @$group);
-           $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
-	       if @not_in_it;
-
-	   # FIXME - this should include *ALL* selected columns that
-	   # are not aggregate functions.  In short, normally you
-	   # would not want to select an object.
-           $select .= ("\n\tGROUP BY ".
-		       join ', ', map { $_->expr } @$group);
-	}
-
-	if (my $order = $self->{-order})
-	{
-           # add the fields that we're ordering by to the select part
-           # of the query
-           my @not_in_it = (grep { $select !~ m/ \Q$_\E(?:,|$)/ }
-			    map { $_->expr } @$order);
-           $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
-	       if @not_in_it;
-
-           $select .= ("\n\tORDER BY ".
-		       join ', ', map { $_->expr } @$order);
-	}
-
-	if ($self->{-desc})
-	{
-		$select .= ' DESC';
-	}
-
-	if (defined $self->{-limit}) {
-	    if (ref $self->{-limit}) {
-		$select .= " LIMIT ".join(",",@{ $self->{-limit} });
-	    } else {
-		$select .= " LIMIT $self->{-limit}";
-	    }
-	}
 
 	return $select;
 }
@@ -294,7 +300,7 @@ sub residue
 sub object
 {
 	my ($self) = @_;
-	return $self->{object};
+	return $self->{_object};
 }
 
 package Tangram::DataCursor;

@@ -13,8 +13,11 @@ require Exporter;
 @EXPORT = qw(
 	
 );
-$VERSION = '2.07_05';
 
+{ no warnings;
+$VERSION = '2.07_06';
+$VERSION + 0;
+}
 
 # Preloaded methods go here.
 

@@ -22,11 +22,12 @@ sub marge_test
 {
 	my $storage = shift;
 	Springfield::test( $intrusive
-					   || $storage->load( $id{Marge} )->children eq 'Bart Lisa Maggie' );
+			   || $storage->load( $id{Marge} )->children eq 'Bart Lisa Maggie' );
 }
 
 sub stdpop
 {
+    #local($Tangram::TRACE) = \*STDERR;
 	my $storage = Springfield::connect_empty;
 
 	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
@@ -41,9 +42,10 @@ sub stdpop
 	$id{Marge} = $storage->insert($marge);
 
 	$storage->disconnect;
+    #<>;
 }
 
-Springfield::begin_tests(42);
+Springfield::begin_tests(43);
 
 stdpop();
 
@@ -88,8 +90,14 @@ Springfield::leaktest;
 	Springfield::test( $homer->children eq '' );
 	marge_test( $storage );
 
-	$homer->{$children}->insert( $storage->load( $id{Bart} ) );
+	my $bart;
+	$homer->{$children}->insert
+	    ( $bart =
+	      ($intrusive
+	       ? NaturalPerson->new(firstName => "Bart")
+	       : $storage->load($id{Bart}) ));
 	$storage->update($homer);
+	$id{Bart} = $storage->id($bart);
 
 	$storage->disconnect;
 }
@@ -103,8 +111,19 @@ Springfield::leaktest;
 	Springfield::test( $homer->children eq 'Bart' );
 	marge_test( $storage );
 
-	$homer->{$children}->insert( $storage->load( @id{qw( Lisa Maggie )} ) );
+	my ($lisa, $maggie);
+	$homer->{$children}->insert
+	    ( ($lisa, $maggie) =
+	      ($intrusive
+	       ? ( map {
+		   NaturalPerson->new(firstName => $_) }
+		   qw( Lisa Maggie ) )
+	       : ( $storage->load(@id{qw(Lisa Maggie)})
+		 ),
+	      ) );
+	
 	$storage->update($homer);
+	@id{qw(Lisa Maggie)} = $storage->id($lisa, $maggie);
 
 	$storage->disconnect;
 }
@@ -198,18 +217,23 @@ my $parents = $intrusive ? 'Homer' : 'Homer Marge';
 
 	Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
    
+	marge_test( $storage );
 	$storage->disconnect();
 }      
 
 Springfield::leaktest;
 
 {
+    #local($Tangram::TRACE) = \*STDERR;
 	my $storage = Springfield::connect;
 	my $parent = $storage->remote( 'NaturalPerson' );
-	my $bart = $storage->load( $id{Bart} );
+	my $lisa = $storage->load( $id{Lisa} );
 
-	my @results = $storage->select( $parent, $parent->{$children}->includes( $bart ) );
+	my @results = $storage->select
+	    ( $parent,
+	      $parent->{$children}->includes( $lisa ) );
 
+	#print "# `", join( ' ', sort map { $_->{firstName} } @results ),"' vs `", $parents,"'\n";
 	Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
 	$storage->disconnect();
 }      

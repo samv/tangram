@@ -150,6 +150,8 @@ sub get_importer {
 	# $Tangram::TRACE = \*STDOUT;
 
 	$import_source = ( "sub { my (\$obj, \$row, \$context) = \@_;"
+			   ."(ref(\$row) eq 'ARRAY') and (\@\$row) or Carp::confess('no row!');\n"
+			   .'# line 1 "foo.pl"'."\n"
 			   ."$copy_closures\n$import_source }" );
 
 	print $Tangram::TRACE "Compiling importer for $self->{name}...\n".($Tangram::DEBUG_LEVEL > 1 ? "$import_source\n" : "")."\n"

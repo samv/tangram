@@ -19,8 +19,7 @@ use vars qw( $TRACE $DEBUG_LEVEL );
 $TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
   if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
 
-
-$DEBUG_LEVEL = 0;
+$DEBUG_LEVEL = $ENV{TANGRAM_DEBUG_LEVEL} || 0;
 
 package Tangram::Core;
 

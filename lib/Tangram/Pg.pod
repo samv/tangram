@@ -1,0 +1,39 @@
+=head1 NAME
+
+Tangram::Pg - Orthogonal Object Persistence in PostgreSQL databases
+
+=head1 SYNOPSIS
+
+   use Tangram;
+   use Tangram::Pg;
+
+   $schema = Tangram::Pg->schema( $hashref );
+
+   Tangram::Pg->deploy($schema, $dbh);
+      
+   $storage = Tangram::Pg->connect( $schema,
+      $data_source, $username, $password );
+
+   $storage->disconnect();
+
+   Tangram::Pg->retreat($schema, $dbh);
+
+=head1 DESCRIPTION
+
+This is the entry point in the Pg-specific object-relational
+persistence backend.
+
+This module performs the following:
+
+=head1 METHODS
+
+This backend does not add any methods; for a description of
+available methods, see L<Tangram::Relational>.
+
+=head1 ERRATA
+
+I haven't got binary storage into VARCHAR or BLOB columns working with
+Pg, so the L<Tangram::Storable> module will not work with this
+back-end.
+
+Also, 

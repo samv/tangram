@@ -198,8 +198,7 @@ object"
     
         Tangram::Filter->new
         (
-         expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND
-t$link_tid.$item_col IN ($joined_targets)",
+         expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND t$link_tid.$item_col IN ($joined_targets)",
          tight => 100,      
          objects => $objects,
          link_tid => $link_tid # for Sequence prefetch
@@ -207,7 +206,9 @@ t$link_tid.$item_col IN ($joined_targets)",
 }
 
 
-use overload '<' => \&includes;
+use overload
+    '<' => \&includes,
+    fallback => 1;
 
 package Tangram::IntrCollExpr;
 

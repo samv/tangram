@@ -11,7 +11,7 @@ use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;
 
-use Test::More tests => 21;
+use Test::More tests => 23;
 
 #--------------------
 # setup tests
@@ -115,6 +115,41 @@ my $dbh = DBI->connect($cs, $user, $passwd)
    is(join( ' ', sort map { $_->{firstName} } @results ),
       'Homer Marge',
       "!= undef test");
+
+   $storage->disconnect();
+}
+is(&leaked, 0, "leaktest");
+
+#--------------------
+# test outer joins; only really make sense with retrieve
+{
+   my $storage = Springfield::connect(undef, { dbh => $dbh });
+
+   #local($Tangram::TRACE) = \*STDERR;
+
+   my ($person, $partner) = $storage->remote(qw( NaturalPerson
+						 NaturalPerson ));
+
+   my $cursor = $storage->cursor
+       (
+	$person,
+	retrieve => [ $partner->{firstName} ],
+	order => [ $person->{firstName} ],
+	outer_filter => ($person->{partner} == $partner),
+       );
+
+   my @results;
+   while ( my $person = $cursor->current ) {
+       push @results, ($person->{firstName}.":"
+		       .join(":",map { $_||""} $cursor->residue));
+       $cursor->next();
+   }
+
+   #diag(Data::Dumper::Dumper(\@results));
+
+   is_deeply(\@results,
+	     [ qw( Homer:Marge Marge:Homer Montgomery: ) ],
+	     "outer join");
 
    $storage->disconnect();
 }

@@ -86,9 +86,9 @@ sub defered_save
 		my $ex_item_id = $storage->{export_id}->($item_id);
 		
 		$storage->sql_do
-		    ("UPDATE $table SET "
-		     ."$item_col = $coll_id, "
-		     ."$slot_col = $slot WHERE "
+		    ("UPDATE\n    $table\nSET\n    "
+		     ."$item_col = $coll_id,\n    "
+		     ."$slot_col = $slot\nWHERE\n    "
 		     ."$storage->{schema}{sql}{id_col} = $ex_item_id")
 		  unless $slot < $old_size && $item_id eq $old_state->[$slot];
 		
@@ -100,7 +100,7 @@ sub defered_save
 	if (keys %removed)
 	  {
 		my $removed = join(', ', map { $storage->{export_id}->($_) } keys %removed);
-		$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $storage->{schema}{sql}{id_col} IN ($removed)");
+		$storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = NULL,\n    $slot_col = NULL\nWHERE\n    $storage->{schema}{sql}{id_col} IN ($removed)");
 	  }
 	
 	$self->set_load_state($storage, $obj, $field, \@new_state);	
@@ -129,7 +129,7 @@ sub erase
 			my $item_col = $def->{coll};
 			my $slot_col = $def->{slot};
       
-			$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
+			$storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = NULL,\n    $slot_col = NULL\nWHERE\n    $item_col = $coll_id" );
 		}
 	}
 }
@@ -178,7 +178,7 @@ sub prefetch
 	# also retrieve collection-side id and index of elmt in sequence
 	$cursor->retrieve($coll->{id},
 	    $storage->expr(Tangram::Integer->instance,
-			"t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}") );
+			"t$ritem->{_object}{table_hash}{$def->{class}}.$def->{slot}") );
 
 	$cursor->select($includes);
    

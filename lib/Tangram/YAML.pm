@@ -47,7 +47,7 @@ L<http://rt.cpan.org/NoAuth/Bug.html?id=4784>).
 
 use strict;
 use Tangram::Scalar;
-use YAML;
+use YAML qw(freeze thaw);
 
 use vars qw(@ISA);
 @ISA = qw( Tangram::String );
@@ -98,10 +98,10 @@ sub reschema {
 sub get_importer
 {
 	my ($self, $context) = @_;
-        return("my \$x = '--- '.(shift \@\$row).'\n';
+        return("{ my \$x = '--- '.((shift \@\$row)||'~').'\n';
                 \$obj->{$self->{name}} = YAML::thaw(\$x);"
                ."Tangram::Dump::unflatten(\$context->{storage}, "
-               ."\$obj->{$self->{name}})");
+               ."\$obj->{$self->{name}}) }");
   }
 
 sub get_exporter

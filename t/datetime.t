@@ -12,7 +12,7 @@ BEGIN {
     }
 }
 
-my $do_rawtests = ($dialect =~ m/^Tangram::(mysql|Pg)$/);
+my $do_rawtests = ($dialect =~ m/^Tangram::mysql$/);
 
 #tests_for_dialect(qw( mysql Pg ));
 

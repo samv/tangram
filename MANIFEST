@@ -6,85 +6,92 @@ README
 tour
 #metatest.pl
 #supported.pl
-Tangram.pm
-Tangram.pod
-Tangram/Tour.pod
 
-Tangram/Relational.pm
-Tangram/Relational/Engine.pm
-Tangram/Relational.pod
-Tangram/Relational/Mappings.pod
+lib/Tangram.pm
+lib/Tangram.pod
+lib/Tangram/Tour.pod
 
-Tangram/Schema.pm
-Tangram/Storage.pm
-Tangram/Cursor.pm
-Tangram/Expr.pm
-Tangram/Type.pm
-Tangram/Scalar.pm
-Tangram/Core.pm
+lib/Tangram/Relational.pm
+lib/Tangram/Relational/Engine.pm
+lib/Tangram/Relational.pod
+lib/Tangram/Relational/Mappings.pod
 
-Tangram/Deploy.pm
+lib/Tangram/Schema.pm
+lib/Tangram/Storage.pm
+lib/Tangram/Cursor.pm
+lib/Tangram/Expr.pm
+lib/Tangram/Type.pm
+lib/Tangram/Scalar.pm
+lib/Tangram/Core.pm
 
-Tangram/Sybase.pm
-Tangram/Sybase.pod
-Tangram/mysql.pm
-Tangram/mysql.pod
-Tangram/Oracle.pm
-Tangram/Oracle.pod
+lib/Tangram/Deploy.pm
 
-Tangram/Ref.pm
-Tangram/IntrRef.pm
+lib/Tangram/Sybase.pm
+lib/Tangram/Sybase.pod
+lib/Tangram/mysql.pm
+lib/Tangram/mysql.pod
+lib/Tangram/Oracle.pm
+lib/Tangram/Oracle.pod
+lib/Tangram/Pg.pm
+lib/Tangram/Pg.pod
 
-Tangram/Coll.pm
+lib/Tangram/Ref.pm
+lib/Tangram/IntrRef.pm
 
-Tangram/AbstractArray.pm
-Tangram/Array.pm
-Tangram/IntrArray.pm
-Tangram/FlatArray.pm
-Tangram/FlatHash.pm
+lib/Tangram/Coll.pm
 
-Tangram/AbstractSet.pm
-Tangram/Set.pm
-Tangram/IntrSet.pm
+lib/Tangram/AbstractArray.pm
+lib/Tangram/Array.pm
+lib/Tangram/IntrArray.pm
+lib/Tangram/FlatArray.pm
+lib/Tangram/FlatHash.pm
 
-Tangram/IDBIF.pm
-Tangram/Complicity.pm
+lib/Tangram/AbstractSet.pm
+lib/Tangram/Set.pm
+lib/Tangram/IntrSet.pm
 
-Tangram/AbstractHash.pm
-Tangram/Hash.pm
-Tangram/IntrHash.pm
+lib/Tangram/IDBIF.pm
+lib/Tangram/Complicity.pm
 
-Tangram/RawDate.pm
-Tangram/RawDateTime.pm
-Tangram/RawTime.pm
-Tangram/DMDateTime.pm
+lib/Tangram/AbstractHash.pm
+lib/Tangram/Hash.pm
+lib/Tangram/IntrHash.pm
+
+lib/Tangram/RawDate.pm
+lib/Tangram/RawDateTime.pm
+lib/Tangram/RawTime.pm
+lib/Tangram/DMDateTime.pm
 # Tangram/Lobs.pm
 
-Tangram/PerlDump.pm
-Tangram/PerlDump.pod
+lib/Tangram/PerlDump.pm
+lib/Tangram/PerlDump.pod
+lib/Tangram/Dump.pm
+lib/Tangram/Storable.pm
+lib/Tangram/Storable.pod
+lib/Tangram/YAML.pm
 
-Tangram/Springfield.pm
-Tangram/Springfield.pod
+lib/Tangram/Springfield.pm
+lib/Tangram/Springfield.pod
 
-Tangram/Core.pod
-Tangram/Schema.pod
-Tangram/Deploy.pod
-Tangram/Storage.pod
-Tangram/Cursor.pod
-Tangram/Remote.pod
-Tangram/Expr.pod
-Tangram/Scalar.pod
-Tangram/Ref.pod
-Tangram/Array.pod
-Tangram/IntrArray.pod
-Tangram/FlatArray.pod
-Tangram/FlatHash.pod
-Tangram/Set.pod
-Tangram/IntrSet.pod
-Tangram/DateTime.pod
+lib/Tangram/Core.pod
+lib/Tangram/Schema.pod
+lib/Tangram/Deploy.pod
+lib/Tangram/Storage.pod
+lib/Tangram/Cursor.pod
+lib/Tangram/Remote.pod
+lib/Tangram/Expr.pod
+lib/Tangram/Scalar.pod
+lib/Tangram/Ref.pod
+lib/Tangram/Array.pod
+lib/Tangram/IntrArray.pod
+lib/Tangram/FlatArray.pod
+lib/Tangram/FlatHash.pod
+lib/Tangram/Set.pod
+lib/Tangram/IntrSet.pod
+lib/Tangram/DateTime.pod
 
-Tangram/Type.pod
-Tangram/Type/Extending.pod
+lib/Tangram/Type.pod
+lib/Tangram/Type/Extending.pod
 
 t/Springfield.pm
 
@@ -130,12 +137,9 @@ debian/copyright
 
 META.yml                                Module meta-data (added by MakeMaker)
 t/prefetch.t
-Tangram/Dump.pm
-Tangram/Storable.pm
-Tangram/Storable.pod
-Tangram/YAML.pm
 t/dump.t
 t/ihash.t
 t/storable.t
 t/idbif.t
 t/aggregate.t
+t/poly.t

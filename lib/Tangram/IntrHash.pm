@@ -75,7 +75,7 @@ sub defered_save
 
        my $item_id = $storage->export_object( $coll->{$slot} ) || die;
 
-       $storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = ? WHERE $storage->{schema}{sql}{id_col} = ?", $slot, $item_id)
+       $storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = $coll_id,\n    $slot_col = ?\nWHERE\n    $storage->{schema}{sql}{id_col} = ?", $slot, $item_id)
 	   unless (exists $old_state->{$slot} and
 		   $item_id eq $old_state->{$slot});
 
@@ -86,7 +86,7 @@ sub defered_save
    if (keys %removed)
        {
 	   my $removed = join(' ', values %removed);
-	   $storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $storage->{schema}{sql}{id_col} IN ($removed)");
+	   $storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = NULL,\n    $slot_col = NULL\nWHERE\n    $storage->{schema}{sql}{id_col} IN ($removed)");
        }
 
    $old_states->{$field} = \%new_state;
@@ -108,7 +108,7 @@ sub erase
       my $item_col = $def->{coll};
       my $slot_col = $def->{slot};
       
-      my $sql = "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id";
+      my $sql = "UPDATE\n    $table\nSET\n    $item_col = NULL,\n    $slot_col = NULL\nWHERE\n    $item_col = $coll_id";
       $storage->sql_do($sql);
    }
 }
@@ -162,7 +162,7 @@ sub prefetch
    $cursor->retrieve
        ($coll->{id},
 	$storage->expr(Tangram::Scalar->instance,
-		       "t$ritem->{object}{table_hash}{$def->{class}}"
+		       "t$ritem->{_object}{table_hash}{$def->{class}}"
 		       .".$def->{slot}")
        );
 

@@ -51,36 +51,36 @@ string. The hash uses the following fields:
 
 =item * class
 
-=item * aggreg
-
-=item * back
-
-=item * coll
-
-=item * deep_update
-
-=back
-
 Mandatory field C<class> specifies the class of the elements.
+
+=item * aggreg
 
 Optional field C<aggreg> specifies that the elements of the collection
 must be removed (erased) from persistent storage along with the
 containing object. The default is not to aggregate.
 
+=item * back
+
 Optional field C<back> sets the name of a field that is inserted in
 the elements. That field acts as a demand-loaded, read-only reference
 to the object containing the collection.
+
+=item * coll
 
 Optional field C<coll> sets the name the column containing the id of
 the containing object. This defaults to 'C_m', where 'C' is the class
 of the containing object (after passing through the normalisation
 function), and 'm' is the field name.
 
+=item * deep_update
+
 Optional field C<deep_update> specificies that all elements have to be
 updated automatically when C<update> is called on the collection
 object. Automatic update ensures consisitency between the Perl
 representation and the DBMS state, but degrades update performance so
 use it with caution. The default is not to do automatic updates.
+
+=back
 
 If the descriptor is a string, it is interpreted as the name of the
 element's class. This is equivalent to specifying only the C<class>

@@ -159,6 +159,6 @@ NOTESTS:
 
 WriteMakefile(
     'NAME'	=> 'Tangram',
-    'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
+    'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
     PREREQ_PM => \%required,
 );

@@ -17,7 +17,7 @@ sub connect
   }
 
 sub blob {
-    return "VARCHAR(2048)";
+    return "VARCHAR2(4000)";
 }
 
 sub date {
@@ -44,9 +44,16 @@ sub connect
     # dependant), so adjust it to use ISO-8601.
     $self->{db}->do
 	("ALTER SESSION SET NLS_DATE_FORMAT='YYYYMMDDHH24:MI:SS'");
-
+    $self->{db}->do
+	("ALTER SESSION SET CONSTRAINTS = DEFERRED");
+    $self->{db}->{RaiseError} = 1;
+    $self->{db}->{LongTruncOk} = 1;
     return $self;
 }
 
+
+sub has_tx()         { 1 }
+sub has_subselects() { 1 }
+sub from_dual()      { " FROM DUAL" }
 
 1;

@@ -199,6 +199,36 @@ the following example:
 updated. OTOH, $marge will not be automatically inserted nor updated;
 her age will remain '34' in persistent storage.
 
+=head2 id
+
+   $id = $storage->id( $obj );
+   @id = $storage->id( @obj );
+
+Returns the IDs of the given objects. If an object is not persistent
+in storage yet, its corresponding ID is undef().
+
+This method is valid in both L<scalar and list contexts>.
+
+=head2 oid_isa
+
+   if ($storage->oid_isa($id, "ClassName")) {
+      ...
+   }
+
+Checks that the passed Object ID, C<$id>, is a "ClassName" according
+to the schema.  This check relies solely on the information in the
+schema, not Perl's idea of C<-E<gt>isa> relationships.
+
+=head2 load
+
+   $obj = $storage->load( $id );
+   @obj = $storage->load( @id );
+
+Returns a list of objects given their IDs.
+Dies if any ID has no corresponding persistent object in storage.
+
+This method is valid in both L<scalar and list contexts>.
+
 =head2 remote
 
    @remote = $storage->remote( @classes );
@@ -276,7 +306,6 @@ specify more than one number, you may use the following syntax:
                      limit => [ 5, 10 ] );
 
 The above example would return rows 6 through 15 on a MySQL database.
-This feature is currently unimplemented for the Oracle back-end.
 
 The select method is valid only in list context.
 
@@ -541,100 +570,3 @@ TRANSACTION ISOLATION LEVEL>.
 
 Disconnects from the database. Drops references to persistent
 objects present in memory (see C<unload>).
-=head1 ID MANIPULATION FUNCTIONS
-
-Several Tangram::Storage methods exist for the purpose of manipulating
-object identifiers.  These are the canonical way to manipulate such
-identifiers.
-
-There are several terms used to refer to object identifiers;
-
-=over
-
-=item I<object ID>
-
-This identifier contains the I<exported object ID> (ie, the raw value
-of the C<id> column in the underlying table) and the I<Class ID> as a
-single value.  For example: C<1230007>
-
-=item I<exported object ID>
-
-This identifier is just the raw value of the C<id> column in the
-underlying table.  For example: C<123>
-
-=item I<Class ID>
-
-This is the unique identifier for the class in the Schema, for
-example: C<7>.
-
-=back
-
-=head2 id
-
-   $id = $storage->id( $obj );
-   @id = $storage->id( @obj );
-
-Returns the IDs of the given objects. If an object is not persistent
-in storage yet, its corresponding ID is undef().
-
-This method is valid in both L<scalar and list contexts>.
-
-=head2 oid_isa
-
-   if ($storage->oid_isa($id, "ClassName")) {
-      ...
-   }
-
-Checks that the passed Object ID, C<$id>, is a "ClassName" according
-to the schema.  This check relies solely on the information in the
-schema, not Perl's idea of C<-E<gt>isa> relationships.
-
-=head2 load
-
-   $obj = $storage->load( $id );
-   @obj = $storage->load( @id );
-
-Returns a list of objects given their IDs.
-Dies if any ID has no corresponding persistent object in storage.
-
-This method is valid in both L<scalar and list contexts>.
-
-=head2 export_object
-
-   $id = $storage->export_object( $obj );
-
-Returns an "exported" object ID (ie, the object ID without the class
-ID).
-
-=head2 import_object
-
-   $obj = $storage->import_object( "ClassName", $id );
-
-Opposite of export_object.  For when you know the type of the ID that
-you're loading up front, and prefer not to send class-endowed object
-identifiers around the place.
-
-=head2 class_id
-
-   $cid = $storage->class_id( "ClassName" );
-
-Returns the class ID of the passed object type.
-
-Note: if the Class is not defined in the schema, but a superclass of
-that Class is defined, then the class ID of the superclass is
-returned.
-
-=head2 combine_ids
-
-   $oid = $storage->combine_ids( $id, $cid );
-
-Combines the passed exported object ID and class ID into an object
-identifier valid for this storage instance.
-
-=head2 split_id
-
-   ($id, $cid) = $storage->split_id( $oid );
-
-Splits the passed combined Object ID into an exported object ID and a
-class ID.
-

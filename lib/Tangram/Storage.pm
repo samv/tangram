@@ -5,7 +5,7 @@ use strict;
 package Tangram::Storage;
 use DBI;
 use Carp;
-use Tangram::Core qw(pretty);
+use Tangram::Core;
 
 use vars qw( %storage_class );
 
@@ -43,7 +43,8 @@ sub schema
 sub export_object
   {
     my ($self, $obj) = @_;
-    return $self->{export_id}->($self->{get_id}->($obj));
+    my $oid = $self->{get_id}->($obj);
+    return ($oid ? $self->{export_id}->($oid) : undef);
   }
 
 sub split_id
@@ -54,11 +55,13 @@ sub split_id
 	return ( substr($id, 0, -$cid_size), substr($id, -$cid_size) );
   }
 
+use Scalar::Util qw(looks_like_number);
+
 sub combine_ids
   {
 	my $self = shift;
-	defined(my $id = shift) or confess "no id";
-	defined(my $cid = shift) or confess "no cid";
+	looks_like_number(my $id = shift) or confess "no id";
+	looks_like_number(my $cid = shift) or confess "no cid";
 	defined($self->{cid_size}) or die "no CID size in schema";
 	return ( $self->{layout1}
 		 ? shift
@@ -87,7 +90,8 @@ sub _open
 
 	{
 	  local $dbh->{PrintError} = 0;
-	  my $control = $dbh->selectall_arrayref("SELECT * FROM $schema->{control}");
+	  my $control = $dbh->selectall_arrayref("SELECT * FROM $schema->{control}")
+	      or die $DBI::errstr;
 
 	  $self->{id_col} = $schema->{sql}{id_col};
 
@@ -123,9 +127,9 @@ sub _open
 
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
 		if ($id) {
-		   print $Tangram::TRACE "Welcoming $obj as $id\n";
+		   print $Tangram::TRACE "Tangram: welcoming $obj as $id\n";
 		} else {
-		   print $Tangram::TRACE "Un-welcoming $obj\n";
+		   print $Tangram::TRACE "Tangram: un-welcoming $obj\n";
 		}
 	  }
 	  if ($id) {
@@ -136,11 +140,11 @@ sub _open
 	};
 
     $self->{get_id} = $schema->{get_id} || sub {
-	  my $obj = shift;
+	  my $obj = shift or warn "no object passed to get_id";
 	  my $address = Tangram::refaddr($obj);
 	  my $id = $self->{ids}{$address};
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
-		print $Tangram::TRACE "$obj is ".($id?"oid $id" : "not in storage")."\n";
+		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
 	  }
 	  return undef unless $id;
 	  # refaddr's can be re-used, but weakrefs are magic :-)
@@ -176,9 +180,8 @@ sub open_connection
     my $db = DBI->connect($self->{-cs}, $self->{-user}, $self->{-pw})
 	or die;
 
-    if (exists $self->{no_tx}) {
+    if (defined $self->{no_tx}) {
 	$db->{AutoCommit} = ($self->{no_tx} ? 1 : 0);
-
     }
 
     return $db;
@@ -205,8 +208,11 @@ sub close_connection
 sub cursor
 {
     my ($self, $class, @args) = @_;
-    my $cursor = Tangram::Cursor->new($self, $class, $self->open_connection());
+
+    my $cursor = Tangram::Cursor->new($self, $class, #$self->open_connection());
+				      $self->{db});
     $cursor->select(@args);
+
     return $cursor;
 }
 
@@ -242,7 +248,7 @@ sub prepare
 	my ($self, $sql) = @_;
 	
 	print $Tangram::TRACE "Tangram::Storage: "
-	    ."preparing [@{[ $psi++ ]}] $sql\n"
+	    ."preparing: [@{[ $psi++ ]}] >-\n$sql\n...\n"
 	    if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 1);
 	$self->{db}->prepare($sql);
   }
@@ -254,10 +260,29 @@ sub prepare
 sub make_id
   {
     my ($self, $class_id) = @_;
-	
+
+    # see if the class has its own ID generator
+    my $cname = $self->{id2class}{$class_id};
+    my $classdef = $self->{schema}{classes}{$cname};
+
+    my $id;
+    if ( $classdef->{make_id} ) {
+	$id = $classdef->{make_id}->($class_id, $self);
+	print $Tangram::TRACE "Tangram: custom per-class ($cname) make ID function returned ".(pretty($id))."\n" if $Tangram::TRACE;
+    }
+
+    # maybe the entire schema has its own ID generator
+    if ( !defined($id) and $self->{schema}{sql}{make_id} ) {
+	$id = $self->{schema}{sql}{make_id}->($class_id, $self);
+	print $Tangram::TRACE "Tangram: custom schema make ID function returned "
+	    .(pretty($id))."\n" if $Tangram::TRACE;
+    }
+    if (defined($id)) {
+	return $self->combine_ids($id, $class_id);
+    }
+
 	unless ($self->{layout1}) {
-	  my $id;
-	  
+
 	  if (exists $self->{mark}) {
 		$id = $self->{mark}++;
 		$self->{set_mark} = 1;	# cleared by tx_start
@@ -266,7 +291,7 @@ sub make_id
 		$self->{mark} = $id+1;
  		$self->{set_mark} = 1;
 	  }
-	  
+
 	  return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
 	}
 
@@ -275,7 +300,7 @@ sub make_id
 
     my $alloc_id = $self->{alloc_id} ||= {};
     
-    my $id = $alloc_id->{$class_id};
+    $id = $alloc_id->{$class_id};
     
     if ($id)      {
 		$id = -$id if $id < 0;
@@ -352,8 +377,8 @@ sub class_id
 		if ( defined $self->{class2id}{$super} ) {
 		    $self->{class2id}{$_[0]}
 			= $self->{class2id}{$super};
-		    $self->{schema}{classdef}{$_[0]}
-			= $self->{schema}{classdef}{$super};
+		    $self->{schema}{classes}{$_[0]}
+			= $self->{schema}{classes}{$super};
 		    goto OK
 		}
 		else {
@@ -381,7 +406,8 @@ sub tx_start
 	unless (@{ $self->{tx} }) {
 	  delete $self->{set_mark};
 	  delete $self->{mark};
-	  print $Tangram::TRACE "START TRANSACTION;\n"
+	  print $Tangram::TRACE "Tangram: ".("-"x 10)." START TRANSACTION; "
+	      .("-"x 10)."\n"
 	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0);
 	  unless ($self->{no_tx}) {
 	      $self->{db}->{AutoCommit} = 1;
@@ -390,7 +416,7 @@ sub tx_start
 	      #$self->{db}->begin_work();
 	  }
 	} else {
-	  print $Tangram::TRACE "START TRANSACTION; (virtual)\n"
+	  print $Tangram::TRACE "Tangram: START TRANSACTION; (virtual)\n"
 	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 1);
 	}
 
@@ -432,7 +458,7 @@ sub tx_commit
     
     unless ($self->{no_tx} || @{ $self->{tx} } > 1) {
 	  # committing outer tx: commit to db
-	  print $Tangram::TRACE "COMMIT;\n"
+	  print $Tangram::TRACE "Tangram: ".("-"x 10)." COMMIT; ".("-"x 10)."\n"
 	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0);
 	  $self->{db}->commit;
 	} else {
@@ -446,9 +472,16 @@ sub tx_commit
 sub tx_rollback
   {
     my $self = shift;
-    
+
+    my $num;
+    if ( defined ($num = (shift))) {
+	$self->tx_rollback() while (@{ $self->{tx} } and $num--);
+	return;
+    }
+
     carp $error_no_transaction unless @{ $self->{tx} };
-    
+
+
     if ($self->{no_tx})
       {
 		pop @{ $self->{tx} };
@@ -456,7 +489,7 @@ sub tx_rollback
     else
       {
 		$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
-		
+
 		# execute rollback subs in reverse order
 
 		if (my $rb = pop @{ $self->{tx} }) {
@@ -588,13 +621,15 @@ sub _insert
 
 	  if ($Tangram::TRACE) {
 		my @sql = $engine->get_insert_statements($class);
-		printf $Tangram::TRACE "executing %s with (%s)\n",
+		printf $Tangram::TRACE ">-\n%s\n".(@{$fields[$i]}?"-- with:\n    /* (%s) */\n":"%s")."...\n",
 		$sql[$i],
 		join(', ', map { $_ || 'NULL' } @state[ @{ $fields[$i] } ] )
 	  }
 
 	  my $sth = $sths->[$i];
-	  $sth->execute(@state[ @{ $fields[$i] } ]);
+	  $sth->execute(map {( ref $_ ? "$_" : $_ )}
+			@state[ @{ $fields[$i] } ])
+	      or die $dbh->errstr;
 	  $sth->finish();
 	}
 
@@ -648,7 +683,7 @@ sub _update
 
 	my $sths = $self->{UPDATE_STHS}{$class->{name}} ||=
 	  [ map {
-		print $Tangram::TRACE "Tangram::Storage: preparing $_\n"
+		print $Tangram::TRACE ">-\n$_\n...\n"
 		    if ( $Tangram::TRACE && ( $Tangram::DEBUG_LEVEL > 1 ) );
 		$self->prepare($_)
 	  } $engine->get_update_statements($class) ];
@@ -659,7 +694,7 @@ sub _update
 
 	  if ($Tangram::TRACE) {
 		my @sql = $engine->get_update_statements($class);
-		printf $Tangram::TRACE "executing %s with (%s)\n",
+		printf $Tangram::TRACE ">-\n%s\n-- with\n    /* (%s) */\n...\n",
 		$sql[$i],
 		join(', ', map { $_ || 'NULL' } @state[ @{ $fields[$i] } ] )
 	  }
@@ -782,6 +817,26 @@ sub import_object
     return $self->load(@oids);
 }
 
+sub dummy_object
+{
+    my $self = shift;
+    my ($class, $id, $oid);
+    if ( @_ == 2 ) {
+	$class = shift;
+	$id = shift;
+	my $cid = $self->class_id($class);
+	$oid = $self->combine_ids($id, $cid);
+    } else {
+	$oid = shift;
+    }
+
+    $self->{objects}{$oid} ||= do {
+	my $obj = bless \$oid, "Tangram::DummyObj";
+	$self->welcome($obj, $oid);
+	$obj;
+    };
+}
+
 sub load
 {
     my $self = shift;
@@ -889,11 +944,23 @@ sub _fetch_object_state
 	my $sth = $self->{LOAD_STH}{$class->{name}} ||=
 	  $self->prepare($self->{engine}->get_instance_select($class));
 
-	$sth->execute($self->{export_id}->($id));
-	my $state = [ $sth->fetchrow_array() ];
-	$sth->finish();
+    if ( $Tangram::TRACE ) {
+	print $Tangram::TRACE
+	    (__PACKAGE__.": fetching $class->{name}($id) with: >-\n"
+	     .$self->{engine}->get_instance_select($class)
+	     ."\n...\n");
+    }
 
-	return $state;
+    my $row;
+    $sth->execute($self->{export_id}->($id)) &&
+	($row = $sth->fetchrow_arrayref())
+	    or carp "could not find $class->{name} object "
+		.$self->{export_id}->($id)." (oid $id) in storage";
+
+    my $state = [ @$row ];
+    $sth->finish();
+
+    return $state;
 }
 
 sub get_polymorphic_select
@@ -1008,7 +1075,7 @@ sub count
    
     $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
 
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
 
     return ($self->{db}->selectrow_array($sql))[0];
 }
@@ -1042,7 +1109,7 @@ sub sum
 
     $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
 
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
 
     my @result = $self->{db}->selectrow_array($sql);
 
@@ -1066,18 +1133,13 @@ sub disconnect
 
     return unless defined $self->{db};
 
+    $self->{db}->{RaiseError} = 0;
+
     unless ($self->{no_tx})
-    {   
-	if (@{ $self->{tx} })
-	{
-	    $self->{db}->rollback;
-	}
-	else
-	{
-	    $self->{db}->commit;
-	}
+    {
+	$self->{db}->rollback;
     }
-   
+
     $self->{db}->disconnect if $self->{db_owned};
 
     %$self = ();
@@ -1147,25 +1209,30 @@ sub connect
 
     $self->{driver} = $opts->{driver} || Tangram::Relational->new;
 
-   my $db = $opts->{dbh};
+    my $db = $opts->{dbh};
     unless ( $db ) {
-      $db = $self->open_connection;
-      $self->{db_owned} = 1;
+	$db = $self->open_connection;
+	$self->{db_owned} = 1;
     }
- 
-	if (exists $opts->{no_tx}) {
-	  $self->{no_tx} = $opts->{no_tx};
-	} else {
-	  eval { $db->{AutoCommit} = 0 };
-	  $self->{no_tx} = $db->{AutoCommit};
-	}
+
+    if (exists $opts->{no_tx}) {
+	$self->{no_tx} = $opts->{no_tx};
+    } elsif ( $self->can("has_tx") ) {
+	$db->{AutoCommit} = ($self->{no_tx} = ! $self->has_tx);
+    } else {
+	eval { $db->{AutoCommit} = 0 };
+	$self->{no_tx} = $db->{AutoCommit};
+    }
 
     if (exists $opts->{no_subselects}) {
 	$self->{no_subselects} = $opts->{no_subselects};
+    } elsif ( $self->can("has_subselects") ) {
+	$self->{no_subselects} = ! $self->has_subselects;
     } else {
 	local($SIG{__WARN__})=sub{};
 	eval {
-	    my $sth = $db->prepare("select * from (select 1+1) as test");
+	    my $sth = $db->prepare("select * from (select 1+1"
+				   .$self->from_dual.") test");
 	    $sth->execute() or die;
 	};
 	if ($@ or $DBI::errstr) {
@@ -1176,10 +1243,14 @@ sub connect
     $self->{db} = $db;
 
     $self->{cid_size} = $schema->{sql}{cid_size};
-	
+
     $self->_open($schema);
 
-	$self->{engine} = Tangram::Relational::Engine->new($schema, layout1 => $self->{layout1}, driver => $self->{driver});
+    $self->{engine} = Tangram::Relational::Engine->new
+	( $schema,
+	  layout1 => $self->{layout1},
+	  driver => $self->{driver}
+	);
 
     return $self;
 }
@@ -1189,7 +1260,11 @@ sub connection { shift->{db} }
 sub sql_do
 {
     my ($self, $sql, @placeholders) = @_;
-    print $Tangram::TRACE "$sql with (@placeholders)\n" if $Tangram::TRACE;
+
+    print $Tangram::TRACE ">-\n$sql\n"
+	.(@placeholders?"-- with: \n    /* (@placeholders) */\n":"")."...\n"
+	    if $Tangram::TRACE;
+
     my $rows_affected = $self->{db}->do($sql, {}, @placeholders);
     return defined($rows_affected) ? $rows_affected
 	  : croak $DBI::errstr;
@@ -1198,7 +1273,7 @@ sub sql_do
 sub sql_selectall_arrayref
 {
     my ($self, $sql, $dbh) = @_;
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
 	($dbh || $self->{db})->selectall_arrayref($sql);
 }
 
@@ -1206,9 +1281,9 @@ sub sql_prepare
 {
     my ($self, $sql, $connection) = @_;
     confess unless $connection;
-    print $Tangram::TRACE "           $sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
     my $sth = $connection->prepare($sql);
-    die "prepare failed; $DBI::errstr - SQL:\n--->\n$sql\n<---\n" unless $sth;
+    die "prepare failed; $DBI::errstr - SQL >-\n$sql\n...\n" unless $sth;
     return $sth;
 }
 
@@ -1218,7 +1293,7 @@ sub sql_cursor
 
     confess unless $connection;
 
-    print $Tangram::TRACE "new cursor for $sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
 
     my $sth = $connection->prepare($sql) or die;
     $sth->execute() or confess;
@@ -1284,6 +1359,48 @@ sub unload_all {
 	if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0) ;
 
     #$self->SUPER::unload_all();
+}
+
+sub from_dual { "" }
+
+sub ping {
+    my $self = shift;
+
+    my $answer =
+	$self->sql_selectall_arrayref("select 1+1".$self->from_dual);
+
+    if ( $answer ) {
+	if ( $answer->[0][0] == 2 ) {
+	    return 1;
+	} else {
+	    die "Database can't add";
+	}
+    } else {
+	# will probably never get here...
+	return undef;
+    }
+}
+
+sub recycle {
+    my $self = shift;
+    my $send_method = shift;
+
+    $self->unload_all($send_method);
+    $self->tx_rollback(-1);
+    $self->ping or die "DB not connected on recycle";
+    print $Tangram::TRACE "Tangram: connection recycled\n"
+	if $Tangram::TRACE;
+}
+
+sub clear_stats {
+    my $self = shift;
+    $self->{stats} = undef;
+}
+
+sub add_stat {
+    my $self = shift;
+    my $stat = shift;
+    $self->{stats}{$stat}++;
 }
 
 # checks to see if an object ID ->isa the correct type, based on its

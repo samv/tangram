@@ -104,7 +104,7 @@ sub demand
 	else
 	{
 		my $sth = $storage->sql_prepare(
-            "SELECT a.k, a.v FROM $def->{table} a WHERE coll = $id", $storage->{db});
+            "SELECT\n    a.k,\n    a.v\nFROM\n    $def->{table} a\nWHERE\n    coll = $id", $storage->{db});
 
 		$sth->execute();
 		
@@ -231,7 +231,7 @@ sub get_save_closures
 		die $no_ref if (ref($v) or ref($k));
 		$v = $quote->($v);
 		$k = $key_quote->($k);
-		$storage->sql_do("UPDATE $table SET v = $v WHERE coll = $eid AND k = $k");
+		$storage->sql_do("UPDATE\n    $table\nSET\n    v = $v\nWHERE\n    coll = $eid    AND\n    k = $k");
 	};
 
 	my $add = sub
@@ -240,7 +240,7 @@ sub get_save_closures
 		die $no_ref if (ref($v) or ref($k));
 		$v = $quote->($v);
 		$k = $key_quote->($k);
-		$storage->sql_do("INSERT INTO $table (coll, k, v) VALUES ($eid, $k, $v)");
+		$storage->sql_do("INSERT INTO\n    $table (coll, k, v)\n    VALUES ($eid, $k, $v)");
 	};
 
 	my $remove = sub
@@ -248,7 +248,7 @@ sub get_save_closures
 		my ($k) = @_;
 		die $no_ref if ref($k);
 		$k = $key_quote->($k);
-		$storage->sql_do("DELETE FROM $table WHERE coll = $eid AND k = $k");
+		$storage->sql_do("DELETE FROM\n    $table\nWHERE\n    coll = $eid    AND\n    k = $k");
 	};
 
 	return ($ne, $modify, $add, $remove);
@@ -262,7 +262,7 @@ sub erase
 
 	foreach my $def (values %$members)
 	{
-		$storage->sql_do("DELETE FROM $def->{table} WHERE coll = $coll_id");
+		$storage->sql_do("DELETE FROM\n    $def->{table}\nWHERE\n    coll = $coll_id");
 	}
 }
 
@@ -299,10 +299,10 @@ sub prefetch
 
 	my $prefetch = $storage->{PREFETCH}{$class}{$member} ||= {};
 
-	my $restrict = $filter ? ', ' . $filter->from() . ' WHERE ' . $filter->where() : '';
+	my $restrict = $filter ? ",\n    " . $filter->from() . "\nWHERE\n    " . $filter->where() : '';
 
 	my $sth = $storage->sql_prepare(
-        "SELECT coll, k, v FROM $def->{table} $restrict", $storage->{db});
+        "SELECT\n    coll,\n    k,\n    v\nFROM\n    $def->{table}\n$restrict", $storage->{db});
 	$sth->execute();
 		
 	for my $row (@{ $sth->fetchall_arrayref() })

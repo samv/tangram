@@ -17,14 +17,16 @@ sub FETCH
    my $refobj;
 
    if ($id) {
-       print $Tangram::TRACE "demanding $id.$member\n"
+       print $Tangram::TRACE "demanding $id.$member".(defined $storage->{objects}{$refid}
+						      ? " (hot)":"")."\n"
 	   if $Tangram::TRACE;
        my $obj = $storage->{objects}{$id};
        $refobj = $storage->load($refid);
        untie $obj->{$member};
        $obj->{$member} = $refobj;
    } else {
-       print $Tangram::TRACE "demanding obj $refid\n"
+       print $Tangram::TRACE "demanding obj $refid".(defined $storage->{objects}{$refid}
+						      ? " (hot)":"")."\n"
 	   if $Tangram::TRACE;
        untie $$member;
        $refobj = $$member = $storage->load($refid);
