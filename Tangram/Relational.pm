@@ -19,13 +19,15 @@ sub schema
 sub deploy
   {
 	shift; # class
-	shift->deploy( @_ );
+	my ($schema, $handle) = @_;
+	Tangram::Relational::Engine->new($schema)->deploy($handle);
   }
 
 sub retreat
   {
 	shift; # class
-	shift->retreat( @_ );
+	my ($schema, $handle) = @_;
+	Tangram::Relational::Engine->new($schema)->retreat($handle);
   }
 
 1;

@@ -67,7 +67,7 @@ sub _open
 
 	{
 	  local $dbh->{PrintError} = 0;
-	  my $control = $dbh->selectall_arrayref("SELECT major, minor FROM $schema->{control}");
+	  my $control = $dbh->selectall_arrayref("SELECT * FROM $schema->{control}");
 
 	  if ($control) {
 		$self->{class_col} = $schema->{sql}{class_col};
