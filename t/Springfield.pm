@@ -8,6 +8,7 @@ use Tangram::RawDateTime;
 
 use Tangram::FlatArray;
 use Tangram::FlatHash;
+use Tangram::Hash;
 use Tangram::PerlDump;
 
 package Springfield;
@@ -79,14 +80,14 @@ $schema = Tangram::Schema->new( {
 		 }
 		},
 
-# 		hash =>
-# 		{
-# 		 h_opinions =>
-# 		 {
-# 		  class => 'Opinion',
-# 		  table => 'h_opinions',
-# 		 }
-# 		},
+ 		hash =>
+ 		{
+ 		 h_opinions =>
+ 		 {
+ 		  class => 'Opinion',
+ 		  table => 'h_opinions',
+ 		 }
+ 		},
 
 		iarray =>
 		{
