@@ -1,4 +1,4 @@
-DBI:Sybase:database=Springfield
+DBI:Sybase:server=jimi;database=tangram
 tangram
 tangram
 
