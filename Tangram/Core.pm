@@ -9,6 +9,7 @@ use Tangram::Schema;
 use Tangram::Cursor;
 use Tangram::Storage;
 use Tangram::Expr;
+use Tangram::Relational;
 
 package Tangram;
 
