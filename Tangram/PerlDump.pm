@@ -1,3 +1,5 @@
+# (c) Sound Object Logic 2000-2001
+
 # Copyright 1999-2001 Gabor Herr. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself

@@ -1,3 +1,5 @@
+# (c) Sound Object Logic 2000-2001
+
 use strict;
 
 package Tangram::RefOnDemand;

@@ -1,3 +1,5 @@
+# (c) Sound Object Logic 2000-2001
+
 # not implemented yet
 
 __END__
