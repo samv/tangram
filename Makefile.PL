@@ -54,7 +54,7 @@ I must be able to create and drop tables in that database.};
    my $cs = <STDIN>;
    chop $cs;
 
-   $cs = "DBI:$cs" unless $cs =~ /^DBI\:/i;
+   $cs = "dbi:$cs" unless $cs =~ /^dbi\:/i;
    
    print "2) Login: ";
    my $user = <STDIN>;
