@@ -42,7 +42,7 @@ sub new
     $self->{make_object} ||= sub { shift()->new() };
     $self->{class_table} ||= 'OpalClass';
 
-	$self->{control} ||= 'tangram';
+	$self->{control} ||= 'Tangram';
 
 	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
 	$self->{sql}{id_col} ||= 'id';
@@ -68,10 +68,10 @@ sub new
 		my $classdef = $class_hash->{$class} ||= {};
 		%$classdef = (%$def, %$classdef);
 
-		if (exists $def->{id}) {
-		  $autoid = $def->{id};
+		if (exists $classdef->{id}) {
+		  $autoid = $classdef->{id};
 		} else {
-		  $def->{id} = ++$autoid;
+		  $classdef->{id} = ++$autoid;
 		}
 
 		bless $classdef, 'Tangram::Class';
@@ -509,7 +509,7 @@ sub retreat
 
     my $do = _deploy_do($output);
 
-    for my $table (sort keys %$tables, $schema->{class_table}, $schema->{control})
+    for my $table (sort keys %$tables, $schema->{control})
     {
 		$do->( "DROP TABLE $table" );
     }
