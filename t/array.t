@@ -3,7 +3,7 @@ use t::Springfield;
 
 use vars qw( $intrusive );
 
-my $children = $intrusive ? 'ia_children' : 'a_children';
+my $children = $intrusive ? 'ia_children' : 'children';
 
 my %id;
 my @kids = qw( Bart Lisa Maggie );

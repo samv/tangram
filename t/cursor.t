@@ -3,7 +3,7 @@ use t::Springfield;
 
 my @kids = qw( Bart Lisa Maggie );
 my @population = sort qw( Homer Marge ), @kids;
-my $children = 'a_children';
+my $children = 'children';
 
 sub NaturalPerson::children
 {
@@ -12,7 +12,7 @@ sub NaturalPerson::children
       : join(' ', map { $_->{firstName} } @{ $self->{$children} } )
 }
 
-Springfield::begin_tests(12);
+Springfield::begin_tests(13);
 
 {
 	my $storage = Springfield::connect_empty;
@@ -160,3 +160,19 @@ Springfield::leaktest;
 
    $storage->disconnect;
 }
+
+Springfield::leaktest;
+
+#{
+#  my $storage = Springfield::connect;
+
+#  my ($person) = $storage->remote(qw( NaturalPerson ));
+
+#  my $cursor = $storage->cursor($person, limit => 1);
+
+#  Springfield::test( $cursor->current() && !$cursor->next());
+
+#  $storage->disconnect;
+#}
+
+#Springfield::leaktest;
