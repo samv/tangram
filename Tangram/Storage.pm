@@ -926,16 +926,18 @@ sub sql_cursor
 				     connection => $connection );
 }
 
-sub reset
+sub unload
 {
 	my $self = shift;
 
 	my $objects = $self->{objects};
 	my $set_id = $self->{set_id};
-	
-	for my $obj (keys %$objects)
+
+	my @objs = @_ ? map { ref || $self->id($_) } @_ : values %$objects;
+
+	for my $obj (@objs)
 	{
-		$set_id->($obj);
+		$set_id->($obj, undef);
 	}
 
 	delete $self->{objects};
@@ -944,6 +946,8 @@ sub reset
 
 	undef($objects);
 }
+
+*reset = \&unload; # deprecated, use unload() instead
 
 sub DESTROY
 {
