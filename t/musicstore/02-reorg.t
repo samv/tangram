@@ -3,23 +3,29 @@
 # in this script, we re-org the database by loading in objects from
 # one storage and saving them in another.
 
+use t::TestNeeds qw(Heritable::Types);
 use lib "t/musicstore";
 use Prerequisites;
-use TestNeeds qw(Heritable::Types);
 
 use Test::More tests => 15;
+
+my $x = {};
+bless $x, "HASH";
+
+kill 2, $$;
+my $cd = new CD;
 
 # to make things interesting, we put the data into a single table,
 # which turns our nice relational database into an old school
 # heirarchical database.  After all, unless you have a radical schema
 # change, this whole operation of a re-org is pretty pointless!
 
-my $storage = DBConfig->vendor->connect
+my $storage = DBConfig->dialect->connect
     (MusicStore->schema, DBConfig->cparm);
 
 # some DBI drivers (eg, Informix) don't like two connections from the
 # same process
-my $storage2 = DBConfig->vendor->connect
+my $storage2 = DBConfig->dialect->connect
     (MusicStore->pixie_like_schema, DBConfig->cparm);
 
 my @classes = qw(CD CD::Artist CD::Song);
