@@ -11,12 +11,12 @@ use Tangram::FlatHash;
 use Tangram::PerlDump;
 
 package Springfield;
+use Exporter;
+use base qw( Exporter );
 
-use vars qw( $schema @ISA @EXPORT );
-
-require Exporter;
-@ISA = qw( Exporter );
-@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect );
+use vars qw( $schema @ISA @EXPORT @EXPORT_OK );
+@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
+@EXPORT_OK = @EXPORT;
 
 $schema = Tangram::Schema->new( {
 
