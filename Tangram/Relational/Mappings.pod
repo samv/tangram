@@ -10,7 +10,7 @@ them.
 
 =head1 STRATEGIES FOR MAPPING INHERITANCE
 
-Inheritance is a concept that has no equivalent in the relational language
+Inheritance is a concept that has no equivalent in the relational
 world. However, it is possible to implement it by using a combination of
 relational features like tables and foreign keys.
 
