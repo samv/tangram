@@ -926,6 +926,23 @@ sub sql_cursor
 				     connection => $connection );
 }
 
+sub reset
+{
+	my $self = shift;
+
+	my $objects = $self->{objects};
+	my $set_id = $self->{set_id};
+	
+	for my $obj (keys %$objects)
+	{
+		$set_id->($obj);
+	}
+
+	delete $self->{objects};
+	delete $self->{ids};
+	undef($objects);
+}
+
 sub DESTROY
 {
     my $self = shift;

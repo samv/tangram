@@ -38,7 +38,7 @@ Tangram/IntrHash.pm
 Tangram/RawDate.pm
 Tangram/RawDateTime.pm
 Tangram/RawTime.pm
-Tangram/Lobs.pm
+# Tangram/Lobs.pm
 
 Tangram/Core.pod
 Tangram/Schema.pod
@@ -54,7 +54,7 @@ Tangram/IntrArray.pod
 Tangram/FlatArray.pod
 Tangram/Set.pod
 Tangram/IntrSet.pod
-Tangram/Lobs.pod
+# Tangram/Lobs.pod
 
 Tangram/Type.pod
 Tangram/Dialect.pod
@@ -69,6 +69,7 @@ t/queries.t
 t/stateless.t
 t/tx.t
 t/reload.t
+t/reset.t
 
 # mappings
 t/ref.t

@@ -12,34 +12,34 @@ my @kids = qw( Bart Lisa Maggie );
 
 sub NaturalPerson::children
 {
-   my ($self) = @_;
-   join(' ', map { $_->{firstName} } @{ $self->{$children} } )
+	my ($self) = @_;
+	join(' ', map { $_->{firstName} } @{ $self->{$children} } )
 }
 
 sub marge_test
 {
 	my $storage = shift;
 	Springfield::test( $intrusive
-		|| $storage->load( $id{Marge} )->children eq 'Bart Lisa Maggie' );
+					   || $storage->load( $id{Marge} )->children eq 'Bart Lisa Maggie' );
 }
 
-Springfield::begin_tests(42);
+Springfield::begin_tests(45);
 
 sub stdpop
 {
-   my $storage = Springfield::connect_empty;
+	my $storage = Springfield::connect_empty;
 
 	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
 	@id{ @kids } = $storage->insert( @children );
-   
+
 	my $homer = NaturalPerson->new( firstName => 'Homer', $children => [ @children ] );
-   $id{Homer} = $storage->insert($homer);
-   
+	$id{Homer} = $storage->insert($homer);
+
 	my $marge = NaturalPerson->new( firstName => 'Marge' );
-   $marge->{$children} = [ @children ] unless $intrusive;
+	$marge->{$children} = [ @children ] unless $intrusive;
 	$id{Marge} = $storage->insert($marge);
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 #############################################################################
@@ -49,118 +49,133 @@ stdpop();
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+	my $storage = Springfield::connect;
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
+	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
 	@{ $homer->{$children} }[0, 2] = @{ $homer->{$children} }[2, 0];
 	$storage->update( $homer );
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+	my $storage = Springfield::connect;
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Maggie Lisa Bart' );
+	Springfield::test( $homer->children eq 'Maggie Lisa Bart' );
 	marge_test( $storage );
 
 	pop @{ $homer->{$children} };
 	$storage->update( $homer );
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 ###############################################
 # insert
 
 {
-   my $storage = Springfield::connect;
+	my $storage = Springfield::connect;
 
-   my $homer = $storage->load($id{Homer}) or die;
+	my $homer = $storage->load($id{Homer}) or die;
 
-   Springfield::test( $homer->children eq 'Maggie Lisa' );
+	Springfield::test( $homer->children eq 'Maggie Lisa' );
 
 	shift @{ $homer->{$children} };
 	$storage->update($homer);
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load($id{Homer}) or die;
-   Springfield::test( $homer->children eq 'Lisa' );
-   $storage->disconnect;
+	my $storage = Springfield::connect;
+	my $homer = $storage->load($id{Homer}) or die;
+	Springfield::test( $homer->children eq 'Lisa' );
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load($id{Homer}) or die;
-   shift @{ $homer->{$children} };
-   $storage->update($homer);
-   $storage->disconnect;
+	my $storage = Springfield::connect;
+	my $homer = $storage->load($id{Homer}) or die;
+	shift @{ $homer->{$children} };
+	$storage->update($homer);
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load($id{Homer}) or die;
+	my $storage = Springfield::connect;
+	my $homer = $storage->load($id{Homer}) or die;
 
-   Springfield::test( $homer->children eq '' );
+	Springfield::test( $homer->children eq '' );
 
 	push @{ $homer->{$children} }, $storage->load( $id{Bart} );
-   $storage->update($homer);
+	$storage->update($homer);
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load($id{Homer}) or die;
+	my $storage = Springfield::connect;
+	my $homer = $storage->load($id{Homer}) or die;
 
-   Springfield::test( $homer->children eq 'Bart' );
+	Springfield::test( $homer->children eq 'Bart' );
 
 	push @{ $homer->{$children} }, $storage->load( @id{qw( Lisa Maggie )} );
-   $storage->update($homer);
+	$storage->update($homer);
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+	my $storage = Springfield::connect;
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
+	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
-   $storage->disconnect;
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $bart = $storage->load( $id{Bart} );
+	my $storage = Springfield::connect;
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( !$intrusive || $bart->{ia_parent}{firstName} eq 'Homer' );
+	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
-   $storage->disconnect;
+	$storage->reset();
+	undef $homer;
+
+	Springfield::leaktest;
+
+	$storage->disconnect;
+}
+
+{
+	my $storage = Springfield::connect;
+	my $bart = $storage->load( $id{Bart} );
+
+	Springfield::test( !$intrusive || $bart->{ia_parent}{firstName} eq 'Homer' );
+	marge_test( $storage );
+
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
@@ -169,33 +184,33 @@ Springfield::leaktest;
 # prefetch
 
 {
-   my $storage = Springfield::connect;
+	my $storage = Springfield::connect;
 
 	my @prefetch = $storage->prefetch( 'NaturalPerson', $children );
 
-   my $homer = $storage->load( $id{Homer} );
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
+	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
-   $storage->disconnect();
+	$storage->disconnect();
 }      
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
+	my $storage = Springfield::connect;
 
-   my $person = $storage->remote('NaturalPerson');
+	my $person = $storage->remote('NaturalPerson');
 
 	my @prefetch = $storage->prefetch( 'NaturalPerson', $children );
 
-   my $homer = $storage->load( $id{Homer} );
+	my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
+	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
-   $storage->disconnect();
+	$storage->disconnect();
 }      
 
 Springfield::leaktest;
@@ -206,27 +221,27 @@ Springfield::leaktest;
 my $parents = $intrusive ? 'Homer' : 'Homer Marge';
 
 {
-   my $storage = Springfield::connect;
-   my ($parent, $child) = $storage->remote(qw( NaturalPerson NaturalPerson ));
+	my $storage = Springfield::connect;
+	my ($parent, $child) = $storage->remote(qw( NaturalPerson NaturalPerson ));
 
-   my @results = $storage->select( $parent, $parent->{$children}->includes( $child )
-      & $child->{firstName} eq 'Bart' );
+	my @results = $storage->select( $parent, $parent->{$children}->includes( $child )
+									& $child->{firstName} eq 'Bart' );
 
-   Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
-   $storage->disconnect();
+	Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
+	$storage->disconnect();
 }      
 
 Springfield::leaktest;
 
 {
-   my $storage = Springfield::connect;
-   my $parent = $storage->remote( 'NaturalPerson' );
+	my $storage = Springfield::connect;
+	my $parent = $storage->remote( 'NaturalPerson' );
 	my $bart = $storage->load( $id{Bart} );
 
-   my @results = $storage->select( $parent, $parent->{$children}->includes( $bart ) );
+	my @results = $storage->select( $parent, $parent->{$children}->includes( $bart ) );
 
-   Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
-   $storage->disconnect();
+	Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq $parents );
+	$storage->disconnect();
 }      
 
 Springfield::leaktest;
@@ -235,12 +250,12 @@ Springfield::leaktest;
 	my $storage = Springfield::connect_empty;
 
 	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
-   
+
 	my $homer = NaturalPerson->new( firstName => 'Homer',
-		children => [ map { NaturalPerson->new( firstName => $_ ) } @kids ] );
+									children => [ map { NaturalPerson->new( firstName => $_ ) } @kids ] );
 
 	my $abe = NaturalPerson->new( firstName => 'Abe',
-        $children => [ $homer ] );
+								  $children => [ $homer ] );
 
 	$id{Abe} = $storage->insert($abe);
 
@@ -267,73 +282,73 @@ Springfield::leaktest;
 
 Springfield::tx_tests(8, sub {
 
-stdpop();
+						  stdpop();
 
-# check rollback of DB tx
+						  # check rollback of DB tx
 
-Springfield::leaktest;
-{
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+						  Springfield::leaktest;
+						  {
+							  my $storage = Springfield::connect;
+							  my $homer = $storage->load( $id{Homer} );
 
-   $storage->tx_start();
+							  $storage->tx_start();
 
-	shift @{ $homer->{$children} };
-	$storage->update( $homer );
+							  shift @{ $homer->{$children} };
+							  $storage->update( $homer );
 
-   $storage->tx_rollback();
+							  $storage->tx_rollback();
 
-   $storage->disconnect;
-}
+							  $storage->disconnect;
+						  }
 
-Springfield::leaktest;
+						  Springfield::leaktest;
 
-# storage should still contain 3 children
+						  # storage should still contain 3 children
 
-{
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+						  {
+							  my $storage = Springfield::connect;
+							  my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
-	marge_test( $storage );
+							  Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
+							  marge_test( $storage );
 
-   $storage->disconnect;
-}
+							  $storage->disconnect;
+						  }
 
-Springfield::leaktest;
+						  Springfield::leaktest;
 
-# check that DB and collection state remain in synch in case of rollback
+						  # check that DB and collection state remain in synch in case of rollback
 
-{
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+						  {
+							  my $storage = Springfield::connect;
+							  my $homer = $storage->load( $id{Homer} );
 
-   $storage->tx_start();
+							  $storage->tx_start();
 
-	shift @{ $homer->{$children} };
-	$storage->update( $homer );
+							  shift @{ $homer->{$children} };
+							  $storage->update( $homer );
 
-   $storage->tx_rollback();
+							  $storage->tx_rollback();
 
-	$storage->update( $homer );
+							  $storage->update( $homer );
 
-   $storage->disconnect;
-}
+							  $storage->disconnect;
+						  }
 
-# Bart should no longer be Homer's child
+						  # Bart should no longer be Homer's child
 
-{
-   my $storage = Springfield::connect;
-   my $homer = $storage->load( $id{Homer} );
+						  {
+							  my $storage = Springfield::connect;
+							  my $homer = $storage->load( $id{Homer} );
 
-   Springfield::test( $homer->children eq 'Lisa Maggie' );
-	marge_test( $storage );
+							  Springfield::test( $homer->children eq 'Lisa Maggie' );
+							  marge_test( $storage );
 
-   $storage->disconnect;
-}
+							  $storage->disconnect;
+						  }
 
-Springfield::leaktest;
+						  Springfield::leaktest;
 
-} ); # tx_tests
+					  } );		# tx_tests
 
 1;
