@@ -27,7 +27,7 @@ sub reschema
 		unless ($refdef)
 		{
 			# not a reference: field => field
-			$members->{$field} = { col => $field };
+			$members->{$field} = { col => $def || $field };
 			next;
 		}
 
