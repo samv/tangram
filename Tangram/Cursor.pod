@@ -12,6 +12,13 @@ Tangram::Cursor - traverse a result set
       $cursor->next();
    }
 
+   $cursor->execute();
+
+   while (my $obj = $cursor->current())
+   {
+      # process $obj
+      $cursor->next();
+   }
 
 =head1 DESCRIPTION
 
@@ -29,9 +36,22 @@ Returns the current object, or undef() if the result set is exhausted.
 =head2 next
 
    $obj = $cursor->next();
+   @obj = $cursor->next();
 
 Moves to the next object in the result set, if any. Returns the new
-current object, or undef() if the result set is exhausted.
+current object, or undef() if the result set is exhausted. In list
+context, return all the remaining objects.
+
+=head2 execute
+
+   $cursor->execute();
+
+Moves the cursor to the first object in the result set, and return it.
+Note that preparing Cursors is an expensive operation, you should
+reuse them if possible. execute() allows just that.
+
+execute() may be called several times in a row, or on a Cursor that
+has just been obtained from a Storage, without ill effects.
 
 =head2 residue
 
@@ -40,10 +60,9 @@ current object, or undef() if the result set is exhausted.
 Returns the values of the Expr that were passed to the C<retrieve>
 directive of the Storage::select() or Storage::cursor() statement.
 
-=head1 MULTIPLE CURSORS
+=head1 CURSORS AND CONNECTIONS
 
-Each Cursor has its own connection to the database, thus making it
-possible to have multiple active cursors.
+Each Cursor opens its own connection to the database.
 
 =head1 SEE ALSO
 

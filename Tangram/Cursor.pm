@@ -24,9 +24,30 @@ sub new
 	$self->{-implicit} = $implicit;
 	$self->{-selects} = [];
 	$self->{-conn} = $conn;
+	$self->{own_conn} = $conn != $storage->{db};
 
 	bless $self, $pkg;
 }
+
+sub DESTROY
+  {
+	my $self = shift;
+	$self->close();
+  }
+
+sub close
+  {
+	my $self = shift;
+
+	if ($self->{-selects}) {
+	  for my $select ( @{ $self->{-selects} } ) {
+		my $sth = $select->[1] or next;
+		$sth->finish() if $sth->{Active};
+	  }
+	}
+
+	$self->{-conn}->disconnect() if $self->{own_conn};
+  }
 
 sub select
 {
@@ -66,17 +87,39 @@ sub select
 
 	$self->_select($self->{-target}, $filter);
 
-	return undef unless @{$self->{-selects}}; 
+	$self->{position} = -1;
 
-	my $select = shift @{$self->{-selects}};
-	return undef unless $select;
-
-	my ($sql, @parts) = @$select;
-	$self->{parts} = \@parts;
-	$self->{-cursor} = $self->{-storage}->sql_cursor($sql, $self->{-conn});
-
-	return $self->next;
+	return $self->execute();
 }
+
+sub execute
+  {
+	my ($self) = @_;
+	return $self->{-current} if $self->{position} == 0;
+	$self->{cur_select} = [ @{ $self->{-selects} } ];
+	return $self->prepare_next_statement() && $self->next();
+  }
+
+sub prepare_next_statement
+  {
+	my ($self) = @_;
+
+	my $select = shift @{$self->{cur_select}} or return undef;
+
+	my ($sql, $sth, @parts) = @$select;
+	$self->{parts} = \@parts;
+
+	$self->{sth}->finish() if $self->{sth};
+
+	$sth = $select->[1] = $self->{-storage}->sql_prepare($sql, $self->{-conn})
+	  unless $sth;
+
+	$self->{sth} = $sth;
+
+	$sth->execute();
+
+	return $sth;
+  }
 
 sub _select
 {
@@ -108,7 +151,7 @@ sub _select
 				"$cid IN (" . join(', ', map { $storage->class_id($_) } @shared) . ')',
 					$filter->where;
          
-			push @{$self->{-selects}}, [ $self->build_select($cols, $from, $where), $stored->parts ];
+			push @{$self->{-selects}}, [ $self->build_select($cols, $from, $where), undef, $stored->parts ];
 		}
 
 		foreach my $spec (@{$classdef->{specs}})
@@ -122,7 +165,7 @@ sub _select
 		my $cols = $stored->cols;
 		my $from = $filter->from;
 		my $where = $filter->where;
-		push @{$self->{-selects}}, [ $self->build_select($cols, $from, $where), $stored->parts ];
+		push @{$self->{-selects}}, [ $self->build_select($cols, $from, $where), undef, $stored->parts ];
 	}
 }
 
@@ -223,26 +266,16 @@ sub _next
 	my ($self) = @_;
 
 	$self->{-current} = undef;
+	++$self->{position};
+
+	my $sth = $self->{sth};
 	my @row;
 
 	while (1)
 	{
-		@row = $self->{-cursor}->fetchrow;
+		@row = $sth->fetchrow();
 		last if @row;
-
-		my $select = shift @{$self->{-selects}};
-      
-		unless ($select)
-		{
-			$self->{-cursor}->close();
-			return undef;
-		}
-
-		$self->{-cursor}{statement}->finish;
-
-		my ($sql, @parts) = @$select;
-		$self->{parts} = \@parts;
-		$self->{-cursor} = $self->{-storage}->sql_cursor($sql, $self->{-conn});
+		$sth = $self->prepare_next_statement() or return undef;
 	}
 
 	my $id = shift @row;
@@ -303,12 +336,6 @@ sub object
 {
 	my ($self) = @_;
 	return $self->{object};
-}
-
-sub close
-{
-	my ($self) = @_;
-	$self->{-cursor}->close();
 }
 
 package Tangram::DataCursor;

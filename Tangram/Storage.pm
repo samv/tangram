@@ -112,21 +112,22 @@ sub open_connection
 }
 
 sub close_connection
-{
+  {
     # private - close read connection to DB unless it's the default one
-
+	
     my ($self, $conn) = @_;
-    confess unless $conn;
 
+	return unless $conn &&  $self->{db};
+	
     if ($conn == $self->{db})
-    {
-	$conn->commit unless $self->{no_tx} || @{ $self->{tx} };
-    }
+	  {
+		$conn->commit unless $self->{no_tx} || @{ $self->{tx} };
+	  }
     else
-    {
-	$conn->disconnect;
-    }
-}
+	  {
+		$conn->disconnect;
+	  }
+  }
 
 sub cursor
 {
