@@ -239,9 +239,8 @@ sub empty
 	my $schema = shift || $Springfield::schema;
 	my $conn = $storage->{db};
 
-	foreach my $classdef (values %{ $schema->{classes} }) {
-      $conn->do("DELETE FROM $classdef->{table}") or die
-		unless $classdef->{stateless};
+	for my $table (keys %{ $storage->{engine}->relational_schema()->[0] }) {
+      $conn->do("DELETE FROM $table");
 	}
   }
 
