@@ -26,7 +26,7 @@ loading all the objects in memory.
 
 Returns the current object, or undef() if the result set is exhausted.
 
-=head2 current
+=head2 next
 
 Moves to the next object in the result set, if any. Returns the new
 current object, or undef() if the result set is exhausted.
