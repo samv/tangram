@@ -78,6 +78,7 @@ Tangram/IntrSet.pod
 Tangram/DateTime.pod
 
 Tangram/Type.pod
+Tangram/Type/Extending.pod
 Tangram/Dialect.pod
 
 t/Springfield.pm
