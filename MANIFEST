@@ -113,3 +113,5 @@ t/mysql.t
 #t/sybase.t
 
 t/mappings.t
+t/Capture.pm
+t/bughunt.t

@@ -102,5 +102,5 @@ NOTESTS:
 WriteMakefile(
     'NAME'	=> 'Tangram',
     'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
-    PREREQ_PM => { 'Set::Object' => 0, DBI => 0 }
+    PREREQ_PM => { 'Set::Object' => 0, DBI => 0, "Test::More" => 0 }
 );

@@ -16,7 +16,7 @@ use Exporter;
 use vars qw(@ISA @EXPORT @EXPORT_OK);
 @ISA = qw( Exporter );
 
-@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
+@EXPORT = qw( &optional_tests $schema testcase &leaktest &leaked &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
 @EXPORT_OK = @EXPORT;
 
 use vars qw($cs $user $passwd $dialect $vendor $schema);
@@ -43,9 +43,10 @@ sub list_if {
   shift() ? @_ : ()
 }
 
-my $no_tx;
+use vars qw($no_tx);
 
-$schema = Tangram::Schema->new( {
+$schema = Tangram::Schema->new
+    ( {
 
    #set_id => sub { my ($obj, $id) = @_; $obj->{id} = $id },
    #get_id => sub { shift()->{id} },
@@ -66,8 +67,6 @@ $schema = Tangram::Schema->new( {
 
       NaturalPerson =>
       {
-	   table => 'NP',
-
 	   bases => [ qw( Person ) ],
 
 	   fields =>
@@ -232,7 +231,15 @@ $schema = Tangram::Schema->new( {
 	 }
 	},
 
-   ] } );
+   ],
+	($ENV{"NORMALIZE_TEST"} ?
+       (normalize => sub {
+	   local($_)=shift;
+	   s/NaturalPerson/NP/;
+	   s/$/_n/;
+	   return $_;
+       }) : ()),
+      } );
 
 sub connect
   {
@@ -251,7 +258,7 @@ sub empty
 	my $conn = $storage->{db};
 
 	foreach my $classdef (values %{ $schema->{classes} }) {
-      $conn->do("DELETE FROM $classdef->{table}") or die
+	    $conn->do("DELETE FROM $classdef->{table}") or die
 		unless $classdef->{stateless};
 	}
 
@@ -304,6 +311,11 @@ sub leaktest
    $SpringfieldObject::pop = 0;
 
    ++$test;
+}
+
+sub leaked
+{
+   return $SpringfieldObject::pop;
 }
 
 sub tx_tests
