@@ -1,6 +1,6 @@
 use strict;
 
-package Person;
+package SpringfieldObject;
 
 sub new
   {
@@ -8,15 +8,24 @@ sub new
     bless { @_ }, $class;
   }
 
+package Person;
+use base qw( SpringfieldObject );
+
 package NaturalPerson;
 use base qw( Person );
 
 package LegalPerson;
 use base qw( Person );
 
-package main;
+package Address;
+use base qw( SpringfieldObject );
 
-use vars qw( $schema );
+package Tangram::Springfield;
+use Exporter;
+use base qw( Exporter );
+use vars qw( @EXPORT $schema );
+
+@EXPORT = qw( $schema );
 
 $schema = Tangram::Schema
   ->new(

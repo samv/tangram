@@ -156,13 +156,18 @@ sub my_select_data
     Tangram::Select->new(@_)->execute($self, $self->{db});
 }
 
-sub make_id
+sub prepare
   {
-    my ($self, $class_id) = @_;
-    return $self->{dialect}->make_id($self, $class_id);
+	my ($self, $sql) = @_;
+	print $Tangram::TRACE "preparing $sql\n" if $Tangram::TRACE;
+	$self->{db}->prepare($sql);
   }
 
-sub std_make_id
+*prepare_insert = \&prepare;
+*prepare_update = \&prepare;
+*prepare_select = \&prepare;
+
+sub make_id
   {
     my ($self, $class_id) = @_;
     
@@ -172,20 +177,42 @@ sub std_make_id
     
     if ($id)
       {
-	$id = -$id if $id < 0;
-	$alloc_id->{$class_id} = ++$id;
+		$id = -$id if $id < 0;
+		$alloc_id->{$class_id} = ++$id;
       }
     else
       {
-	my $table = $self->{schema}{class_table};
-	$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
-	$id = $self->sql_selectall_arrayref(
-					    "SELECT lastObjectId from $table WHERE classId = $class_id")->[0][0];
-	$alloc_id->{$class_id} = -$id;
+		$id = $self->make_1st_id_in_tx($class_id);
+		$alloc_id->{$class_id} = -$id;
       }
     
     return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
 }
+
+sub make_1st_id_in_tx
+  {
+    my ($self, $class_id) = @_;
+    
+	unless ($self->{make_id}) {
+	  my $table = $self->{schema}{class_table};
+	  my $dbh = $self->{db};
+	  $self->{make_id}{update} = $self->prepare("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = ?");
+	  $self->{make_id}{select} = $self->prepare("SELECT lastObjectId from $table WHERE classId = ?");
+	}
+	
+	my $sth;
+	
+	$sth = $self->{make_id}{update};
+	$sth->execute($class_id);
+	$sth->finish();
+	
+	$sth = $self->{make_id}{select};
+	$sth->execute($class_id);
+	my $id = $sth->fetchrow_arrayref()->[0];
+	$sth->finish();
+
+	return $id;
+  }
 
 sub unknown_classid
 {
@@ -206,24 +233,11 @@ my $error_no_transaction = 'no transaction is currently active';
 
 sub tx_start
 {
-  my $self = shift;
-  $self->{dialect}->tx_start($self);
-}
-
-sub std_tx_start
-{
     my $self = shift;
     push @{ $self->{tx} }, [];
 }
 
 sub tx_commit
-  {
-    # public - commit current transaction
-    my $self = shift;
-    $self->{dialect}->tx_commit($self);
-  }
-
-sub std_tx_commit
   {
     # public - commit current transaction
     
@@ -255,15 +269,8 @@ sub std_tx_commit
 
     pop @{ $self->{tx} };		# drop rollback subs
 }
-
-sub tx_rollback
-  {
-    # public - rollback current transaction
-    my $self = shift;
-    $self->{dialect}->tx_rollback($self);
-  }
     
-sub std_tx_rollback
+sub tx_rollback
   {
     my $self = shift;
     
@@ -375,71 +382,64 @@ sub _insert
     $self->welcome($obj, $id);
     $self->tx_on_rollback( sub { $self->goodbye($obj, $id) } );
 
-    $schema->visit_up($class,
-	    sub
-		{
-			my ($class) = @_;
+	my $dbh = $self->{db};
+	my $cache = $self->get_export_cache($class);
 
-			my $classdef = $schema->classdef($class);
+	my $context = { storage => $self, dbh => $dbh, id => $id };
 
-			my $table = $classdef->{table};
-			my $types = $schema->{types};
-			my (@cols, @vals);
+	my @fields = $cache->{exporter}->($obj, $context);
+	# print "*** @fields\n";
 
-			if (!@{$classdef->{bases}})
-			{
-				push @cols, 'classId';
-				push @vals, $classId;
-			}
+	for my $insert (@{ $cache->{insert} })
+	  {
+		my ($sth, $src, $cols, $root) = @$insert;
 
-			foreach my $typetag (keys %{$classdef->{members}})
-			{
-				$types->{$typetag}->save(\@cols, \@vals, $obj,
-										 $classdef->{members}{$typetag},
-										 $self, $table, $id);
-			}
+		$sth = $insert->[0] = $self->prepare($src)
+		  unless $sth;
 
-			unless ($classdef->{stateless})
-			{
-				my $cols = join ', ', 'id', @cols;
-				my $vals = join ', ', $id, @vals;
-				my $insert = "INSERT INTO $table ($cols) VALUES ($vals)";
-				$self->sql_do($insert);
-			}
-		} );
+		my @meta = ($id);
+		push @meta, $classId if $root;
+
+		print $Tangram::TRACE "executing $src with (",
+		join(', ', @meta, map { $_ || 'NULL' } @fields[0..$cols-1]), ")\n"
+		  if $Tangram::TRACE;
+
+		$sth->execute(@meta, splice(@fields, 0, $cols));
+
+		$sth->finish();
+	  }
 
     return $id;
 }
 
 sub auto_insert
-{
+  {
     # private - convenience sub for Refs, will be moved there someday
-
+	
     my ($self, $obj, $table, $col, $id, $deep_update) = @_;
-
-    return 'NULL' unless $obj;
-
+	
+    return undef unless $obj;
+	
     if (exists $done{$obj})
-    {
-	# object is being saved already: we have a cycle
-
-	$self->defer( sub
-		      {
-			  # now that the object has been saved, we have an id for it
-			  my $obj_id = $self->id($obj);
-
-			  # patch the column in the referant
-			  $self->sql_do( "UPDATE $table SET $col = $obj_id WHERE id = $id" );
-		      } );
-
-	return 'NULL';
-    }
-
+	  {
+		# object is being saved already: we have a cycle
+		
+		$self->defer( sub
+					  {
+						# now that the object has been saved, we have an id for it
+						my $obj_id = $self->id($obj);
+						
+						# patch the column in the referant
+						$self->sql_do( "UPDATE $table SET $col = $obj_id WHERE id = $id" );
+					  } );
+		
+		return undef;
+	  }
+	
     $self->_save($obj) if $deep_update;
-
-    return $self->id($obj)     # already persistent
-      || $self->_insert($obj); # autosave
-
+	
+    return $self->id($obj)		# already persistent
+      || $self->_insert($obj);	# autosave
 }
 
 #############################################################################
@@ -466,6 +466,85 @@ sub update
 		   }, $self, @objs);
 }
 
+sub get_export_cache
+  {
+    my ($self, $class) = @_;
+
+	my $cache = $self->{cache}{$class} ||= {};
+    my $schema = $self->{schema};
+    my $types = $schema->{types};
+
+	my $context = { schema => $schema };
+	
+	unless ($cache->{exporter})
+	  {
+		my (@export_sources, @export_closures);
+
+		$schema->visit_up($class,
+						  sub
+						  {
+							my $class = shift;
+							my $classdef = $schema->classdef($class);
+							my $fields = $classdef->{fields};
+							my @cols;
+							
+							$context->{class} = $class;
+
+							foreach my $typetag (keys %$fields) {
+							  push @cols, $types->{$typetag}->get_export_cols($fields->{$typetag});
+
+							  for my $exporter ($types->{$typetag}->get_exporters($fields->{$typetag}, $context)) {
+								if (ref $exporter) {
+								  push @export_closures, $exporter;
+								  push @export_sources, 'shift(@closures)->($obj, $context)';
+								} else {
+								  push @export_sources, $exporter;
+								}
+							  }
+							}
+							
+							if (@cols) {
+							  my $assigns = join ', ', map { "$_ = ?" } @cols;
+							  my $update = "UPDATE $classdef->{table} SET $assigns WHERE id = ?";
+							  #print "$update\n";
+							  push @{ $cache->{update} }, [ undef, $update, scalar(@cols) ];
+							}
+
+							my $root = !@{ $classdef->{bases} };
+
+							my @metacols = 'id';
+
+							if ($root)
+							  {
+								push @metacols, 'classId';
+							  }
+
+							if (@cols || $root) {
+							  my $cols = join ', ', @metacols, @cols;
+							  my $vals = join ', ', map { '?' } @metacols, @cols;
+							  my $insert = "INSERT INTO $classdef->{table} ($cols) VALUES ($vals)";
+							  # print "$insert\n";
+							  push @{ $cache->{insert} }, [ undef, $insert, scalar(@cols), $root ];
+							}
+
+						  } );
+
+		my $export_source = join ",\n", @export_sources;
+
+		my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
+
+		$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
+
+		print $Tangram::TRACE "Compiling exporter for $class...\n$export_source\n"
+		  if $Tangram::TRACE;
+
+		# use Data::Dumper; print Dumper \@cols;
+		$cache->{exporter} = eval $export_source or die;
+	  };
+
+	return $cache;
+  }
+
 sub _update
   {
     my ($self, $obj) = @_;
@@ -475,32 +554,22 @@ sub _update
     $done{$obj} = 1;
 
     my $class = ref $obj;
-    my $schema = $self->{schema};
-    my $types = $schema->{types};
+	my $dbh = $self->{db};
+	my $cache = $self->get_export_cache($class);
 
-    $schema->visit_up($class,
-					  sub
-					  {
-						my ($class) = @_;
-			
-						my $classdef = $schema->classdef($class);
-			
-						my $table = $classdef->{table};
-						my @cols = ();
-						my @vals = ();
-			
-						foreach my $typetag (keys %{$classdef->{members}}) {
-						  $types->{$typetag}->save(\@cols, \@vals, $obj,
-												   $classdef->{members}{$typetag},
-												   $self, $table, $id);
-						}
-			
-						if (@cols) {
-						  my $assigns = join ', ', map { "$_ = " . shift @vals } @cols;
-						  my $update = "UPDATE $table SET $assigns WHERE id = $id";
-						  $self->sql_do($update);
-						}
-					  } );
+	my $context = { storage => $self, dbh => $dbh, id => $id };
+
+	my @fields = $cache->{exporter}->($obj, $context);
+	#print "@fields\n";
+
+	for my $update (@{ $cache->{update} })
+	  {
+		my ($sth, $src, $cols) = @$update;
+		$sth = $update->[0] = $self->prepare($src)
+		  unless $sth;
+		$sth->execute(splice(@fields, 0, $cols), $id);
+		$sth->finish();
+	  }
   }
 
 #############################################################################
@@ -831,6 +900,12 @@ sub remote
     wantarray ? $self->query_objects(@classes) : (&remote)[0]
 }
 
+sub expr
+  {
+    my $self = shift;
+    return shift->expr( @_ );
+  }
+
 sub object
 {
     carp "cannot be called in list context; use objects instead" if wantarray;
@@ -991,6 +1066,8 @@ use Carp;
 
 use base qw( Tangram::AbstractStorage );
 
+use vars qw( %storage_class );
+
 sub connect
 {
     my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
@@ -1010,14 +1087,6 @@ sub connect
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
     $self->{cid_size} = $schema->{sql}{cid_size};
-
-    my $dialect = $opts->{dialect} || Tangram::Dialect->guess($cs)
-      || 'Tangram::Dialect';
-
-    $dialect = $self->{dialect} = ref($dialect) ? $dialect : $dialect->new();
-
-    print $Tangram::TRACE "using dialect ", ref($dialect), "\n"
-       if $Tangram::TRACE;
 	
     $self->_open($schema);
 

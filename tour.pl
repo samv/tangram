@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 use strict;
 
 use Tangram;
@@ -25,7 +27,7 @@ eval
     my $dbh = DBI->connect( @cp ) or die;
     $schema->retreat($dbh);
     $dbh->disconnect();
-  };
+  } if $opt{x};
 
 my $tour = join '', <DATA>;
 
@@ -65,6 +67,8 @@ Tangram uses standard SQL and should be usable SQL-83 database.
 
 Note that some functions (e.g. transactions and subselects) may not be
 available in some environments. This is reported during the test suite.
+
+
 =over 4
 
 =item *
@@ -256,17 +260,21 @@ For more information on deploying databases, see L<Tangram::Deploy>.
 =head2 Connecting to a database
 
 We are now ready to store objects. First we connect to the database,
-using the class method Tangram::Storage::connect. Its
+using the class method Tangram::Relational::connect. Its
 first argument is the schema object; the others are passed directly to
-DBI::connect. For example:
+DBI::connect. The method returns a Tangram::Storage object that will be
+used to communicate with the database.
+
+For example:
 {{
-   	$storage = Tangram::Storage->connect( $schema,
+   	$storage = Tangram::Relational->connect( $schema,
 		@cp );
 }}
-connects to a database named Springfield via the mySql driver, using
+connects to a database named Springfield via the Sybase driver, using
 a specific account and password.
 
-For more information on connecting to databases, see L<Tangram::Storage>.
+For more information on connecting to databases, see  L<Tangram::Relational> and
+L<Tangram::Storage>.
 
 =head2 Inserting objects
 

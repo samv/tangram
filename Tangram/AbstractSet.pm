@@ -36,6 +36,46 @@ sub save
 	return ();
 }
 
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+	
+	return $def->{deep_update} ?
+	  sub {
+		my ($obj, $context) = @_;
+		
+		# has collection been loaded? if not, then it hasn't been modified
+		return if tied $obj->{$field};
+		
+		my $storage = $context->{storage};
+		
+		foreach my $item ($obj->{$field}->members) {
+		  $storage->_save($item);
+		}
+		
+		$storage->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+		
+		return ();
+	  }
+	: sub {
+	  my ($obj, $context) = @_;
+	  
+	  # has collection been loaded? if not, then it hasn't been modified
+	  return if tied $obj->{$field};
+	  
+	  my $storage = $context->{storage};
+	  
+	  foreach my $item ($obj->{$field}->members) {
+		$storage->insert($item)
+		  unless $storage->id($item);
+	  }
+	  
+	  $storage->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+	  
+	  return ();
+	}
+  }
+
 sub update
 {
 	my ($self, $storage, $obj, $member, $insert, $remove) = @_;

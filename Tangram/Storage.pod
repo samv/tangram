@@ -2,8 +2,6 @@
 
 Tangram::Storage - persistent object database
 
-L<Tangram::Schema>
-
 =head1 SYNOPSIS
 
    use Tangram;
@@ -69,8 +67,6 @@ fields:
 
 =item * dbh 
 
-=item * dialect
-
 =back
 
 All fields are optional.
@@ -78,10 +74,6 @@ All fields are optional.
 C<dbh> can be used to connect a Storage via an existing DBI
 handle. $data_source, $username and $auth are still needed because
 Tangram may need to open extra connections (see below).
-
-C<dialect> contains a Dialect object (see L<Tangram::Dialect>); this is
-useful for accessing extra functionality available in some dialects of
-SQL. You may also specify the dialect as a class name.
 
 =head1 INSTANCE METHODS
 

@@ -13,7 +13,7 @@ my @kids = qw( Bart Lisa Maggie );
 sub NaturalPerson::children
 {
 	my ($self) = @_;
-	join(' ', map { $_->{firstName} } @{ $self->{$children} } )
+	join(' ', map { $_->{firstName} || '' } @{ $self->{$children} } )
 }
 
 sub marge_test

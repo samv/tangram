@@ -114,12 +114,16 @@ sub demand
 	return \%coll;
 }
 
-sub save
-{
-	my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
-	$storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
-	return ();
-}
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+
+	return sub {
+	  my ($obj, $context) = @_;
+	  $self->defered_save($context->{storage}, $obj, $field, $def);
+	  ();
+	}
+  }
 
 sub hash_diff {
   my ($first,$second,$differ) = @_;
@@ -146,46 +150,43 @@ sub hash_diff {
 }
 
 sub defered_save
-{
+  {
 	use integer;
+	
+	my ($self, $storage, $obj, $field, $def) = @_;
+	
+	return if tied $obj->{$field}; # collection has not been loaded, thus not modified
 
-	my ($self, $storage, $obj, $members, $coll_id) = @_;
-
-	foreach my $member (keys %$members)
-	{
-		next if tied $obj->{$member}; # collection has not been loaded, thus not modified
-		
-		my $def = $members->{$member};
-		
-		my ($ne, $modify, $add, $remove) =
-			$self->get_save_closures($storage, $obj, $def, $coll_id);
-
-		my $new_state = $obj->{$member} || {};
-		my $old_state = $self->get_load_state($storage, $obj, $member) || {};
-
-		my ($common, $changed, $to_add, $to_remove) = hash_diff($new_state, $old_state, $ne);
-            
-		for my $key (@$changed)
-		{
-			$modify->($key, $new_state->{$key}, $old_state->{$key});
-		}
-
-		for my $key (@$to_add)
-		{
-			$add->($key, $new_state->{$key});
-		}
-
-		for my $key (@$to_remove)
-		{
-			$remove->($key);
-		}
-
-		$self->set_load_state($storage, $obj, $member, { %$new_state } );	
-
-		$storage->tx_on_rollback(
-            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
-	}
-}
+	my $coll_id = $storage->id($obj);
+	
+	my ($ne, $modify, $add, $remove) =
+	  $self->get_save_closures($storage, $obj, $def, $coll_id);
+	
+	my $new_state = $obj->{$field} || {};
+	my $old_state = $self->get_load_state($storage, $obj, $field) || {};
+	
+	my ($common, $changed, $to_add, $to_remove) = hash_diff($new_state, $old_state, $ne);
+	
+	for my $key (@$changed)
+	  {
+		$modify->($key, $new_state->{$key}, $old_state->{$key});
+	  }
+	
+	for my $key (@$to_add)
+	  {
+		$add->($key, $new_state->{$key});
+	  }
+	
+	for my $key (@$to_remove)
+	  {
+		$remove->($key);
+	  }
+	
+	$self->set_load_state($storage, $obj, $field, { %$new_state } );	
+	
+	$storage->tx_on_rollback(
+							 sub { $self->set_load_state($storage, $obj, $field, $old_state) } );
+  }
 
 my $no_ref = 'illegal reference in flat hash';
 

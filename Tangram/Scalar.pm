@@ -33,21 +33,33 @@ sub reschema
 
 		die ref($self), ": $class\:\:$field: unexpected $refdef"
 			unless $refdef eq 'HASH';
-	
+
 		$def->{col} ||= $field;
     }
 
     return keys %$members;
 }
 
+sub get_exporter
+  {
+	my ($self, $field, $def) = @_;
+	return if $def->{automatic};
+	return "exists \$obj->{$field} ? \$obj->{$field} : undef";
+  }
+
 sub query_expr
 {
     my ($self, $obj, $memdefs, $tid, $storage) = @_;
-    my $dialect = $storage->{dialect};
-    return map { $dialect->expr($self, "t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
+    return map { $storage->expr($self, "t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
 }
 
 sub cols
+{
+    my ($self, $members) = @_;
+    map { $_->{col } } values %$members;
+}
+
+sub get_export_cols
 {
     my ($self, $members) = @_;
     map { $_->{col } } values %$members;
@@ -89,6 +101,12 @@ sub save
 		push @$vals, exists($obj->{$member}) && defined ($obj->{$member})
 			? $obj->{$member} : 'NULL';
     }
+}
+
+sub get_export_cols
+{
+    my ($self, $members) = @_;
+    map { $_->{col} } grep { !exists $_->{automatic} } values %$members;
 }
 
 package Tangram::Integer;

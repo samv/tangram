@@ -8,9 +8,7 @@ use Tangram::RawDateTime;
 
 use Tangram::FlatArray;
 use Tangram::FlatHash;
-
-use Tangram::Dialect::Sybase;
-use Tangram::Dialect::Mysql;
+use Tangram::PerlDump;
 
 package Springfield;
 
@@ -18,7 +16,7 @@ use vars qw( $schema @ISA @EXPORT );
 
 require Exporter;
 @ISA = qw( Exporter );
-@EXPORT = qw( optional_tests $schema testcase leaktest );
+@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect );
 
 $schema = Tangram::Schema->new( {
 
@@ -126,8 +124,9 @@ $schema = Tangram::Schema->new( {
 
 		flat_array => [ qw( interests ) ],
 
-	        flat_hash => [ qw( opinions ) ],
+		flat_hash => [ qw( opinions ) ],
 
+		perl_dump => [ qw( brains ) ],
 	   },
       },
 
@@ -223,11 +222,11 @@ use vars qw( $cs $user $passwd);
 my $no_tx;
 
 sub connect
-{
-   my $storage = Tangram::Storage->connect($Springfield::schema, $cs, $user, $passwd) || die;
+  {
+	my $storage = Tangram::Relational->connect($Springfield::schema, $cs, $user, $passwd) || die;
 	$no_tx = $storage->{no_tx};
 	return $storage;
-}
+  }
 
 sub empty
   {
@@ -316,6 +315,16 @@ sub optional_tests
 
 	return $proceed;
 }
+
+sub tests_for_dialect
+  {
+	my ($dialect) = @_;
+	return if (split ':', $cs)[1] eq $dialect;
+
+	begin_tests(1);
+	optional_tests($dialect, 0, 1);
+	exit;
+  }
 
 #use Data::Dumper;
 #print Dumper $schema;

@@ -1,3 +1,11 @@
+# Copyright 1999-2001 Gabor Herr. All rights reserved.
+# This program is free software; you can redistribute it and/or modify it
+# under the same terms as Perl itself
+
+# Modified 29dec2000 by Jean-Louis Leroy
+# replaced save() by get_exporter()
+# fixed reschema(): $def->{dumper} was not set when using abbreviated forms
+
 use strict;
 
 use Tangram::Scalar;
@@ -18,8 +26,6 @@ sub reschema {
     # short form
     # transform into hash: { fieldname => { col => fieldname }, ... }
     $_[1] = map { $_ => { col => $_ } } @$members;
-    return @$members;
-    die 'coverok';
   }
     
   for my $field (keys %$members) {
@@ -28,8 +34,8 @@ sub reschema {
     
     unless ($refdef) {
       # not a reference: field => field
-      $members->{$field} = { col => $def || $field };
-      next;
+      $def = $members->{$field} = { col => $def || $field };
+	  $refdef = ref($def);
     }
 
     die ref($self), ": $class\:\:$field: unexpected $refdef"
@@ -40,7 +46,7 @@ sub reschema {
     $def->{indent} ||= 0;
     $def->{terse} ||= 1;
     $def->{purity} ||= 0;
-    $def->{dumper} = sub {
+    $def->{dumper} ||= sub {
       $Data::Dumper::Indent = $def->{indent};
       $Data::Dumper::Terse  = $def->{terse};
       $Data::Dumper::Purity = $def->{purity};
@@ -65,6 +71,16 @@ sub read
         splice @$row, 0, keys %$members;
 }
 
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+
+	return sub {
+	  my ($obj, $context) = @_;
+	  $def->{dumper}->(
+					   $obj->{$field});
+	};
+  }
 
 sub save {
   my ($self, $cols, $vals, $obj, $members, $storage) = @_;

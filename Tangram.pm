@@ -11,7 +11,7 @@ require Exporter;
 @EXPORT = qw(
 	
 );
-$VERSION = '1.19';
+$VERSION = '2.0';
 
 
 # Preloaded methods go here.
@@ -25,6 +25,12 @@ use Tangram::Array;
 use Tangram::IntrArray;
 
 use Tangram::Hash;
+
+sub connect
+  {
+	shift;
+	Tangram::Storage->connect( @_ );
+  }
 
 1;
 

@@ -3,10 +3,11 @@ Makefile.PL
 MANIFEST
 README
 tour.pl
-metatest.pl
+#metatest.pl
 #supported.pl
 Tangram.pm
 Tangram.pod
+Tangram/Relational.pod
 
 Tangram/Schema.pm
 Tangram/Storage.pm
@@ -18,9 +19,8 @@ Tangram/Core.pm
 
 Tangram/Deploy.pm
 
-Tangram/Dialect.pm
-Tangram/Dialect/Sybase.pm
-Tangram/Dialect/Mysql.pm
+Tangram/Sybase.pm
+Tangram/mysql.pm
 
 Tangram/Ref.pm
 
@@ -85,6 +85,7 @@ t/tx.t
 t/reload.t
 t/unload.t
 t/weakref.t
+t/perldump.t
 
 # mappings
 t/ref.t
@@ -95,3 +96,6 @@ t/iarray.t
 t/set.t
 t/iset.t
 # t/datetime.t
+
+t/mysql.t
+#t/sybase.t

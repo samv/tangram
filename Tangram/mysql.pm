@@ -1,19 +1,23 @@
 use strict;
+use Tangram::Core;
 
-package Tangram::Dialect::Mysql;
+package Tangram::mysql;
 
-use Tangram::Dialect;
-use base qw( Tangram::Dialect );
+use base qw( Tangram::Relational );
 
-sub rate_connect_string
+sub connect
   {
-    my ($self, $cs) = @_;
-    return +($cs =~ m/^dbi:mysql:/i);
+	shift;
+	return Tangram::mysql::Storage->connect( @_ );
   }
+
+package Tangram::mysql::Storage;
+
+use Tangram::Storage;
+use base qw( Tangram::Storage );
 
 sub make_id
   {
-    shift;
     my ($storage, $class_id) = @_;
 
 	my $table = $storage->{schema}{class_table};
@@ -27,34 +31,31 @@ sub make_id
 
 sub tx_start
   {
-    shift;
     my $storage = shift;
     $storage->sql_do(q/SELECT GET_LOCK("tx", 10)/)
       if @{ $storage->{tx} };
-    $storage->std_tx_start(@_);
+    $storage->SUPER::tx_start(@_);
   }
 
 sub tx_commit
   {
-    shift;
     my $storage = shift;
-    $storage->std_tx_commit(@_);
+    $storage->SUPER::tx_commit(@_);
     $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/)
       if @{ $storage->{tx} };
   }
 
 sub tx_rollback
   {
-    shift;
     my $storage = shift;
     $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/);
-    $storage->std_tx_rollback(@_);
+    $storage->SUPER::tx_rollback(@_);
   }
 
 my %improved_date =
   (
-   'Tangram::RawDateTime' => 'Tangram::Dialect::Mysql::DateExpr',
-   'Tangram::RawDate' => 'Tangram::Dialect::Mysql::DateExpr',
+   'Tangram::RawDateTime' => 'Tangram::mysql::DateExpr',
+   'Tangram::RawDate' => 'Tangram::mysql::DateExpr',
   );
 
 sub expr
@@ -63,8 +64,8 @@ sub expr
     my $type = shift;
     my ($expr, @remotes) = @_;
 	
-	return Tangram::Dialect::Mysql::IntegerExpr->new($type, $expr, @remotes)
-	  if $type->isa('Tangram::Integer');
+	return Tangram::mysql::IntegerExpr->new($type, $expr, @remotes)
+	  if ref($type) eq 'Tangram::Integer';
 
     my $improved_date = $improved_date{ref($type)};
     return $improved_date->new($type, $expr, @remotes)
@@ -73,9 +74,7 @@ sub expr
 	return $type->expr(@_);
   }
 
-Tangram::Dialect::Mysql->register();
-
-package Tangram::Dialect::Mysql::IntegerExpr;
+package Tangram::mysql::IntegerExpr;
 use base qw( Tangram::Expr );
 
 sub bitwise_and
@@ -103,7 +102,7 @@ sub bitwise_nor
 	return Tangram::Integer->expr("~$self->{expr} | $val", $self->objects);
 }
 
-package Tangram::Dialect::Mysql::DateExpr;
+package Tangram::mysql::DateExpr;
 use base qw( Tangram::Expr );
 
 my %autofun = (

@@ -283,6 +283,16 @@ use base qw( Tangram::Scalar );
 
 $Tangram::Schema::TYPES{backref} = Tangram::BackRef->new;
 
+sub get_export_cols
+  {
+	()
+  }
+
+sub get_exporter
+  {
+	()
+  }
+
 sub save
 {
 	() # do nothing; save is done by the collection

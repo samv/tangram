@@ -54,6 +54,21 @@ sub save
    }
 }
 
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+	my $table = $context->{schema}{classes}{ $context->{class} }{table};
+	my $col = $def->{col};
+	my $deep_update = exists $def->{deep_update};
+
+	return sub {
+	  my ($obj, $context) = @_;
+	  my $tied = tied($obj->{$field});
+	  return $tied ? $tied->id
+		: $context->{storage}->auto_insert($obj->{$field}, $table, $col, $context->{id}, $deep_update);
+	}
+  }
+
 sub read
 {
    my ($self, $row, $obj, $members, $storage) = @_;
@@ -78,7 +93,6 @@ sub read
 sub query_expr
 {
    my ($self, $obj, $memdefs, $tid, $storage) = @_;
-   my $dialect = $storage->{dialect};
    return map { $self->expr("t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
 }
 

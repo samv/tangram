@@ -40,39 +40,33 @@ sub reschema
 }
 
 sub defered_save
-{
-	my ($self, $storage, $obj, $members, $coll_id) = @_;
-
+  {
+	my ($self, $storage, $obj, $field, $def) = @_;
+	
+	return  if tied $obj->{$field};
+	
+	my $coll_id = $storage->id($obj);
 	my $classes = $storage->{schema}{classes};
-
-	foreach my $member (keys %$members)
-	{
-		next if tied $obj->{$member};
-		next unless exists $obj->{$member} && defined $obj->{$member};
-
-		my $def = $members->{$member};
-      
-		my $item_classdef = $classes->{$def->{class}};
-		my $table = $item_classdef->{table};
-		my $item_col = $def->{coll};
-      
-		$self->update($storage, $obj, $member,
-					  sub
-					  {
-						  my $sql = "UPDATE $table SET $item_col = $coll_id WHERE id = @_";
-						  $storage->sql_do($sql);
-					  },
-
-					  sub
-					  {
-						  my $sql = "UPDATE $table SET $item_col = NULL WHERE id = @_ AND $item_col = $coll_id";
-						  $storage->sql_do($sql);
-					  } );
-	}
-}
+	my $item_classdef = $classes->{$def->{class}};
+	my $table = $item_classdef->{table};
+	my $item_col = $def->{coll};
+	
+	$self->update($storage, $obj, $field,
+				  sub
+				  {
+					my $sql = "UPDATE $table SET $item_col = $coll_id WHERE id = @_";
+					$storage->sql_do($sql);
+				  },
+				  
+				  sub
+				  {
+					my $sql = "UPDATE $table SET $item_col = NULL WHERE id = @_ AND $item_col = $coll_id";
+					$storage->sql_do($sql);
+				  } );
+  }
 
 sub demand
-{
+  {
 	my ($self, $def, $storage, $obj, $member, $class) = @_;
 
 	my $set = Set::Object->new();

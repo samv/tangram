@@ -57,4 +57,26 @@ sub expr
 	return Tangram::Expr->new( @_ );
 }
 
+sub get_exporters
+  {
+	my ($self, $fields, $context) = @_;
+	return map { $self->get_exporter($_, $fields->{$_}, $context) } keys %$fields;
+  }
+
+# sub get_exporter
+#   {
+# 	my $type = ref shift();
+# 	die "$type does not implement new get_exporter method";
+#   }
+
+sub get_export_cols
+  {
+	()
+  }
+
+sub get_exporter
+  {
+	()
+  }
+
 1;

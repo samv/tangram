@@ -109,12 +109,16 @@ sub demand
 	return \@coll;
 }
 
-sub save
-{
-	my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
-	$storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
-	return ();
-}
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+
+	return sub {
+	  my ($obj, $context) = @_;
+	  $self->defered_save($context->{storage}, $obj, $field, $def);
+	  ();
+	}
+  }
 
 my $no_ref = 'illegal reference in flat array';
 

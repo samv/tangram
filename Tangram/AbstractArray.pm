@@ -36,6 +36,63 @@ sub demand
 	return \@coll;
 }
 
+sub get_export_cols
+{
+  return (); # arrays are not stored on object's table
+}
+
+sub save_content
+  {
+	my ($obj, $field, $context) = @_;
+
+	# has collection been loaded? if not, then it hasn't been modified
+	return if tied $obj->{$field};
+
+	my $storage = $context->{storage};
+
+	foreach my $item (@{ $obj->{$field} }) {
+	  $storage->insert($item)
+		unless $storage->id($item);
+	}
+  }
+
+sub deep_save_content
+  {
+	my ($obj, $field, $context) = @_;
+
+	# has collection been loaded? if not, then it hasn't been modified
+	return if tied $obj->{$field};
+
+	my $storage = $context->{storage};
+
+	foreach my $item (@{$obj->{$field}}) {
+	  $storage->_save($item);
+	}
+  }
+
+sub check_content
+  {
+	my ($obj, $field, $coll, $class) = @_;
+
+	foreach my $item ($obj->{$field}) {
+	  Tangram::Coll::bad_type($obj, $field, $class, $item)
+		unless $item->isa($class);
+	}
+  }
+
+sub get_exporter
+  {
+	my ($self, $field, $def, $context) = @_;
+	my $save_content = $def->{deep_update} ? \&deep_save_content : \&save_content;
+
+	return sub {
+	  my ($obj, $context) = @_;
+	  $save_content->($obj, $field, $context);
+	  $context->{storage}->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+	  ();
+	}
+  }
+
 sub save
 {
 	my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
@@ -63,48 +120,44 @@ sub save
 }
 
 sub defered_save
-{
+  {
 	use integer;
-
-	my ($self, $storage, $obj, $members, $coll_id) = @_;
-
-	foreach my $member (keys %$members)
-	{
-		next if tied $obj->{$member}; # collection has not been loaded, thus not modified
-		
-		my $def = $members->{$member};
-		
-		my ($ne, $modify, $add, $remove) =
-			$self->get_save_closures($storage, $obj, $def, $coll_id);
-
-		my $new_state = $obj->{$member} || [];
-		my $new_size = @$new_state;
-
-		my $old_state = $self->get_load_state($storage, $obj, $member) || [];
-		my $old_size = @$old_state;
-
-		my ($common, $changed) = Tangram::Coll::array_diff($new_state, $old_state, $ne);
-            
-		for my $slot (@$changed)
-		{
-			$modify->($slot, $new_state->[$slot], $old_state->[$slot]);
-		}
-
-		for my $slot ($old_size .. ($new_size-1))
-		{
-			$add->($slot, $new_state->[$slot]);
-		}
-
-		if ($old_size > $new_size)
-		{
-			$remove->($new_size, $old_size);
-		}
-
-		$self->set_load_state($storage, $obj, $member, [ @$new_state ] );	
-
-		$storage->tx_on_rollback(
-            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
-	}
-}
+	
+	my ($self, $storage, $obj, $field, $def) = @_;
+	
+	return if tied $obj->{$field}; # collection has not been loaded, thus not modified
+	
+	my $coll_id = $storage->id($obj);
+	
+	my ($ne, $modify, $add, $remove) =
+	  $self->get_save_closures($storage, $obj, $def, $storage->id($obj));
+	
+	my $new_state = $obj->{$field} || [];
+	my $new_size = @$new_state;
+	
+	my $old_state = $self->get_load_state($storage, $obj, $field) || [];
+	my $old_size = @$old_state;
+	
+	my ($common, $changed) = Tangram::Coll::array_diff($new_state, $old_state, $ne);
+	
+	for my $slot (@$changed)
+	  {
+		$modify->($slot, $new_state->[$slot], $old_state->[$slot]);
+	  }
+	
+	for my $slot ($old_size .. ($new_size-1))
+	  {
+		$add->($slot, $new_state->[$slot]);
+	  }
+	
+	if ($old_size > $new_size)
+	  {
+		$remove->($new_size, $old_size);
+	  }
+	
+	$self->set_load_state($storage, $obj, $field, [ @$new_state ] );	
+	
+	$storage->tx_on_rollback( sub { $self->set_load_state($storage, $obj, $field, $old_state) } );
+  }
 
 1;

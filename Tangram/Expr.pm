@@ -464,7 +464,7 @@ sub like
 sub count
 {
 	my ($self, $val) = @_;
-	$self->{storage}{dialect}
+	$self->{storage}
 		->expr(Tangram::Integer->instance, "COUNT($self->{expr})",
 				$self->objects );
 }

@@ -32,33 +32,26 @@ sub reschema
 
 sub defered_save
 {
-	my ($self, $storage, $obj, $members, $coll_id) = @_;
+	my ($self, $storage, $obj, $field, $def) = @_;
 
-	foreach my $member (keys %$members)
-	{
-		next if tied $obj->{$member};
-		next unless exists $obj->{$member} && defined $obj->{$member};
-
-		my $def = $members->{$member};
+	return if tied $obj->{$field};
       
-		my $table = $def->{table} || $def->{class} . "_$member";
-		my $coll_col = $def->{coll} || 'coll';
-		my $item_col = $def->{item} || 'item';
+	my $coll_id = $storage->id($obj);
+	my $table = $def->{table};
+	my $coll_col = $def->{coll};
+	my $item_col = $def->{item};
       
-		$self->update($storage, $obj, $member,
-					  sub
-					  {
-						  my $sql = "INSERT INTO $table ($coll_col, $item_col) VALUES ($coll_id, @_)";
-						  $storage->sql_do($sql);
-					  },
-
-					  sub
-					  {
-						  my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id AND $item_col = @_";
-						  $storage->sql_do($sql);
-					  } );
-	}
-}
+	$self->update($storage, $obj, $field,
+				  sub {
+					my $sql = "INSERT INTO $table ($coll_col, $item_col) VALUES ($coll_id, @_)";
+					$storage->sql_do($sql);
+				  },
+				  sub
+				  {
+					my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id AND $item_col = @_";
+					$storage->sql_do($sql);
+				  } );
+  }
 
 sub prefetch
 {
