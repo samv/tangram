@@ -126,56 +126,44 @@ Here is the Schema for Springfield:
 
    $schema = Tangram::Relational->schema( {
 
-      classes =>
-      [
-        Person =>
-        {
-		 	abstract => 1,
-	   
-			fields =>
-			{
-				iarray =>
-				{
-					addresses =>
-					{
-						aggreg => 1
-					}
-			   }
-			}
-		},
+      classes => [
 
-		Address =>
-	 	{
-	    	fields =>
-	     	{
-				string => [ qw( type city ) ],
-	     	}
-	 	},
+         Person => {
+            abstract => 1,
 
-		NaturalPerson =>
-        {
-        	bases => [ qw( Person ) ],
+            fields => {
+                iarray => { addresses => { class => 'Address', aggreg => 1 } }
+            }
+         }
+      },
 
-            fields =>
-            {
-               string   => [ qw( firstName name ) ],
-               int      => [ qw( age ) ],
-               ref      => [ qw( partner ) ],
-               array    => { children => 'NaturalPerson' },
-            },
+      Address => {
+         fields => {
+            string => [ qw( type city ) ],
+         }
+      },
+
+      NaturalPerson => {
+
+         bases => [ qw( Person ) ],
+
+         fields => {
+            string   => [ qw( firstName name ) ],
+            int      => [ qw( age ) ],
+            ref      => [ qw( partner ) ],
+            array    => { children => 'NaturalPerson' },
          },
+      },
 
-         LegalPerson =>
-         {
-            bases => [ qw( Person ) ],
+      LegalPerson => {
+         bases => [ qw( Person ) ],
 
-            fields =>
-            {
-               string   => [ qw( name ) ],
-               ref      => [ qw( manager ) ],
-            },
+         fields => {
+            string   => [ qw( name ) ],
+            ref      => [ qw( manager ) ],
          },
-      ] } );
+      },
+   ] } );
 The Schema lists all the classes that need persistence, along with
 their attributes and the inheritance relationships.  We must provide
 type information for the attributes, because SQL is more typed than
@@ -322,7 +310,7 @@ We use a query.
 When an object is inserted, Tangram assigns an identifier to it.
 IDs are numbers that uniquely identify objects in the database.
 C<insert> returns the ID(s) of the object(s) it was passed:
-   	$storage = Tangram::Storage->connect( $schema,
+   	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 
    	$flanders_id = $storage->insert( NaturalPerson->new(
@@ -340,7 +328,7 @@ For more information on loading objects by id, see L<Tangram::Storage>.
 
 Once Homer has been restored to his previous state, including his relations
 with his family. Thus we can say:
-   	$storage = Tangram::Storage->connect( $schema,
+   	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 
 	$homer = $storage->load( $homer_id ); # load by id
@@ -360,7 +348,7 @@ L<Tangram::Set> and L<Tangram::IntrSet>.
 =head2 select
 
 To retrieve all the objects of a given class, we use C<select>:
-   	$storage = Tangram::Storage->connect( $schema,
+   	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 
    	my @people = $storage->select( 'NaturalPerson' );
@@ -467,7 +455,7 @@ Cursors provide a way of retrieving objects one at a time.  This is
 important is the result set is potentially large.  cursor() takes the
 same arguments as select() and returns a Cursor objects that can be
 used to iterate over the result set via methods current() and next():
-   	$storage = Tangram::Storage->connect( $schema,
+   	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 
    	# iterate over all the NaturalPersons in storage
@@ -614,35 +602,30 @@ other persons of flesh and blood I<and> the Nuclear Power Plant.
 
 =head1 LICENSE & WARRANTY
 
-Tangram is free software. You may use, modify and redistribute this
-module under the same terms as Perl itself.
+You may use Tangram, free of charge, under the terms of the GPL.
+You can obtain a commercial license from Sound Object Logic, see
+L<http://www.soundobjectlogic.com/tangram/licenses>.
 
 TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 
 =head1 SUPPORT
 
-Please send bug reports directly to me (jll@tangram-persistence.org)
+Please send bug reports directly to me (jll@soundobjectlogic.com)
 or to the Tangram mailing list (tangram-users@lists.sourceforge.net).
 
-Whenever possible, join a short, complete script demonstrating the
+Whenever possible, include a short, complete script demonstrating the
 problem.
 
 Questions of general interest should should be posted either to the
 mailing list or to comp.lang.perl.modules, which I monitor daily. Make
 sure to include 'Tangram' in the subject line.
 
-Commercial support for Tangram is available. Visit the Tangram website
-(www.tangram-persistence.org) for support options or contact me
-at jll@skynet.be.
-
-=head1 ACKNOWLEDGEMENTS
-
-I'd like to thank all the people that have helped me build Tangram by
-contributing code, testing, sending bug reports and remarks.
+Commercial support for Tangram is available, see
+L<http://www.soundobjectlogic.com/tangram/support>.
 
 =head1 AUTHOR
 
-Jean-Louis Leroy, jll@tangram-persistence.org
+Jean-Louis Leroy, jll@soundobjectlogic.com
 
 =head1 SEE ALSO
 
