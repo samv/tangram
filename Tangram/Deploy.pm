@@ -231,8 +231,11 @@ CREATE TABLE $schema->{class_table}
 SQL
 
     my $cids = $self->classids();
-    $do->("INSERT INTO $schema->{class_table}(classId, className, lastObjectId) VALUES ($cids->{$_}, '$_', 0)" )
-        for keys %$cids;
+    foreach (keys %$cids) {
+      $do->("INSERT INTO $schema->{class_table}(classId, className, lastObjectId) VALUES ($cids->{$_}, '$_', 0)" );
+    }
+	
+      #  for keys %$cids;
 }
 
 sub classids
