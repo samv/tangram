@@ -337,10 +337,36 @@ sub unknown_classid
     confess "class '$class' doesn't exist in this storage"
 }
 
+{
+    no strict 'refs';
 sub class_id
 {
-    my ($self, $class) = @_;
-    $self->{class2id}{$class} or unknown_classid $class;
+    my $self = shift;
+    $self->{class2id}{$_[0]} or do {
+	# crawl ISA tree...
+	my @stack = \%{$_[0]."::"};
+	my $seen = Set::Object->new(@stack);
+	while ( my $stash = pop @stack ) {
+	    my @supers = @{ *{$stash->{ISA}}{ARRAY} };
+	    for my $super ( @supers ) {
+		if ( defined $self->{class2id}{$super} ) {
+		    $self->{class2id}{$_[0]}
+			= $self->{class2id}{$super};
+		    $self->{schema}{classdef}{$_[0]}
+			= $self->{schema}{classdef}{$super};
+		    goto OK
+		}
+		else {
+		    $super = \%{$super."::"};
+		}
+	    }
+	    push @stack, grep { $seen->insert($_) } @supers;
+	}
+    OK:
+	$self->{class2id}{$_[0]};
+    } or
+	unknown_classid $_[0];
+}
 }
 
 #############################################################################
@@ -526,8 +552,9 @@ sub _insert
     $saving->insert($obj);
 
     my $class_name = ref $obj;
-    my $classId = $self->{class2id}{$class_name} or unknown_classid $class_name;
-	my $class = $self->{schema}->classdef($class_name);
+    my $classId = $self->class_id($class_name);
+
+    my $class = $self->{schema}->classdef($class_name);
 
     my $id = $self->make_id($classId);
 
@@ -739,6 +766,20 @@ sub defer
 {
     my ($self, $action) = @_;
     push @{$self->{defered}}, $action;
+}
+
+sub import_object
+{
+    my $self = shift;
+    my $class = shift;
+    my @oids = @_;
+
+    # convert the `exported' object IDs to real OIDs
+    my $cid = $self->class_id($class);
+
+    @oids = map { $self->combine_ids($_, $cid) } @oids;
+
+    return $self->load(@oids);
 }
 
 sub load

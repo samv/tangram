@@ -69,14 +69,20 @@ sub select
 	$self->{-distinct} = $args{distinct};
 	$self->{-limit} = $args{limit};
 
-	$self->retrieve( @{ $args{retrieve} } )
-	    if exists $args{retrieve};
+	my $objects = Set::Object->new();
+
+	if (exists $args{retrieve}) {
+	    $self->retrieve( @{ $args{retrieve} } );
+	    $objects->insert
+		( map { $_->{objects}->members }
+		  @{ $args{retrieve} } );
+	}
 
 	my $target = $self->{TARGET};
 
 	my (@filter_from, @filter_where);
 
-	my $filter = Tangram::Filter->new( tight => 100, objects => Set::Object->new() );
+	my $filter = Tangram::Filter->new( tight => 100, objects => $objects );
 
 	if (my $user_filter = $args{filter})
 	{
@@ -85,14 +91,16 @@ sub select
 		$filter->{objects}->remove($target->object) if $target;
 	}
 
+	my @polysel = 
+	     $self->{STORAGE}->get_polymorphic_select
+	     ( $target ? $target->class : "");
+
 	$self->{SELECTS} =
 	    [
 	     map {
 		 [ $self->build_select( $_, [], [ $filter->from ],
 					[ $filter->where ]), undef, $_ ]
-	     }
-	     $self->{STORAGE}->get_polymorphic_select
-	     ( $target ? $target->class : "")
+	     } @polysel
 	    ];
 
 	$self->{position} = -1;
@@ -241,7 +249,11 @@ sub _next
 	$self->{-residue} = exists $self->{-retrieve}
 	    ? [ map { ref $_ ? $_->{type}->read_data(\@row) : shift @row } @{$self->{-retrieve}} ]
 		: \@row;
-	$self->{-current} ||= $self->{-residue};
+
+	$self->{-current} ||=
+	    (@{$self->{-residue}} > 1
+	     ? $self->{-residue}
+	     : $self->{-residue}[0]);
 
 	return $self->{-current};
 }

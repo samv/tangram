@@ -892,8 +892,9 @@ sub get_table_set {
     my ($self, $engine) = @_;
 
     # return the TableSet on which the object's state resides
-    # it doesn't include tables resulting solely from an intrusion
-    # tabled that carry only meta-information are also included
+
+    # It doesn't include tables resulting solely from an intrusion.
+    # Tables that carry only meta-information are also included.
 
     return $self->{TABLE_SET} ||= do {
 

@@ -98,9 +98,10 @@ sub reschema {
 sub get_importer
 {
 	my ($self, $context) = @_;
-	return("\$obj->{$self->{name}} = YAML::thaw(shift \@\$row);"
+        return("my \$x = '--- '.(shift \@\$row).'\n';
+                \$obj->{$self->{name}} = YAML::thaw(\$x);"
                ."Tangram::Dump::unflatten(\$context->{storage}, "
-	       ."\$obj->{$self->{name}})");
+               ."\$obj->{$self->{name}})");
   }
 
 sub get_exporter
@@ -113,6 +114,7 @@ sub get_exporter
 	  Tangram::Dump::flatten($context->{storage},
 				 $obj->{$field});
 	  my $text = $self->{dumper}->($obj->{$field});
+          $text =~ s{\A---\s*|\n\Z}{}g;
 	  Tangram::Dump::unflatten($context->{storage},
 				   $obj->{$field});
 	  return $text;

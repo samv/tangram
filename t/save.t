@@ -4,7 +4,7 @@ use t::Springfield;
 
 my %id;
 
-Springfield::begin_tests(3);
+Springfield::begin_tests(4);
 
 {
 	$storage = Springfield::connect_empty;
@@ -77,10 +77,25 @@ Springfield::begin_tests(3);
 
 #Springfield::leaktest;
 
+my $export_id;
 {
 	$storage = Springfield::connect();
 
 	my $bart = $storage->load($id{Bart});
+	$export_id = $storage->export_object($bart);
+
+	Springfield::test( $bart && 
+			   $bart->{belongings}->[0]->{name} eq 'T-shirt' &&
+			   $bart->{belongings}->[1]->{name} eq 'Bike' &&
+			   $bart->{belongings}->[2]->{name} eq 'Sneakers');
+
+	$storage->disconnect();
+}
+
+{
+	$storage = Springfield::connect();
+
+	my $bart = $storage->import_object("NaturalPerson", $export_id);
 
 	Springfield::test( $bart && 
 			   $bart->{belongings}->[0]->{name} eq 'T-shirt' &&

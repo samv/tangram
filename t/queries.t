@@ -11,7 +11,7 @@ use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;
 
-use Test::More tests => 14;
+use Test::More tests => 21;
 
 #--------------------
 # setup tests
@@ -152,6 +152,43 @@ ok(!$DBI::err,
 
 is(&leaked, 0, "leaktest");
 # END ks.perl@kurtstephens.com 2002/10/16
+
+# test selecting some columns with no filter or object
+{
+   my $storage = Springfield::connect;
+
+   my ($person) = $storage->remote(qw( NaturalPerson ));
+
+   #local $Tangram::TRACE = \*STDERR;
+   my @results = $storage->select
+       ( undef,
+	 retrieve => [ $person->{id} ],
+	 order    => [ $person->{id} ],
+       );
+
+   is(@results, 3, "no filter or object (get all IDs)" );
+
+   # now try to load them - this does really kooky stuff with
+   # polymorphic selects (seemingly makes one select per subclass)
+   my @objects = $storage->select
+       ( $person,
+	 $person->{id}->in(@results),
+       );
+
+   is(@objects, 3, "selected results");
+   isa_ok($_, "Person", "selected item") foreach (@objects);
+
+   # test that class_id works for classes not in schema (an empty
+   # subclass test)
+   @UndeadPerson::ISA = qw(NaturalPerson);
+   is($storage->class_id("UndeadPerson"),
+      $storage->class_id("NaturalPerson"), 
+      "Storage can handle Undead objects");
+
+   $storage->disconnect();
+
+}
+is(&leaked, 0, "leaktest");
 
 
 $dbh->disconnect();

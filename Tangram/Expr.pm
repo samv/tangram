@@ -247,6 +247,7 @@ sub where
 
 package Tangram::Filter;
 use Carp;
+use Set::Object qw(blessed);
 
 sub new
 {
@@ -432,6 +433,7 @@ sub objects
 }
 
 package Tangram::Expr;
+use Set::Object qw(blessed);
 use Carp;
 
 sub new
@@ -633,6 +635,46 @@ sub as_string
 {
 	my $self = shift;
 	return ref($self) . "($self->{expr})";
+}
+
+sub in
+{
+	my $self = shift;
+
+	my $storage = $self->{storage};
+
+	my @items;
+	while ( my $item = shift ) {
+	    if ( ref $item eq "ARRAY" ) {
+		push @items, @$item;
+	    } elsif ( UNIVERSAL::isa($item, "Set::Object") ) {
+		push @items, $item->members;
+	    } else {
+		push @items, $item;
+	    }
+	}
+
+	my $expr;
+	if ( @items ) {
+	    $expr = ("$self->{expr} IN ("
+		     . join(', ',
+			    # FIXME - what about table aliases?  Hmm...
+			    map {( blessed($_)
+				   ? $storage->export_object($_)
+				   : $_ )}
+			    @items )
+		     . ')');
+	} else {
+	    # hey, you never know :)
+	    $expr = ("$self->{expr} IS NULL");
+	}
+
+	Tangram::Filter->new(
+			     expr => $expr,
+			     tight => 100,
+			     objects => $self->{objects},
+			    );
+
 }
 
 sub DESTROY { }
