@@ -40,6 +40,8 @@ use base qw( Boat Plane );
 
 sub fields { qw( name knots altitude whatever ) }
 
+package main;
+
 sub check
   {
 	my ($storage, $class, @states) = @_;
@@ -122,3 +124,24 @@ test_mapping('V', 'V', 'V', 'H');
 test_mapping('V', 'B', 'V', 'V');
 test_mapping('V', 'V', 'P', 'V');
 test_mapping('V', 'B', 'P', 'V');
+__END__
+{
+	my $schema = $dialect
+	  ->schema( {
+				 control => 'Mappings',
+				 classes =>
+				 [
+				  Fruit => { abstract => 1 },
+				  Apple => { bases => [ 'Fruit' ] },
+				  AppleTree => { fields => { iset => { fruits => 'Apple' } } }
+				 ] } );
+
+	$Tangram::TRACE = \*STDOUT;
+	$dialect->retreat($schema, $cs, $user, $passwd, { PrintError => 0 });
+	$dialect->deploy($schema, $cs, $user, $passwd, { PrintError => 0 });
+							  
+	my $storage = $dialect->connect($schema, $cs, $user, $passwd);
+	$storage->insert( bless { fruits => Set::Object->new( bless { }, 'Apple' ) }, 'AppleTree' );
+	$storage->disconnect();
+														  
+}
