@@ -3,6 +3,7 @@
 use strict;
 
 package Tangram::Sybase;
+use base qw( Tangram::Relational );
 
 sub connect
   {
