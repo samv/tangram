@@ -11,7 +11,7 @@ require Exporter;
 @EXPORT = qw(
 	
 );
-$VERSION = '1.08';
+$VERSION = '1.09';
 
 
 # Preloaded methods go here.
@@ -25,8 +25,6 @@ use Tangram::Array;
 use Tangram::IntrArray;
 
 use Tangram::Hash;
-
-$Tangram::TRACE = \*STDERR if exists $ENV{TANGRAM_TRACE};
 
 1;
 
