@@ -19,4 +19,14 @@ use vars qw( $TRACE );
 $TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
   if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
 
+sub pretty {
+    my $thingy = shift;
+
+    if (defined($thingy)) {
+	return "`$thingy'";
+    } else {
+	return undef;
+    }
+}
+
 1;

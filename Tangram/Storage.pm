@@ -5,6 +5,7 @@ use strict;
 package Tangram::Storage;
 use DBI;
 use Carp;
+use Tangram::Core qw(pretty);
 
 use vars qw( %storage_class );
 
@@ -1073,6 +1074,33 @@ sub unload
       }
     }
   }
+
+# checks to see if an object ID ->isa the correct type, based on its
+# classtype
+sub oid_isa
+    {
+	my $self = shift;
+	my $oid = shift;
+	croak(pretty($oid)." is not an Object ID")
+	    unless defined ($oid) and $oid + 0 eq $oid;
+
+	my $class = shift;
+	my $classes = $self->{schema}->{classes};
+	croak "Class ".pretty($oid)." is not defined in the schema"
+	    unless defined($class) and exists $classes->{$class};
+
+	my @bases = $self->{id2class}->{ ($self->split_id($oid))[1] + 0 };
+
+	my $seen = Set::Object->new();
+	while (my $base = shift @bases) {
+	    $seen->insert($classes->{$base}) or next;
+	    return 1 if $base eq $class;
+	    push @bases, @{ $classes->{$base}->{bases} }
+		if exists $classes->{$base}->{bases};
+	}
+
+	return undef;
+    }
 
 *reset = \&unload; # deprecated, use unload() instead
 

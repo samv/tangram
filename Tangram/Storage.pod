@@ -1,3 +1,5 @@
+# -*- perl -*-
+
 =head1 NAME
 
 Tangram::Storage - persistent object database
@@ -22,6 +24,10 @@ Tangram::Storage - persistent object database
    @objs = $storage->select( $remote, $filter );
 
    $cursor = $storage->cursor( $remote, $filter );
+
+   if ($storage->oid_isa($oid, "ClassName")) {
+       # oid $oid is a ClassName
+   }
 
    $storage->disconnect();
 
@@ -169,6 +175,16 @@ Returns the IDs of the given objects. If an object is not persistent in storage 
 corresponding ID is undef().
 
 This method is valid in both L<scalar and list contexts>.
+
+=head2 oid_isa
+
+   if ($storage->oid_isa($id, "ClassName")) {
+      ...
+   }
+
+Checks that the passed Object ID, C<$id>, is a "ClassName" according
+to the schema.  This check relies solely on the information in the
+schema, not Perl's idea of C<-E<gt>isa> relationships.
 
 =head2 load
 

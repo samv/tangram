@@ -188,3 +188,8 @@ Revision history for Perl extension Tangram.
 2.05 Jul 2003 - SamV
 	- Tangram::Scalar and Tangram::Ref column names are now passed
 	  through $schema->{normalize}->()
+
+2.06 ??? - SamV
+	- Added $storage->oid_isa($oid, "ClassName") method for
+	  marshalling OIDs
+
