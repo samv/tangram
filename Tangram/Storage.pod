@@ -320,7 +320,7 @@ end up having two copies in transient storage.
 =head2 disconnect
 
 Disconnects from the database. Drops references to persistent
-objects present in memory (see L<unload>).
+objects present in memory (see C<unload>).
 
 =head1 INTERNAL CONNECTION
 
