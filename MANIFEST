@@ -15,6 +15,9 @@ Tangram/Core.pm
 
 Tangram/Deploy.pm
 
+Tangram/Dialect.pm
+Tangram/Dialect/Sybase.pm
+
 Tangram/Ref.pm
 
 Tangram/Coll.pm
@@ -50,6 +53,9 @@ Tangram/IntrArray.pod
 Tangram/FlatArray.pod
 Tangram/Set.pod
 Tangram/IntrSet.pod
+
+Tangram/Type.pod
+Tangram/Dialect.pod
 
 t/Springfield.pm
 

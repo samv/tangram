@@ -219,7 +219,7 @@ sub connect_empty
    return $storage;
 }
 
-my $test;
+use vars qw( $test );
 
 sub begin_tests
 {
