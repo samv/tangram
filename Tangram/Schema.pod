@@ -164,42 +164,17 @@ NaturalPerson may look like C<270005>, where C<0005> is the class
 id.
 
 Field C<id> contains the SQL type that is used to map an entire object
-id. It defaults to 'NUMERIC(15, 0)'.
+id. It defaults to 'INTEGER'.
 
 Field C<cid> contains the SQL type that is used to map a class id. It
-defaults to 'NUMERIC(5,0)'. Thus Tangram supports 99,999 distinct
-classes (class id 0 is not used) by default.
+defaults to 'INTEGER'.
 
 Field C<cid_size> contains the number of decimal positions that the class id
-occupies within the object id.
+occupies within the object id. It defaults to '4'.
 
 Field C<oid> contains the SQL type that is used to store the class-specific
 object counters that are used in the id generation process. It
-defaults to 'NUMERIC(10, 0)'. Thus Tangram supports 10e10 - 1 distinct
-objects per class (again the zero is not used).
-
-There are several reasons why you may want to override these default.
-
-You need more objects, more classes, or both.
-
-You want to use more efficient SQL types (at the cost of supporting
-fewer objects).
-
-Your database doesn't support the default types. PostgreSql springs
-to mind. PostgreSql users will have to specify something like:
-
-	$schema = Tangram::Schema->new( {
-			...
-			sql =>
-			{
-				default_null => '',
-				id => 'int4',
-				cid => 'int4',
-				oid => 'int4',
-				cid_size => 3,
-			}
-	} );
-
+defaults to 'INTEGER'.
 
 =head2 class registry
 
