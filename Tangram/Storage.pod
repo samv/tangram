@@ -30,7 +30,7 @@ Tangram::Storage - persistent object database
 A Tangram::Storage object is a connection to a database configured for
 use with Tangram.
 
-=head1 MEMORY MANAGEMENT (IMPORTANT)
+=head1 MEMORY MANAGEMENT
 
 Starting with version 1.18, Tangram attempts to use the support for
 weak reference that was introduced in Perl 5.6. Whether that support
@@ -49,9 +49,22 @@ L<"unload">.
 
 In either case, Tangram will I<not> break circular structures for you.
 
+=head1 INTERNAL CONNECTION
+
+Except in the implementation of cursor(), Tangram uses a single DBI connection in its operations.
+That connection is called the 'internal' connection. Since, in general, database managers
+do not allow multiple result sets on the same connection, the internal connection can be used
+only to carray a single task at a time.
+
+L<Tangram::Cursor>s returned by cursor() do not suffer from this limitation
+because they use a separate DBI connection.
+
 =head1 CLASS METHODS
 
-=head2 connect( $schema, $data_source, $username, $auth, \%options )
+=head2 connect
+
+   $storage = connect( $schema,
+      $data_source, $username, $auth, \%options )
 
 Connects to a storage and return a handle object. Dies in case of failure.
 
@@ -77,22 +90,9 @@ Tangram may need to open extra connections (see below).
 
 =head1 INSTANCE METHODS
 
-=head2 SCALAR AND LIST CONTEXTS
+=head2 insert
 
-Most instance methods in Storage can be called in both scalar and list contexts.
-In scalar context, a single argument is allowed, and a single scalar value is returned.
-In list context, any number of arguments is allowed; the results are returned as a
-list of the same size as the argument list.
-
-When both context types are allowed, the following code:
-
-   @results = $storage->method( @args )
-
-...is equivalent to:
-
-   @results = map { $storage->method( $_ ) } @args
-
-=head2 insert( @objs )
+   $storage->insert( @objs );
 
 Inserts objects in storage. Returns the ID(s) assigned to the object(s).
 This method is valid in both L<scalar and list contexts>.
@@ -104,17 +104,24 @@ Attempting to insert an object that is already persistent in the storage is an e
 Tangram will automatically insert any object that is refered by $obj if it is not
 already present in storage. In the following example:
 
-   my $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson',
+   my $homer = NaturalPerson->new(
+      firstName => 'Homer', name => 'Simpson',
       children => Set::Object->new(
-         NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ),
-         NaturalPerson->new( firstName => 'Lisa', name => 'Simpson' ),
-         NaturalPerson->new( firstName => 'Maggie', name => 'Simpson' ) ) );
+         NaturalPerson->new(
+            firstName => 'Bart', name => 'Simpson' ),
+         NaturalPerson->new(
+            firstName => 'Lisa', name => 'Simpson' ),
+         NaturalPerson->new(
+            firstName => 'Maggie', name => 'Simpson'
+      ) ) );
 
    $storage->insert( $homer );
 
 ...Tangram automatically inserts the kids along with Homer.
 
-=head2 update( @objs )
+=head2 update
+
+   $storage->update( @objs );
 
 Save objects to storage.
 This method is valid in both L<scalar and list contexts>.
@@ -127,10 +134,13 @@ Tangram will automatically insert any object that is refered by an inserted obje
 already present in storage. It will not automatically update the refered objects that are already
 stored. In the following example:
 
-   my $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson' );
+   my $homer = NaturalPerson->new(
+      firstName => 'Homer', name => 'Simpson' );
    $storage->insert( $homer );
 
-   my $marge = NaturalPerson->new( firstName => 'Marge', name => 'Simpson', age => 34 );
+   my $marge = NaturalPerson->new(
+      firstName => 'Marge', name => 'Simpson',
+      age => 34 );
    $storage->insert( $marge );
 
    $marge->{age} = 35;
@@ -138,35 +148,53 @@ stored. In the following example:
    $homer->{partner} = $marge;
 
    $homer->{children} = Set::Object->new(
-      NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ),
-      NaturalPerson->new( firstName => 'Lisa', name => 'Simpson' ),
-      NaturalPerson->new( firstName => 'Maggie', name => 'Simpson' ) );
+      NaturalPerson->new(
+         firstName => 'Bart', name => 'Simpson' ),
+      NaturalPerson->new(
+         firstName => 'Lisa', name => 'Simpson' ),
+      NaturalPerson->new(
+         firstName => 'Maggie', name => 'Simpson' ) );
 
    $storage->update( $homer );
 
 ...Tangram automatically inserts the kids when their father is updated. OTOH, $marge will not be
 automatically inserted nor updated; her age will remain '34' in persistent storage.
 
-=head2 id( @ids )
+=head2 id
+
+   $id = $storage->id( $obj );
+   @id = $storage->id( @obj );
 
 Returns the IDs of the given objects. If an object is not persistent in storage yet, its
 corresponding ID is undef().
 
 This method is valid in both L<scalar and list contexts>.
 
-=head2 load( @ids )
+=head2 load
+
+   $obj = $storage->load( $id );
+   @obj = $storage->load( @id );
 
 Returns a list of objects given their IDs.
 Dies if any ID has no corresponding persistent object in storage.
 
 This method is valid in both L<scalar and list contexts>.
 
-=head2 remote( @classes )
+=head2 remote
+
+   @remote = $storage->remote( @classes );
 
 Returns a list of L<Tangram::Remote> objects of given classes.
 This method is valid in both L<scalar and list contexts>.
 
-=head2 select( $remote [ , $filter ] )
+=head2 select
+
+   @objs = select( $remote );
+
+   @objs = select( $remote, $filter );
+
+   @objs = select( $remote,
+      opt1 => val1, opt2 => val2, ...);
 
 Valid only in list context. Returns a list containing all the objects
 that satisfy $filter.
@@ -175,22 +203,15 @@ $remote can be either a Remote object of an array of Remote
 objects. If it is a single Remote, a list of objects is returned. If
 it is an array, a list of array of objects is returned.
 
-In either case, the retrieved objects satisfy $filter and are
+If one argument is passed, return all the objects of the given type.
+
+If two arguments are passed, the second argument must be a
+Filter. select() returns the objects that satisfy $filter and are
 type-compatible with the corresponding Remote.
 
-If $filter is not present or is undef(), return all the objects.
-
-=head2 select( $remote, opt1 => val1 [, op2 => val2 ... ] )
-
-Valid only in list context. Returns a list containing all the objects
-that satisfy $filter.
-
-$remote can be either a Remote object of an array of Remote
-objects. If it is a single Remote, a list of objects is returned. If
-it is an array, a list of array of objects is returned.
-
-Directives can be passed as key/value pairs. Currently Tangram
-recognizes the following directives:
+If more than two arguments are passed, the arguments after $remote
+ are treated as key/value pairs. Currently Tangram recognizes the following
+directives:
 
 =over 4
 
@@ -222,21 +243,26 @@ should ocur only once in the result set.
 
 Valid only in list context.
 
-=head2 cursor( $remote [ , $filter ] )
+=head2 cursor
 
-Returns a Cursor on the objects that are type-compatible with $remote, and
-satisfy $filter if it is present (see also: Remote and Filter).
-
-$remote must be an Tangram::Remote object. $filter must be an Tangram::Filter if it is present.
+   $cursor = $storage->cursor( $remote );
+   $cursor = $storage->cursor( $remote, $filter );
+   $cursor = cursor( $remote,
+      opt1 => val1, op2 => val2, ...);
 
 Valid only in scalar context.
 
-=head2 cursor( $remote, opt1 => val1 [, op2 => val2 ... ] )
-
 Returns a Cursor on the objects that are type-compatible with $remote.
 
-A series of optional directives can be passed as key/value
-pairs. Currently Tangram recognizes the following directives:
+If one argument is passed, the cursor returns all the objects of the given type.
+
+If two arguments are passed, the second argument must be a
+Filter. The cursor returns the objects that satisfy $filter and are
+type-compatible with the corresponding Remote.
+
+If more than two arguments are passed, the arguments after $remote
+are treated as key/value pairs. Currently Tangram recognizes the following
+directives:
 
 =over 4
 
@@ -257,11 +283,15 @@ For options C<filter>, C<order>, C<desc> and C<distinct>, see C<select>.
 Option C<retrieve> is an array of Expr, to be retrieved in addition to
 the object itself.
 
-=head2 erase( @objs )
+=head2 erase
+
+   $storage->erase( @obj );
 
 Removes objects from persistent storage. The objects remain present in transient storage.
 
 =head2 tx_start
+
+   $storage->tx_start();
 
 Starts a new Tangram transaction.
 
@@ -299,17 +329,23 @@ Changes to both $homer and $marge are commited to the database when g() calls tx
 
 =head2 tx_commit
 
+   $storage->tx_commit();
+
 Commits the current Tangram transaction for this storage.
 If the transaction being commited is the outermost transaction for this storage, the DBI
 transaction is also commited.
 
 =head2 tx_rollback
 
+   $storage->tx_rollback();
+
 Rolls back the current Tangram transaction for this storage.
 If the transaction being rolled back is the outermost transaction for this storage, the DBI
 transaction is also rolled back.
 
-=head2 tx_do( CODEREF, @args )
+=head2 tx_do
+
+   $storage->tx_do( sub { ... } );
 
 Executes CODEREF under the protection of a Tangram transaction and
 pass it @args in the argument list.
@@ -333,7 +369,9 @@ Example:
 Both $homer and $marge will be updated, or none will, depending on
 whether the anonymous subroutine passed to tx_do() dies.
 
-=head2 unload( @objs )
+=head2 unload
+
+   $storage->unload( @obj );
 
 Drops references to persistent objects present in memory. @objs may
 contain both objects and object ids. If @objs is empty, unloads all
@@ -353,16 +391,7 @@ end up having two copies in transient storage.
 
 =head2 disconnect
 
+   $storage->disconnect();
+
 Disconnects from the database. Drops references to persistent
 objects present in memory (see C<unload>).
-
-=head1 INTERNAL CONNECTION
-
-Except in the implementation of cursor(), Tangram uses a single DBI connection in its operations.
-That connection is called the 'internal' connection. Since, in general, database managers
-do not allow multiple result sets on the same connection, the internal connection can be used
-only to carray a single task at a time.
-
-L<Tangram::Cursor>s returned by cursor() do not suffer from this limitation
-because they use a separate DBI connection.
-

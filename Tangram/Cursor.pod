@@ -4,15 +4,13 @@ Tangram::Cursor - traverse a result set
 
 =head1 SYNOPSIS
 
-	use Tangram;
-   
-	$cursor = $storage->cursor( $query_obj, $filter );
+   $cursor = $storage->cursor($remote, $filter);
 
-	while (my $obj = $cursor->current())
-	{
-		# process $obj
-		$cursor->next();
-	}
+   while (my $obj = $cursor->current())
+   {
+      # process $obj
+      $cursor->next();
+   }
 
 
 =head1 DESCRIPTION
@@ -24,14 +22,20 @@ loading all the objects in memory.
 
 =head2 current
 
+   $obj = $cursor->current();
+
 Returns the current object, or undef() if the result set is exhausted.
 
 =head2 next
+
+   $obj = $cursor->next();
 
 Moves to the next object in the result set, if any. Returns the new
 current object, or undef() if the result set is exhausted.
 
 =head2 residue
+
+   my @vals = $cursor->residue();
 
 Returns the values of the Expr that were passed to the C<retrieve>
 directive of the Storage::select() or Storage::cursor() statement.

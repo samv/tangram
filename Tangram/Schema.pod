@@ -4,14 +4,11 @@ Tangram::Schema - describe a system of persistent classes
 
 =head1 SYNOPSIS
 
-	use Tangram::Core; 	# or: use Tangram;
+   use Tangram;
 
-	$schema = Tangram::Schema->new( $hashref );
+   $schema = Tangram::Schema->new( $hashref );
 
-	$schema = Tangram::Schema->new( %hash ); # only for compatibility
-
-	$storage->connect( $schema, ... );
-   
+   Tangram::Relational->connect( $schema, ... );
 
 =head1 DESCRIPTION
 
@@ -29,26 +26,14 @@ assumptions can be made regarding its content.
 
 =head1 CLASS METHODS
 
-=head2 new( $hash )
+=head2 new
+
+   $schema = Tangram::Schema->new( $hash );
 
 Returns a new Schema object.
 
-$hash is a reference to a L<"SCHEMA HASH">.
-
 The newly created Schema object becomes the owner of the hash,
 which can no longer be modified nor reused by client code.
-
-=head1 INSTANCE METHODS
-
-=head2 deploy( HANDLE )
-
-See L<Tangram::Deploy>.
-
-=head2 retreat( HANDLE )
-
-See L<Tangram::Deploy>.
-
-=head1 SCHEMA HASH
 
 The schema hash describes the persistent aspects of a system of
 classes. It is a multilevel data structure.
@@ -78,36 +63,33 @@ persistent types.
 The first level of the schema hash describes aspects that are global
 to a system of persistent classes. It has the following aspect:
 
-	{
-		classes =>
-		{
-			Identity =>
-			{
-				table => 'IdentityState',
-				abstract => 1
-			},
+   {
+      classes =>
+	  {
+	     Identity =>
+         {
+            table => 'IdentityState',
+			abstract => 1
+         },
 
-			NaturalPerson =>
-			{
-				bases => [ qw( Identity ) ],
-			},
+      NaturalPerson =>
+      {
+         bases => [ qw( Identity ) ],
+      },
 
-			LegalPerson =>
-			{
-				bases => [ qw( Identity ) ],
-			},
-		},
+      LegalPerson =>
+      {
+         bases => [ qw( Identity ) ],
+      },
 
-		make_object => sub { ... },
+      make_object => sub { ... },
+      set_id => sub { ... }
+      get_id => sub { ... }
 
-		set_id => sub { ... }
+      class_table => '...'
 
-		get_id => sub { ... }
-
-		class_table => '...'
-
-		sql => { ... },
-	}
+      sql => { ... },
+   }
 
 C<classes> is a hash called the L<class registry>. It contains a
 description of each persistent class.
@@ -224,13 +206,13 @@ together inside the field hash, where the typetag is used as a
 key. The individual fields are specified in an array or a hash, whose
 layout is type-dependant. For example:
 
-	fields =>
-	{
-	   	string   => [ qw( firstName name ) ],
-	   	int      => [ qw( age ) ],
-	   	ref      => { partner => { null => 1 } },
-	   	array    => { children => 'NaturalPerson' },
-	},
+   fields =>
+   {
+      string   => [ qw( firstName name ) ],
+      int      => [ qw( age ) ],
+      ref      => { partner => { null => 1 } },
+      array    => { children => 'NaturalPerson' },
+   },
 
 The typetag not only specifies the type of a field, but also the way
 in which it should be mapped to SQL constructs. Sometimes the same

@@ -2,11 +2,13 @@ Changes
 Makefile.PL
 MANIFEST
 README
-tour.pl
+tour
 #metatest.pl
 #supported.pl
 Tangram.pm
 Tangram.pod
+Tangram/Tour.pod
+
 Tangram/Relational.pod
 
 Tangram/Schema.pm
