@@ -173,8 +173,12 @@ sub expr_hash
 	my %hash =
 		(
 		 object => $self, 
-		 id => Tangram::Number->expr("t$self->{root}.id", $self)
+		 id => Tangram::Number->expr("t$self->{root}.$storage->{id_col}", $self),
+		 type => Tangram::Number->expr("t$self->{root}.$storage->{class_col}", $self),
 		);
+
+	$hash{_IID_} = $hash{_ID_} = $hash{id};
+	$hash{_TYPE_} = $hash{type};
 
 	for my $part ($storage->{engine}->get_parts($schema->classdef($self->{class}))) {
 	  for my $field ($part->direct_fields) {

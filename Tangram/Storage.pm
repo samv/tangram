@@ -69,6 +69,8 @@ sub _open
 	  local $dbh->{PrintError} = 0;
 	  my $control = $dbh->selectall_arrayref("SELECT * FROM $schema->{control}");
 
+	  $self->{id_col} = $schema->{sql}{id_col};
+
 	  if ($control) {
 		$self->{class_col} = $schema->{sql}{class_col};
 		$self->{import_id} = sub { shift() . sprintf("%0$self->{cid_size}d", shift()) };
@@ -772,41 +774,43 @@ sub get_polymorphic_select
 	return $self->{engine}->get_polymorphic_select($self->{schema}->classdef($class), $self);
   }
 
-sub select
-{
-    croak "valid only in list context" unless wantarray;
-
-    my ($self, $target, @args) = @_;
-
-    if (ref($target) eq 'ARRAY')
-      {
-	my ($first, @others) = @$target;
-
-	my @cache = map { $self->select( $_, @args ) } @others;
-
-	my $cursor = Tangram::Cursor->new($self, $first, $self->{db});
-	$cursor->retrieve( map { $_->{id} } @others );
-	
-	my $obj = $cursor->select( @args );
-	my @results;
-
-	while ($obj)
-	  {
-	    push @results, [ $obj, map { $self->load($_) } $cursor->residue() ];
-	    $obj = $cursor->next();
-	  }
-
-	return @results;
-      }
-    else
-      {
+sub select {
+  croak "valid only in list context" unless wantarray;
+  
+  my ($self, $target, @args) = @_;
+  
+  unless (ref($target) eq 'ARRAY') {
 	my $cursor = Tangram::Cursor->new($self, $target, $self->{db});
-	$cursor->select(@args);
-      }
+	return $cursor->select(@args);
+  }
+  
+  my ($first, @others) = @$target;
+  
+  my @cache = map { $self->select( $_, @args ) } @others;
+  
+  my $cursor = Tangram::Cursor->new($self, $first, $self->{db});
+  $cursor->retrieve( map { $_->{_IID_}, $_->{_TYPE_ } } @others );
+  
+  my $obj = $cursor->select( @args );
+  my @results;
+  
+  while ($obj) {
+	my @tuple = $obj;
+	my @residue = $cursor->residue;
+	
+	while (my $id = shift @residue) {
+	  push @tuple, $self->load($self->combine_ids($id, shift @residue));
+	}
+	
+	push @results, \@tuple;
+	$obj = $cursor->next;
+  }
+  
+  return @results;
 }
 
 sub cursor_object
-{
+  {
     my ($self, $class) = @_;
     $self->{IMPLICIT}{$class} ||= Tangram::RDBObject->new($self, $class)
 }
