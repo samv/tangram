@@ -2,23 +2,24 @@
 # (c) Sound Object Logic 2000-2001
 
 use strict;
-use Test::More tests => 56;
 # for emacs debugger
 #use lib "../blib/lib";
 #use lib ".";
 use lib "t";
-use Springfield;
+use Springfield qw(stdpop %id leaked @kids);
 
 # This is set to 1 by iarray.t
 use vars qw( $intrusive );
+
+BEGIN {
+    my $tests = ($intrusive ? 49 : 57);
+    eval "use Test::More tests => $tests;"; die $@ if $@;
+}
 
 #$intrusive = 1;
 #$Tangram::TRACE = \*STDOUT;
 
 my $children = $intrusive ? 'ia_children' : 'children';
-
-my %id;
-my @kids = qw( Bart Lisa Maggie );
 
 sub NaturalPerson::children
 {
@@ -30,39 +31,13 @@ sub marge_test
 {
     my $storage = shift;
     SKIP:
+    unless ($intrusive)
     {
-	skip("one to many - marge skipped", 1);
+	#skip("n/a to Intrusive Tests", 1) if $intrusive;
 	is( $storage->load( $id{Marge} )->children,
 	    'Bart Lisa Maggie',
 	    "Marge's children all found" );
     }
-}
-
-sub stdpop
-{
-    my $storage = Springfield::connect_empty;
-
-    my @children = (map { NaturalPerson->new( firstName => $_ ) }
-		    @kids);
-    @id{ @kids } = $storage->insert( @children );
-    like("@id{ @kids }", qr/^\d+ \d+ \d+$/, "Got ids back OK");
-
-    my $homer = NaturalPerson->new( firstName => 'Homer',
-				    $children => [ @children ] );
-    $id{Homer} = $storage->insert($homer);
-    isnt($id{Homer}, 0, "Homer inserted OK");
-
-    my $marge = NaturalPerson->new( firstName => 'Marge' );
-    # cannot have >1 parent with a one to many relationship!
-    $marge->{$children} = [ @children ] unless $intrusive;
-    $id{Marge} = $storage->insert($marge);
-    isnt($id{Marge}, 0, "Marge inserted OK");
-
-    my $abraham = NaturalPerson->new( firstName => 'Abraham',
-				      $children => [ $homer ] );
-    $id{Abraham} = $storage->insert($abraham);
-
-    $storage->disconnect;
 }
 
 #=====================================================================
@@ -70,7 +45,7 @@ sub stdpop
 #=====================================================================
 
 # insert the test data
-stdpop();
+stdpop($children);
 
 is(leaked, 0, "Nothing leaked yet!");
 
@@ -201,9 +176,9 @@ is(leaked, 0, "leaktest");
 ###########
 # back-refs
 SKIP:
+if ($intrusive)
 {
-    skip("No backref support without Intr types", 2)
-	unless $intrusive;
+    skip("Intr types test only", 2) unless $intrusive;
 
     my $storage = Springfield::connect;
     my $bart = $storage->load( $id{Bart} );
@@ -420,11 +395,13 @@ SKIP:
     my @pop = $storage->select('NaturalPerson');
     is(@pop, 0, "aggreg deletes children via arrays");
 
-    skip( "No link table with Intr Types", 1 ) if $intrusive;
+    #skip( "n/a to Intrusive Tests", 1 ) if $intrusive;
+    unless ($intrusive) {
 
-    is($storage->connection()->selectall_arrayref
-       ("SELECT COUNT(*) FROM a_children")->[0][0],
-       0, "Link table cleared successfully after remove");
+	is($storage->connection()->selectall_arrayref
+	   ("SELECT COUNT(*) FROM a_children")->[0][0],
+	   0, "Link table cleared successfully after remove");
+    }
 
     $storage->disconnect();
 }
@@ -437,10 +414,10 @@ is(leaked, 0, "leaktest");
 
 SKIP:
 {
-    skip "No transactions configured/supported", 8
+    skip "No transactions configured/supported", ($intrusive ? 9 : 11)
 	if $Springfield::no_tx;
 
-    stdpop();
+    stdpop($children);
 
     # check rollback of DB tx
     is(leaked, 0, "leaktest");

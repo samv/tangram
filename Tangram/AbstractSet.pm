@@ -41,9 +41,16 @@ sub get_exporter
 	  
 	  my $storage = $context->{storage};
 	  
-	  foreach my $item ($obj->{$field}->members) {
-		$storage->insert($item)
-		  unless $storage->id($item);
+	  if (my $s = $obj->{$field}) {
+	      if (!UNIVERSAL::isa($s, "Set::Object")) {
+		  die "Data error in ${obj}"."->{$field}; expected "
+		      ."Set, got $s"
+	      } else {
+		  foreach my $item ($s->members) {
+		      $storage->insert($item)
+			  unless $storage->id($item);
+		  }
+	      }
 	  }
 	  
 	  $storage->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );

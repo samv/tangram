@@ -85,7 +85,33 @@ fields:
 
 =over 4
 
-=item * dbh 
+=item * dbh
+
+Pass in an already connected DBI handle
+
+=item * no_tx
+
+Specify explicitly whether or not transactions are possible.  If they
+are not, then Tangram can guarantee consistency by serialising
+transaction updates - which guarantees poor performance and means that
+you can never use C<$storage-E<gt>rollback>.
+
+If you are using MySQL, you should consider using the InnoDB table
+type to avoid this problem.  Also note that you will explicitly have
+to set this option if you have InnoDB tables configured, as there is
+no real way of telling if transactions are available for any given
+query without either trying to do a rollback, or querying the table
+types for every table.  Which I don't think it's Tangram's duty to do!
+
+=item * no_subselects
+
+Functions that need to perform sub-selects will die immediately or
+attempt to emulate the functionality required, rather than relying on
+the RDBMS to return a failure.
+
+This is currently ignored, but that's not functionally relevant :-).
+It can be read as C<$storage-E<gt>{no_subselects}> however, as the
+correct value is automatically detected on connection.
 
 =back
 

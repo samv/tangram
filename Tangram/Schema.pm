@@ -200,7 +200,8 @@ sub new
 {
     my $pkg = shift;
 
-	my $self = ref $_[0] ? shift() : { @_ };
+    my $self = ref $_[0] ? shift() : { @_ };
+
     bless $self, $pkg;
 
     $self->{make_object} ||= sub { shift()->new() };
@@ -208,21 +209,21 @@ sub new
     $self->{normalize} ||= sub { shift() };
     $self->{class_table} ||= 'OpalClass';
 
-	$self->{control} ||= 'Tangram';
+    $self->{control} ||= 'Tangram';
 
-	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
-	$self->{sql}{id_col} ||= 'id';
-	$self->{sql}{id} ||= 'INTEGER';
-	# commented out because of layout1 compatibility $self->{sql}{class_col} ||= 'type';
-	$self->{sql}{cid} ||= 'INTEGER';
-	$self->{sql}{oid} ||= 'INTEGER';
-	$self->{sql}{cid_size} ||= 4;
+    $self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
+    $self->{sql}{id_col} ||= 'id';
+    $self->{sql}{id} ||= 'INTEGER';
+    # commented out because of layout1 compatibility $self->{sql}{class_col} ||= 'type';
+    $self->{sql}{cid} ||= 'INTEGER';
+    $self->{sql}{oid} ||= 'INTEGER';
+    $self->{sql}{cid_size} ||= 4;
 
     my $types = $self->{types} ||= {};
 
     %$types = ( %TYPES, %$types );
 
-	my @class_list = ref($self->{'classes'}) eq 'HASH' ? %{ $self->{'classes'} } : @{ $self->{'classes'} };
+    my @class_list = ref($self->{'classes'}) eq 'HASH' ? %{ $self->{'classes'} } : @{ $self->{'classes'} };
     my $class_hash = $self->{'classes'} = {};
 
     bless $class_hash, 'Tangram::ClassHash';

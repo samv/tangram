@@ -1,3 +1,9 @@
+libtangram-perl (2.07) unstable; urgency=low
+
+  * See Changes file for detailed list of changes
+
+ -- Sam Vilain <sam@vilain.net>  Mon,  1 Sep 2003 01:54:04 +0100
+
 libtangram-perl (2.06.1) unstable; urgency=low
 
   * Fixed minor Intr* bug

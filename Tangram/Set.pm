@@ -94,7 +94,7 @@ sub demand
 
 	my $set = Set::Object->new;
 
-	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
 	{
 		$set->insert(@$prefetch);
 	}

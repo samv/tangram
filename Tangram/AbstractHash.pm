@@ -24,7 +24,7 @@ sub demand
     
     my %coll;
 
-    if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+    if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
     {
 		%coll = %$prefetch;
     }
@@ -32,10 +32,23 @@ sub demand
     {
 		my $cursor = $self->cursor($def, $storage, $obj, $member);
 
+		my @lost;
 		for (my $item = $cursor->select; $item; $item = $cursor->next)
 		{
 			my $slot = shift @{ $cursor->{-residue} };
-			$coll{$slot} = $item;
+			if (!defined($slot)) {
+			    warn "object ".$storage->id($item)." has no slot in hash ".$storage->id($obj)."/$member!";
+			    push @lost, $item;
+			} else {
+			    $coll{$slot} = $item;
+			}
+		}
+		# Try to DTRT when you've got NULL slots, though this
+		# isn't much of a RT to D.
+		while (@lost) {
+		    my $c = 0;
+		    while (!exists $coll{$c++}) { }
+		    $coll{$c} = shift @lost;
 		}
     }
 

@@ -1,10 +1,11 @@
+#  -*- perl -*- ergo sum
 # (c) Sound Object Logic 2000-2001
 
 use strict;
 use lib 't';
 use Springfield;
 
-Springfield::begin_tests(21);
+use Test::More tests => 23;
 
 # $Tangram::TRACE = \*STDOUT;
 
@@ -20,36 +21,38 @@ Springfield::begin_tests(21);
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase("@{ $homer->{interests} }" eq 'beer food');
+	is("@{ $homer->{interests} }", 'beer food',
+	   "Flat array store/retrieve");
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
-	
+
 	push @{ $homer->{interests} }, 'sex';
 	$storage->update($homer);
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase("@{ $homer->{interests} }" eq 'beer food sex');
+	is("@{ $homer->{interests} }", 'beer food sex',
+	   "Array change flushed successfully");
 
 	pop @{ $homer->{interests} };
 	$storage->update($homer);
@@ -57,41 +60,44 @@ leaktest();
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase("@{ $homer->{interests} }" eq 'beer food');
-	
+	is("@{ $homer->{interests} }", 'beer food',
+	   "Array change flushed again successfully");
+
 	unshift @{ $homer->{interests} }, 'sex';
 	$storage->update($homer);
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase("@{ $homer->{interests} }" eq 'sex beer food');
-	
+	is("@{ $homer->{interests} }", 'sex beer food',
+	   "Array change flushed yet again successfully");
+
 	delete $homer->{interests};
 	$storage->update($homer);
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase("@{ $homer->{interests} }" eq '');
+	is("@{ $homer->{interests} }", '',
+	   "Removing array flushes from DB");
 
 	$homer->{interests} = [ qw( beer food ) ];
 	$storage->update($homer);
@@ -100,12 +106,12 @@ leaktest();
         NaturalPerson->new(
             firstName => 'Marge',
 			name => 'Simpson',
-			interests => [ qw( kids household ) ] ) );
+			interests => [ qw( kids household cooking cleaning ) ] ) );
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 # exists, includes
 
@@ -114,33 +120,31 @@ leaktest();
 
 	my ($remote) = $storage->remote('NaturalPerson');
 	my @results = $storage->select($remote, $remote->{interests}->includes('beer'));
-	testcase(@results == 1 && $results[0]->{firstName} eq 'Homer');
+	is(@results, 1, "Got back one result only");
+	is($results[0]->{firstName}, 'Homer', "Select by array entry");
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 {
+    SKIP: {
+
 	my $storage = Springfield::connect();
 
-	if ($Springfield::cs =~ /mysql/)
-	{
-		print STDERR "tests $Springfield::test (exists) skipped on this platform ";
-		testcase(1);
-	}
-	else
-	{
+	    skip "Sub-select tests disabled", 2,
+		if $storage->{no_subselects};
 
-		my ($remote) = $storage->remote('NaturalPerson');
-		my @results = $storage->select($remote, $remote->{interests}->exists('beer'));
-		testcase(@results == 1 && $results[0]->{firstName} eq 'Homer');
-
-		$storage->disconnect();
+	    my ($remote) = $storage->remote('NaturalPerson');
+	    my @results = $storage->select($remote, $remote->{interests}->exists('beer'));
+	    is(@results, 1, "I'll wash all the dishes,");
+	    is($results[0]->{firstName}, 'Homer', "And you go have a beer");
+	    $storage->disconnect();
 	}
 }
 
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 # prefetch
 
@@ -153,13 +157,14 @@ leaktest();
 
 	{
 		local ($storage->{db});
-		testcase("@{ $homer->{interests} }" eq 'beer food');
+		is("@{ $homer->{interests} }", 'beer food',
+		   "Prefetch test - no prefetch filter");
 	}
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
@@ -171,17 +176,19 @@ leaktest();
 
 	{
 		local ($storage->{db});
-		testcase("@{ $homer->{interests} }" eq 'beer food');
+		is("@{ $homer->{interests} }", 'beer food',
+		   "Another prefetch test - prefetch filter"
+		  );
 	}
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "Nothing leaked");
 
 {
 	my $storage = Springfield::connect();
 	$storage->erase( $storage->select('NaturalPerson'));
-	Springfield::test( 0 == $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM NaturalPerson_interests")->[0][0] );
+	is( $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM NaturalPerson_interests")->[0][0], 0, "All interests cleaned up correctly" );
 	$storage->disconnect();
 }

@@ -164,11 +164,11 @@ sub prefetch
    while (my $item = $cursor->current)
    {
       my ($coll_id, $slot) = $cursor->residue;
-      $prefetch->{$coll_id}[$slot] = $item;
+      $prefetch->{$coll_id}{$slot} = $item;
       $cursor->next;
    }
 }
 
-$Tangram::Schema::TYPES{iarray} = Tangram::IntrHash->new;
+$Tangram::Schema::TYPES{ihash} = Tangram::IntrHash->new;
 
 1;

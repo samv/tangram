@@ -154,7 +154,6 @@ sub remote_expr
 
 sub prefetch
 {
-    q{
 	my ($self, $storage, $def, $coll, $class, $member, $filter) = @_;
 
 	my $ritem = $storage->remote($def->{class});
@@ -165,10 +164,10 @@ sub prefetch
 	my $ids = $storage->my_select_data( cols => [ $coll->{id} ], filter => $filter );
 	my $prefetch = $storage->{PREFETCH}{$class}{$member} ||= {}; # weakref
 
-	while (my $id = $ids->fetchrow)
+	while (my ($id) = $ids->fetchrow)
 	{
-	    $prefetch->{$id} = []
-	    }
+		$prefetch->{$id} = {};
+	}
 
 	undef $ids;
 
@@ -179,18 +178,18 @@ sub prefetch
 
 	# also retrieve collection-side id and index of elmt in sequence
 	$cursor->retrieve($coll->{id},
-		Tangram::Number->expr("t$includes->{link_tid}.$def->{slot}" ) );
+        Tangram::Number->expr("t$includes->{link_tid}.$def->{slot}") );
 
 	$cursor->select($filter ? $filter & $includes : $includes);
-	
+   
 	while (my $item = $cursor->current)
 	{
-	    my ($coll_id, $slot) = $cursor->residue;
-	    $prefetch->{$coll_id}[$slot] = $item;
-	    $cursor->next;
+		my ($coll_id, $slot) = $cursor->residue;
+		$prefetch->{$coll_id}{$slot} = $item;
+		$cursor->next;
 	}
 
-    } # skipped
+	return $prefetch;
 }
 
 $Tangram::Schema::TYPES{hash} = Tangram::Hash->new;

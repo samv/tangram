@@ -994,12 +994,25 @@ sub connect
 
     my $db = $opts->{dbh} || DBI->connect($cs, $user, $pw);
  
-	if ($opts->{no_tx}) {
-	  $self->{no_tx} = 1;
+	if (exists $opts->{no_tx}) {
+	  $self->{no_tx} = $opts->{no_tx};
 	} else {
 	  eval { $db->{AutoCommit} = 0 };
 	  $self->{no_tx} = $db->{AutoCommit};
 	}
+
+    if (exists $opts->{no_subselects}) {
+	$self->{no_subselects} = $opts->{no_subselects};
+    } else {
+	local($SIG{__WARN__})=sub{};
+	eval {
+	    my $sth = $db->prepare("select * from (select 1+1)");
+	    $sth->execute() or die;
+	};
+	if ($@ or $DBI::errstr) {
+	    $self->{no_subselects} = 1;
+	}
+    }
 
     $self->{db} = $db;
 

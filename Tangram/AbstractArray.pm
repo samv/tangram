@@ -17,9 +17,9 @@ sub demand
 
 	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
    
-	my @coll;
+	my (@coll, @lost);
 
-	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
 	{
 		@coll = @$prefetch;
 	}
@@ -27,10 +27,25 @@ sub demand
 	{
 		my $cursor = $self->cursor($def, $storage, $obj, $member);
 
-		for (my $item = $cursor->select; $item; $item = $cursor->next)
+		for (my $item = $cursor->select(); $item; $item = $cursor->next)
 		{
 			my $slot = shift @{ $cursor->{-residue} };
-			$coll[$slot] = $item;
+			if (defined $slot) {
+                           $coll[$slot] = $item;
+                       } else {
+                           warn "object ".$storage->id($item)." has no slot in array ".$storage->id($obj)."/$member!";
+			   push @lost, $item
+                       }
+		}
+		# last-ditch effort to automatically DTRT
+		if (@lost) {
+		    foreach(@coll) {
+			if (!defined $_) {
+			    $_ = shift @lost;
+			}
+			last unless @lost;
+		    }
+		    push @coll, @lost;
 		}
 	}
 

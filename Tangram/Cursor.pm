@@ -4,6 +4,13 @@ use strict;
 
 package Tangram::Cursor;
 
+BEGIN {
+    eval "use Scalar::Util qw(blessed);";
+    if ($@) {
+	eval "use Set::Object qw(blessed);";
+	die "Can't find `blessed' function" if $@;
+    }
+}
 use vars qw( $stored %done );
 use Carp;
 
@@ -115,7 +122,7 @@ sub prepare_next_statement
 
 	$self->{sth} = $sth;
 
-	$sth->execute();
+	$sth->execute() or croak "Execute failed; $DBI::errstr";
 
 	return $sth;
   }
@@ -133,6 +140,12 @@ sub build_select
 	
 	substr($select, length('SELECT'), 0) = ' DISTINCT'
 	  if $self->{-distinct};
+
+	#unless ($self->{-my_rdbms_sucks} or !blessed $cols)
+	    #{
+		#$select .= ("\n\tGROUP BY ".$cols->root_table);
+	#}
+
 
 	if (my $order = $self->{-order})
 	{

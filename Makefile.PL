@@ -18,10 +18,17 @@ use Tangram::Deploy;
 sub yes
 {
     print ' (Y/n) ';
-    return <STDIN> =~ /^(Y|)$/i;
+    return <STDIN> =~ /^(Y(e(s)?)?|A(YE|II+!*))?\n?$/i;
 }
 
-print q{Do you plan to run the regression tests?
+sub yeah_no  # it's an antipodean thing
+{
+    print ' (N/y) ';
+    return <STDIN> =~ /^(Y(e(s)?)?|A(YE|II+!*))\n?$/i;
+
+}
+
+print q{Do you plan to run the test suite?
 (you will need to set up an *EMPTY* database)};
 
 goto NOTESTS unless yes();
@@ -50,11 +57,42 @@ unless ($configured)
 Please give me the login and password for accessing the test database.
 I must be able to create and drop tables in that database.};
 
-   print "\n1) DBI connect string (you can omit the \'DBI:\' part): ";
+   print "\n1) DBI connect string (omit the \'DBI:\' part): ";
    my $cs = <STDIN>;
    chop $cs;
 
    $cs = "dbi:$cs" unless $cs =~ /^dbi\:/i;
+
+   my ($use_tx, $use_subsel, $table_type) = (1, 1);
+
+   if ($cs =~ m/:mysql:/i) {
+       print q{
+You have selected the MySQL back-end.  Normally, subselects and
+transactions are disabled for this database.  However, if you are
+using MySQL-Max, or some other MySQL version with InnoDB support
+compiled in and configured, you can enable the transaction support for
+the test suite.  If you want to use it in your programs, you'll have
+to set no_tx = 0 in the options to Tangram::Storage->connect() (or
+hope that the auto-detection of the feature works), and table_type =
+InnoDB in the Schema.  See Tangram::Schema and Tangram::Storage for
+more information.
+
+Alternatively, if you are running MySQL 4.1 or later, you can enable
+sub-select tests.  It is not possible to use sub-selects with InnoDB
+table types.
+
+Use InnoDB tables};
+       unless (yeah_no()) {
+	   $use_tx = 0;
+
+	   print "Use sub-selects";
+	   unless (yeah_no()) {
+	       $use_subsel = 0;
+	   }
+       } else {
+	   $table_type = "InnoDB";
+       }
+   }
    
    print "2) Login: ";
    my $user = <STDIN>;
@@ -72,7 +110,7 @@ the file when the tests have been completed.
 MSG
 
    open CONFIG, '>t/CONFIG' or die "Cannot create 't/CONFIG', reason: $!";
-   print CONFIG "$cs\n$user\n$passwd\n";
+   print CONFIG "$cs\n$user\n$passwd\ntx_do = $use_tx\nsubselects = $use_subsel\n".($table_type?"table_type = $table_type\n":"");
    close CONFIG;
 }
 
@@ -102,5 +140,5 @@ NOTESTS:
 WriteMakefile(
     'NAME'	=> 'Tangram',
     'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
-    PREREQ_PM => { 'Set::Object' => 1.03, DBI => 0, "Test::More" => 0 }
+    PREREQ_PM => { 'Set::Object' => 1.04, DBI => 0, "Test::More" => 0 }
 );

@@ -147,6 +147,8 @@ fields:
 
 =item * oid
 
+=item * table_type
+
 =back
 
 All the fields are optional.
@@ -171,12 +173,17 @@ id. It defaults to 'INTEGER'.
 Field C<cid> contains the SQL type that is used to map a class id. It
 defaults to 'INTEGER'.
 
-Field C<cid_size> contains the number of decimal positions that the class id
-occupies within the object id. It defaults to '4'.
+Field C<cid_size> contains the number of decimal positions that the
+class id occupies within the object id. It defaults to '4'.
 
-Field C<oid> contains the SQL type that is used to store the class-specific
-object counters that are used in the id generation process. It
-defaults to 'INTEGER'.
+Field C<oid> contains the SQL type that is used to store the
+class-specific object counters that are used in the id generation
+process. It defaults to 'INTEGER'.
+
+Field C<table_type> is a string that if set, will be appended to all
+CREATE TABLE commands with TYPE=x.  For instance, to use transactions
+with MySQL-Max or the version of MySQL in Debian Woody, set
+C<table_type> to C<InnoDB>, and (re)deploy your database.
 
 =head2 class registry
 
@@ -197,6 +204,8 @@ The class hash has the following fields:
 
 =item * table
 
+=item * table_type
+
 =item * id
 
 =back
@@ -213,6 +222,12 @@ Field C<table> sets the name of the table that Tangram should use to store
 the state of objects pertaining to this class. This field is optional:
 it defaults to the class name. If the class name is not an acceptable
 SQL table identifier, you will need to set this field.
+
+Field C<table_type> sets the type of the table, for instance, the
+storage back-end to the RDBMS or storage format; it specifies on a
+per-table basis what the C<table_type> attribute of the schema
+defines.  You almost certainly don't want to set this on a per-table
+basis.
 
 Field C<id> contains an integer identifier for this class. That
 identifier must be unique within the same schema. If this field

@@ -145,6 +145,7 @@ sub relational_schema
 
 	  my $tabledef = $tables->{ $classdef->{table} } ||= {};
 	  my $cols = $tabledef->{COLS} ||= {};
+	  $tabledef->{TYPE} = $classdef->{table_type};
 	  
 	  $cols->{ $schema->{sql}{id_col} } = $schema->{sql}{id};
 
@@ -310,6 +311,8 @@ sub deploy
 
 		my @base_cols;
 
+		my $type = $def->{TYPE} || $schema->{sql}{table_type};
+
 		my $id_col = $schema->{sql}{id_col};
 		my $class_col = $schema->{sql}{class_col} || 'type';
 
@@ -321,12 +324,13 @@ sub deploy
 
 		$do->("CREATE TABLE $table\n(\n  ",
 			  join( ",\n  ", @base_cols, map { "$_ $cols->{$_}" } keys %$cols ),
-			  "\n)" );
+			  "\n) ".($type?" TYPE=$type":""));
 	  }
 
-my $control = $schema->{control};
-	
-    $do->( <<SQL );
+    my $control = $schema->{control};
+    my $table_type = $schema->{sql}{table_type};
+
+    $do->( <<SQL . ($table_type?" TYPE=$table_type":"") );
 CREATE TABLE $control
 (
 layout INTEGER NOT NULL,
@@ -336,8 +340,8 @@ mark INTEGER NOT NULL
 )
 SQL
 
-	my $info = $engine->get_deploy_info();
-my ($l) = split '\.', $Tangram::VERSION;
+    my $info = $engine->get_deploy_info();
+    my ($l) = split '\.', $Tangram::VERSION;
 
     $do->("INSERT INTO $control (layout, engine, engine_layout, mark) VALUES ($info->{LAYOUT}, '$info->{ENGINE}', $info->{ENGINE_LAYOUT}, 0)");
 }
