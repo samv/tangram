@@ -148,28 +148,34 @@ sub my_select_data
 }
 
 sub make_id
-{
+  {
     my ($self, $class_id) = @_;
+    return $self->{dialect}->make_id($self, $class_id);
+  }
 
-	my $alloc_id = $self->{alloc_id} ||= {};
-
-	my $id = $alloc_id->{$class_id};
-
-	if ($id)
-	{
-		$id = -$id if $id < 0;
-		$alloc_id->{$class_id} = ++$id;
-	}
-	else
-	{
-		my $table = $self->{schema}{class_table};
-		$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
-		$id = $self->sql_selectall_arrayref(
-	        "SELECT lastObjectId from $table WHERE classId = $class_id")->[0][0];
-		$alloc_id->{$class_id} = -$id;
-	}
-
-	return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
+sub std_make_id
+  {
+    my ($self, $class_id) = @_;
+    
+    my $alloc_id = $self->{alloc_id} ||= {};
+    
+    my $id = $alloc_id->{$class_id};
+    
+    if ($id)
+      {
+	$id = -$id if $id < 0;
+	$alloc_id->{$class_id} = ++$id;
+      }
+    else
+      {
+	my $table = $self->{schema}{class_table};
+	$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
+	$id = $self->sql_selectall_arrayref(
+					    "SELECT lastObjectId from $table WHERE classId = $class_id")->[0][0];
+	$alloc_id->{$class_id} = -$id;
+      }
+    
+    return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
 }
 
 sub unknown_classid
@@ -191,65 +197,83 @@ my $error_no_transaction = 'no transaction is currently active';
 
 sub tx_start
 {
+  my $self = shift;
+  $self->{dialect}->tx_start($self);
+}
+
+sub std_tx_start
+{
     my $self = shift;
     push @{ $self->{tx} }, [];
 }
 
 sub tx_commit
-{
+  {
     # public - commit current transaction
-
     my $self = shift;
+    $self->{dialect}->tx_commit($self);
+  }
 
+sub std_tx_commit
+  {
+    # public - commit current transaction
+    
+    my $self = shift;
+    
     carp $error_no_transaction unless @{ $self->{tx} };
-
-	# update lastObjectId's
-
-	if (my $alloc_id = $self->{alloc_id})
-	{
-		my $table = $self->{schema}{class_table};
-
-		for my $class_id (keys %$alloc_id)
-		{
-			my $id = $alloc_id->{$class_id};
-			next if $id < 0;
-			$self->sql_do("UPDATE $table SET lastObjectId = $id WHERE classId = $class_id");
-		}
-
-		delete $self->{alloc_id};
-	}
-
-	unless ($self->{no_tx} || @{ $self->{tx} } > 1)
-	{
-		# committing outer tx: commit to db
-		$self->{db}->commit;
-	}
+    
+    # update lastObjectId's
+    
+    if (my $alloc_id = $self->{alloc_id})
+      {
+	my $table = $self->{schema}{class_table};
+	
+	for my $class_id (keys %$alloc_id)
+	  {
+	    my $id = $alloc_id->{$class_id};
+	    next if $id < 0;
+	    $self->sql_do("UPDATE $table SET lastObjectId = $id WHERE classId = $class_id");
+	  }
+	
+	delete $self->{alloc_id};
+      }
+    
+    unless ($self->{no_tx} || @{ $self->{tx} } > 1)
+      {
+	# committing outer tx: commit to db
+	$self->{db}->commit;
+      }
 
     pop @{ $self->{tx} };		# drop rollback subs
 }
 
 sub tx_rollback
-{
+  {
     # public - rollback current transaction
-
     my $self = shift;
-
+    $self->{dialect}->tx_rollback($self);
+  }
+    
+sub std_tx_rollback
+  {
+    my $self = shift;
+    
     carp $error_no_transaction unless @{ $self->{tx} };
-
+    
     if ($self->{no_tx})
-    {
-		pop @{ $self->{tx} };
-    }
+      {
+	pop @{ $self->{tx} };
+      }
     else
-    {
-		$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
-
-		# execute rollback subs in reverse order
-
-		foreach my $rollback ( @{ pop @{ $self->{tx} } } )
-		{
-			$rollback->($self);
-		}
+      {
+	$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
+	
+	# execute rollback subs in reverse order
+	
+	foreach my $rollback ( @{ pop @{ $self->{tx} } } )
+	  {
+	    $rollback->($self);
+	  }
     }
 }
 
@@ -881,10 +905,15 @@ sub connect
 
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
-	$self->{cid_size} = $schema->{sql}{cid_size};
+    $self->{cid_size} = $schema->{sql}{cid_size};
 
-	my $dialect = $opts->{dialect} || 'Tangram::Dialect';
-	$self->{dialect} = ref($dialect) ? $dialect : $dialect->new();
+    my $dialect = $opts->{dialect} || Tangram::Dialect->guess($cs)
+      || 'Tangram::Dialect';
+
+    $dialect = $self->{dialect} = ref($dialect) ? $dialect : $dialect->new();
+
+    print $Tangram::TRACE "using dialect ", ref($dialect), "\n"
+       if $Tangram::TRACE;
 	
     $self->_open($schema);
 
