@@ -204,19 +204,23 @@ $schema = Tangram::Schema->new( {
 
    } } );
 
-use vars qw( $cs $user $passwd);
+use vars qw( $cs $user $passwd $dialect );
 
 {
-   local $/;
-
-   my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
-   
-   open CONFIG, $config
-   or open CONFIG, "t/$config"
-   or open CONFIG, "../t/$config"
-   or die "Cannot open t/$config, reason: $!";
-
-   ($cs, $user, $passwd) = split "\n", <CONFIG>;
+  local $/;
+  
+  my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
+  
+  open CONFIG, $config
+	or open CONFIG, "t/$config"
+	  or open CONFIG, "../t/$config"
+		or die "Cannot open t/$config, reason: $!";
+  
+  ($cs, $user, $passwd) = split "\n", <CONFIG>;
+  
+  $dialect = 'Tangram::' . (split ':', $cs)[1]; # deduce dialect from DBI driver
+  eval "use $dialect";
+  $dialect = 'Tangram::Relational' if $@;
 }
 
 my $no_tx;
