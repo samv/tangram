@@ -669,7 +669,7 @@ sub _fetch_object_state
 
 sub select
 {
-    carp "valid only in list context" unless wantarray;
+    croak "valid only in list context" unless wantarray;
     my ($self, $class, @args) = @_;
     my $cursor = Tangram::Cursor->new($self, $class, $self->{db});
     $cursor->select(@args);
