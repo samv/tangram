@@ -2,7 +2,7 @@
 
 use strict;
 
-@ARGV = qw( mysql ) unless @ARGV;
+@ARGV = qw( mysql Pg ora ) unless @ARGV;
 
 delete $ENV{LANG};
 

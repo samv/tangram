@@ -11,12 +11,12 @@ require Exporter;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw(
-	
+
 );
 
-{ no warnings;
+{ local($^W) = 0;
 $VERSION = '2.07_06';
-$VERSION + 0;
+my $force_numeric = $VERSION + 0;
 }
 
 # Preloaded methods go here.

@@ -75,6 +75,26 @@ sub dbms_date
 	return $self->{driver}->dbms_date(shift);
     }
 
+sub get_sequence {
+    my $self = shift;
+    my $sequence_name = shift;
+
+    # this is currently relying on the convenient co-incidence that
+    # the only database that has a non-trivial sequence sql fragment
+    # also doesn't use " FROM DUAL"
+    my $query = $self->sequence_sql($sequence_name).$self->from_dual;
+    my ($id) = map { @$_ } $self->{db}->selectall_arrayref($query);
+
+    return $id;
+}
+
+sub sequence_sql
+    {
+	my $self = shift;
+	my $driver = $self->{driver} or confess "no driver";
+	return $self->{driver}->sequence_sql(shift);
+    }
+
 sub _open
   {
     my ($self, $schema) = @_;
@@ -90,8 +110,14 @@ sub _open
 
 	{
 	  local $dbh->{PrintError} = 0;
-	  my $control = $dbh->selectall_arrayref("SELECT * FROM $schema->{control}")
-	      or die $DBI::errstr;
+	  my $control;
+	  if ( $schema->{sql}{oid_sequence} ) {
+	      $control = "dummy";
+	  } else {
+	      $control = $dbh->selectall_arrayref
+		  ("SELECT * FROM $schema->{control}")
+		  or die $DBI::errstr;
+	  }
 
 	  $self->{id_col} = $schema->{sql}{id_col};
 
@@ -269,6 +295,8 @@ sub make_id
     if ( $classdef->{make_id} ) {
 	$id = $classdef->{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom per-class ($cname) make ID function returned ".(pretty($id))."\n" if $Tangram::TRACE;
+    } elsif ( $classdef->{oid_sequence} ) {
+	$id = $self->get_sequence($classdef->{oid_sequence});
     }
 
     # maybe the entire schema has its own ID generator
@@ -276,6 +304,8 @@ sub make_id
 	$id = $self->{schema}{sql}{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom schema make ID function returned "
 	    .(pretty($id))."\n" if $Tangram::TRACE;
+    } elsif ( my $seq = $self->{schema}{sql}{oid_sequence} ) {
+	$id = $self->get_sequence($seq);
     }
     if (defined($id)) {
 	return $self->combine_ids($id, $class_id);
@@ -773,8 +803,8 @@ sub erase
 		       my $eid = $self->{export_id}->($id);
 
 			   for my $sth (@$sths) {
-				 $sth->execute($eid);
-				 $sth->finish();
+			       $sth->execute($eid) or die "execute failed; ".$DBI::errstr;
+			       $sth->finish();
 			   }
 
 		       $self->do_defered;
@@ -809,12 +839,18 @@ sub import_object
     my $class = shift;
     my @oids = @_;
 
-    # convert the `exported' object IDs to real OIDs
-    my $cid = $self->class_id($class);
+    my $r_thing = $self->remote($class);
 
-    @oids = map { $self->combine_ids($_, $cid) } @oids;
+    my %objs = map { $self->export_object($_) => $_ }
+	$self->select ($r_thing, $r_thing->{id}->in(@oids));
 
-    return $self->load(@oids);
+    my @objs = map { delete $objs{$_} } @oids;
+
+    if ( wantarray ) {
+	return @objs
+    } else {
+	return $objs[0];
+    }
 }
 
 sub dummy_object
@@ -954,10 +990,10 @@ sub _fetch_object_state
     my $row;
     $sth->execute($self->{export_id}->($id)) &&
 	($row = $sth->fetchrow_arrayref())
-	    or carp "could not find $class->{name} object "
+	    or croak "could not find $class->{name} object "
 		.$self->{export_id}->($id)." (oid $id) in storage";
 
-    my $state = [ @$row ];
+    my $state = [ @$row ] if $row;
     $sth->finish();
 
     return $state;
@@ -1366,19 +1402,21 @@ sub from_dual { "" }
 sub ping {
     my $self = shift;
 
-    my $answer =
-	$self->sql_selectall_arrayref("select 1+1".$self->from_dual);
+    $self->{db}->ping or die "ping failed; DB down?  $DBI::errstr"
 
-    if ( $answer ) {
-	if ( $answer->[0][0] == 2 ) {
-	    return 1;
-	} else {
-	    die "Database can't add";
-	}
-    } else {
-	# will probably never get here...
-	return undef;
-    }
+    #my $answer =
+	##$self->sql_selectall_arrayref("select 1+1".$self->from_dual);
+#
+    #if ( $answer ) {
+	#if ( $answer->[0][0] == 2 ) {
+	    #return 1;
+	#} else {
+	    #die "Database can't add";
+	#}
+    #} else {
+	## will probably never get here...
+	#return undef;
+    #}
 }
 
 sub recycle {

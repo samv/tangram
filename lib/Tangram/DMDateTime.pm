@@ -3,50 +3,30 @@
 package Tangram::DMDateTime;
 
 use strict;
-use Tangram::RawDateTime;
+use Tangram::CookedDateTime;
 use vars qw(@ISA);
-@ISA = qw( Tangram::RawDateTime );
+@ISA = qw( Tangram::CookedDateTime );
 use Date::Manip qw(ParseDate UnixDate);
 
 $Tangram::Schema::TYPES{dmdatetime} = Tangram::DMDateTime->new;
 
 #
-# Convert SQL DATETIME format to Date::Manip internal format; assume
-# that "ParseDate" will magically do The Right Thing(tm)
+# Convert iso8601 format to Date::Manip internal format
 #
 sub get_importer
 {
-  my ($self) = @_;
-  my $name = $self->{name};
+  my $self = shift;
+  my $context = shift;
 
-  return sub {
-	my ($obj, $row, $context) = @_;
-	my $val = shift @$row;
-	$val = ParseDate($val) if defined $val;
-	$obj->{$name} = $val;
-  }
+  $self->SUPER::get_importer($context, sub {ParseDate(shift)});
 }
 
-#
-# Convert Date::Manip internal format (ISO-8601) to format that should
-# work with most databases (read: I've only tested with MySQL but the
-# value is sensible)
-#
-# Of course, some databases don't like to try and guess date formats,
-# even when they're in nice forms.  So, allow a hook for reformatting
-# dates.
-#
+# Convert Date::Manip internal format to iso8601 format
 sub get_exporter
 {
     my $self = shift;
-
-    my $name = $self->{name};
-
-    return sub {
-	my ($obj, $context) = @_;
-	my $val = $obj->{$name};
-	$val = $context->{storage}->dbms_date($val) if defined $val;
-	return $val;
-    }
+    my $context = shift;
+    $self->SUPER::get_exporter
+	($context, sub {UnixDate(shift, "%Y-%m-%dT%H:%M:%S")});
 }
 1;

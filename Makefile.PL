@@ -134,31 +134,24 @@ MSG
    close CONFIG;
 }
 
-{
-
-    require 't/Springfield.pm';
-    print "\nNow I will attempt to connect and prepare the database...";
-
-    local $/;
-
-    if (my $dbh = DBI->connect( $Springfield::cs, $Springfield::user, $Springfield::passwd ))
-    {
-		do
-		{
-		  local $dbh->{PrintError};
-		  $Springfield::dialect->retreat($Springfield::schema, $dbh);
-		};
-
-		$Springfield::dialect->deploy($Springfield::schema, $dbh);
-		$dbh->disconnect;
-		print "it worked!\nSay 'make test' to run the test suite.\n\n";
-    }
-}
-
 NOTESTS:
+eval "use Test::Manifest";
+
+unless( $@ )
+    {
+    * ExtUtils::MM_Any::test_via_harness = sub
+	{
+	    my($self, $perl, $tests) = @_;
+
+	    return qq|\t$perl "-MTest::Manifest" | .
+		qq|"-e" "run_t_manifest(\$(TEST_VERBOSE), '\$(INST_LIB)', | .
+    qq|'\$(INST_ARCHLIB)')"\n|;
+	}
+    }
 
 WriteMakefile(
-    'NAME'	=> 'Tangram',
-    'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
-    PREREQ_PM => \%required,
+	      'NAME'	=> 'Tangram',
+	      'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
+	      PREREQ_PM => \%required,
+	      #test => { TESTS => "t/*/*.t" },
 );

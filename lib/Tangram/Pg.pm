@@ -27,19 +27,33 @@ sub bool {
     return "BOOL";
 }
 
-# FIXME - this should be implemented in the same way as the
-# IntegerExpr stuff, below.
+# function to return a DBMS date from an ISO-8601 date in the form:
 sub dbms_date {
     my $self = shift;
 
-    my $date = $self->SUPER::dbms_date(shift);
+    my $date = shift;
 
-    # convert standard ISO-8601 to a format that MySQL natively
-    # understands, dumbass that it is.
     $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
 	{$1-$2-$3T$4:$5:$6};
 
     return $date;
+}
+
+sub iso_date {
+    my $self = shift;
+
+    my $date = $self->SUPER::dbms_date(shift);
+
+    $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
+	{$1-$2-$3T$4:$5:$6};
+
+    return $date;
+}
+
+sub sequence_sql {
+    my $self = shift;
+    my $sequence_name = shift;
+    return "SELECT nextval('$sequence_name')";
 }
 
 package Tangram::Pg::Storage;

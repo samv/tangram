@@ -15,7 +15,6 @@ Tangram::Schema - describe a system of persistent classes
 
    # write SQL to STDOUT
    $schema->deploy();
-   
 
 =head1 DESCRIPTION
 
@@ -154,6 +153,30 @@ NaturalPerson may look like C<270005>, where C<0005> is the class id.
 Field C<id> contains the SQL type that is used to map the rowid part
 of the object id. It defaults to 'INTEGER'.
 
+=item * oid_sequence
+
+If set, this is the name of a I<sequence> to use as the default OID
+generator, should a particular class not define one.
+
+Sequences are an alternate way of generating unique identifiers for
+rows.  They are more scalable when you have high concurrency, but most
+people won't notice that.
+
+It is also possible to define an OID sequence on a per-class level;
+see below for details.
+
+Sequences are emulated on pretend databases like MySQL.
+
+=item * make_id
+
+This is a I<closure> that is expected to return an unique ID.  It is
+called like this:
+
+   $make_id->($class_id, $storage)
+
+Where C<$class_id> is the Class identifier for_the newly created
+object, and C<$storage> is the B<Tangram::Storage> object.
+
 =item * cid
 
 Field C<cid> contains the SQL type that is used to map the class id
@@ -200,12 +223,12 @@ store meta-information.
 
 =head2 class registry
 
-The class registry is a hash containing one entry per persistent
-class. The key is the class name, the value is a reference to a hash
-called the class hash. It contains information on how to map the
-class.
+The class registry is an array containing one entry per persistent
+class.  The array contains a list of C<key =E<gt> value> pairs.
+The key is the class name, the value is a reference to a hash called
+the class hash. It contains information on how to map the class.
 
-The class hash has the following fields:
+The class hash can have the following fields:
 
 =over 4
 
@@ -220,6 +243,10 @@ The class hash has the following fields:
 =item * table_type
 
 =item * id
+
+=item * oid_sequence
+
+=item * make_id
 
 =back
 
@@ -245,6 +272,11 @@ basis.
 Field C<id> contains an integer identifier for this class. That
 identifier must be unique within the same schema. If this field
 is not present, Tangram sets it to the last class id plus one.
+
+Fields C<oid_sequence> and C<make_id> are per-class versions of their
+schema-wide versions documented above.  These should be inherited by
+their subclasses, but currently (as of 2.07_06) aren't.  To be safe,
+until this documentation is fixed, define them in all subclasses.
 
 =head2 field hash
 

@@ -220,7 +220,11 @@ sub new
 
     $self->{make_object} ||= sub { shift()->new() };
 
-    $self->{normalize} ||= sub { shift() };
+    $self->{normalize} ||= sub
+	{ my $class = shift;
+	  $class =~ s{::}{_}g;
+	  $class;
+      };
     $self->{class_table} ||= 'OpalClass';
 
     $self->{control} ||= 'Tangram';

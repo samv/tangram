@@ -36,4 +36,3 @@ I haven't got binary storage into VARCHAR or BLOB columns working with
 Pg, so the L<Tangram::Storable> module will not work with this
 back-end.
 
-Also, 

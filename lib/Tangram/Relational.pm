@@ -99,13 +99,74 @@ sub type {
 
 }
 
-# function to convert to an RDBMS date
-sub dbms_date {
-    my $self = shift if ref $_[0] or UNIVERSAL::isa($_[0], __PACKAGE__);
+# convert a value from an RDBMS format => an internal format
+sub from_dbms {
+    my $self = ( (ref $_[0] and UNIVERSAL::isa($_[0], __PACKAGE__))
+		 ? shift
+		 : __PACKAGE__);
+    my $type = shift;
+    my $value = shift;
 
-    my $iso8660_date = Date::Manip::ParseDate(shift);
+    my $method = "from_$type";
+    if ( $self->can($method) ) {
+	return $self->$method($value);
+    } else {
+	return $value;
+    }
+}
 
-    return $iso8660_date;
+# convert a value from an internal format => an RDBMS format
+sub to_dbms {
+    my $self = ( (ref $_[0] and UNIVERSAL::isa($_[0], __PACKAGE__))
+		 ? shift
+		 : __PACKAGE__);
+    my $type = shift;
+    my $value = shift;
+
+    my $method = "to_$type";
+    if ( $self->can($method) ) {
+	return $self->$method($value);
+    } else {
+	return $value;
+    }
+}
+
+# generic / fallback date handler.  Use Date::Manip to parse
+# `anything' and return a full ISO date
+sub from_date {
+    my $self = shift;
+    my $value = shift;
+    require 'Date/Manip.pm';
+    return Date::Manip::UnixDate($value, '%Y-%m-%dT%H:%M:%S');
+}
+
+# an alternate ISO-8601 form that databases are more likely to grok
+sub to_date {
+    my $self = shift;
+    my $value = shift;
+    require 'Date/Manip.pm';
+    return Date::Manip::UnixDate($value, '%Y-%m-%d %H:%M:%S');
+}
+
+use Carp;
+
+# return a query to get a sequence value
+sub sequence_sql {
+    my $self = shift;
+    my $sequence_name = shift or confess "no sequence name?";
+    return "SELECT $sequence_name.nextval";
+}
+
+sub mk_sequence_sql {
+    my $self = shift;
+    my $sequence_name = shift;
+    return "CREATE SEQUENCE $sequence_name";
+}
+
+sub drop_sequence_sql {
+    my $self = shift;
+    my $sequence_name = shift;
+    return "DROP SEQUENCE $sequence_name";
 }
 
 # default mappings are no-ops

@@ -465,11 +465,27 @@ sub deploy
 			      map { "$_ ".$driver->type($cols->{$_}) }
 			      keys %$cols) ),
 	      "\n) ".($type?" TYPE=$type":""));
+
+    }
+
+    my %made_sequence;
+
+    foreach my $class ( values %{$schema->{classes}} ) {
+	if ( my $sequence = $class->{oid_sequence} ) {
+	    $do->($driver->mk_sequence_sql($sequence))
+		unless $made_sequence{$sequence}++;
+	}
     }
 
     my $control = $schema->{control};
     my $table_type = $schema->{sql}{table_type};
 
+    if ( my $sequence = $schema->{sql}{oid_sequence} ) {
+
+	$do->($driver->mk_sequence_sql($sequence))
+	    unless $made_sequence{$sequence}++;
+
+    } else {
     $do->( <<SQL . ($table_type?" TYPE=$table_type":"") );
 CREATE TABLE $control
 (
@@ -481,7 +497,7 @@ mark INTEGER NOT NULL
 SQL
 
     my $info = $engine->get_deploy_info();
-    my ($l) = split '\.', $Tangram::VERSION;
+    #my ($l) = split '\.', $Tangram::VERSION;
 
     # Prevent additional records on redeploy.
     #  -- ks.perl@kurtstephens.com 2004/04/29
@@ -490,6 +506,8 @@ SQL
     $do->("INSERT INTO $control (layout, engine, engine_layout, mark)"
 	  ." VALUES ($info->{LAYOUT}, '$info->{ENGINE}', "
 	  ."$info->{ENGINE_LAYOUT}, 0)");
+
+    }
 }
 
 sub retreat
@@ -502,9 +520,25 @@ sub retreat
 
     my $do = _deploy_do($output);
 
-    for my $table (sort keys %$tables, $schema->{control})
+    my %dropped_sequences;
+    my $driver = $engine->{driver} || Tangram::Relational->new();
+
+    my $oid_sequence = $schema->{sql}{oid_sequence};
+    for my $table (sort keys %$tables,
+		   ($oid_sequence ? () : $schema->{control}))
     {
 		$do->( "DROP TABLE $table" );
+    }
+
+    for my $class ( values %{ $schema->{classes} } ) {
+	if ( my $sequence = $class->{oid_sequence} ) {
+	    $do->($driver->drop_sequence_sql($sequence))
+		unless $dropped_sequences{$sequence}++;
+	}
+    }
+
+    if ( $oid_sequence ) {
+	$do->($driver->drop_sequence_sql($oid_sequence));
     }
 }
 
@@ -777,8 +811,11 @@ sub extract {
     my $class_id = shift @$row;
 
     my $slice = $self->[-1]{$class_id}
-	or Carp::croak("unexpected class id '$class_id' (OK: "
-		       .(join(",",keys %{$self->[-1]})).")");
+	or do {
+	    kill 2, $$;
+	    Carp::croak("unexpected class id '$class_id' (OK: "
+			.(join(",",keys %{$self->[-1]})).")");
+	};
 
     my $state = [ @$row[ @$slice ] ];
 
