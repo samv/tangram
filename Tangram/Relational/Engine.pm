@@ -1,6 +1,7 @@
 # (c) Sound Object Logic 2000-2001
 
 use strict;
+use Tangram::Schema;
 
 package Tangram::Relational::TableSet;
 
@@ -83,7 +84,23 @@ sub new
 	return $engine;
   }
 
-sub get_table_set
+sub get_heterogeneity {
+  my ($self, $table_set) = @_;
+  my $key = $table_set->key();
+  
+  return $self->{HETEROGENEITY}{$key} ||= do {
+	
+	my $heterogeneity = 0;
+	
+	for my $class (values %{ $self->{CLASS} }) {
+	  ++$heterogeneity if !$class->{abstract} && $class->get_table_set($self)->is_improper_superset($table_set);
+	}
+
+	$heterogeneity;
+  };
+}
+
+sub _get_table_set
   {
 	my ($self, $class) = @_;
 
@@ -120,124 +137,6 @@ sub get_parts
 		$class
 	  ]
 	} }
-  }
-
-sub get_save_cache
-  {
-	my ($self, $class) = @_;
-
-	return $self->{CLASSES}{$class}{SAVE} ||= do {
-	  
-	  my $schema = $self->{SCHEMA};
-	  my $id_col = $schema->{sql}{id_col};
-	  my $type_col = $self->{TYPE_COL};
-
-	  my (%tables, @tables);
-	  my (@export_sources, @export_closures);
-	  
-	  my $context = { layout1 => $self->{layout1} };
-
-	  my $field_index = 2;
-
-	  for my $part ($self->get_parts($class)) {
-		my $table_name = $part->{table};
-
-		$context->{class} = $part;
-
-		my $table = $tables{$table_name} ||= do { push @tables, my $table = [ $table_name, [], [] ]; $table };
-		
-		for my $field ($part->direct_fields()) {
-		  
-		  my $exporter = $field->get_exporter($context)
-			or next;
-		  
-		  if (ref $exporter) {
-			push @export_closures, $exporter;
-			push @export_sources, 'shift(@closures)->($obj, $context)';
-		  } else {
-			push @export_sources, $exporter;
-		  }
-
-		  my @export_cols = $field->get_export_cols($context);
-		  push @{ $table->[1] }, @export_cols;
-		  push @{ $table->[2] }, $field_index..($field_index + $#export_cols);
-		  $field_index += @export_cols;
-		}
-	  }
-
-	  my $export_source = join ",\n", @export_sources;
-	  my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
-
-	  # $Tangram::TRACE = \*STDOUT;
-
-	  $export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
-
-	  print $Tangram::TRACE "Compiling exporter for $class->{name}...\n$export_source\n"
-		if $Tangram::TRACE;
-
-	  # use Data::Dumper; print Dumper \@cols;
-	  my $exporter = eval $export_source or die;
-
-	  my (@inserts, @updates, @insert_fields, @update_fields);
-
-	  for my $table (@tables) {
-		my ($table_name, $cols, $fields) = @$table;
-		my @meta = ( $id_col );
-		my @meta_fields = ( 0 );
-
-		if ($self->{ROOT_TABLES}{$table_name}) {
-		  push @meta, $type_col;
-		  push @meta_fields, 1;
-		}
-
-		next unless @meta > 1 || @$cols;
-		
-		push @inserts, sprintf('INSERT INTO %s (%s) VALUES (%s)',
-								$table_name,
-								join(', ', @meta, @$cols),
-								join(', ', ('?') x (@meta + @$cols)));
-		push @insert_fields, [ @meta_fields, @$fields ];
-
-		if (@$cols) {
-		  push @updates, sprintf('UPDATE %s SET %s WHERE %s = ?',
-								 $table_name,
-								 join(', ', map { "$_ = ?" } @$cols),
-								 $id_col);
-		  push @update_fields, [ @$fields, 0 ];
-		}
-	  }
-
-	  {
-		EXPORTER => $exporter,
-		INSERT_FIELDS => \@insert_fields, INSERTS => \@inserts,
-		UPDATE_FIELDS => \@update_fields, UPDATES => \@updates,
-	  }
-	};
-  }
-
-sub get_instance_select
-  {
-	my ($self, $class) = @_;
-	
-	return $self->{CLASSES}{$class}{INSTANCE_SELECT} ||= do {
-	  my $schema = $self->{SCHEMA};
-	  my $id_col = $schema->{sql}{id_col};
-	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
-	  my @cols;
-	  
-	  for my $part ($self->get_parts($class)) {
-		my $table = $part->{table};
-		$context->{class} = $part;
-		push @cols, map { "$table.$_" } map { $_->get_import_cols($context) } $part->direct_fields()
-	  }
-
-	  my ($first_table, @other_tables) = $self->get_table_set($class)->tables();
-
-	  sprintf("SELECT %s FROM %s WHERE %s",
-			  join(', ', @cols),
-			  join(', ', $first_table, @other_tables),
-			  join(' AND ', "$first_table.$id_col = ?", map { "$first_table.$id_col = $_.$id_col" } @other_tables));
-	};
   }
 
 sub get_polymorphic_select
@@ -349,62 +248,6 @@ sub qualify
 	} else {
 	  return "$table.$col";
 	}
-  }
-
-sub get_import_cache
-  {
-    my ($self, $class) = @_;
-
-	return $self->{CLASSES}{$class}{IMPORTER} ||=
-	  do {
-		my $schema = $self->{SCHEMA};
-		
-		my $context = { schema => $schema, layout1 => $self->{layout1} };
-		
-		my (@import_sources, @import_closures);
-		
-		for my $part ($self->get_parts($class)) {
-		  my $table_name = $part->{table};
-		  
-		  $context->{class} = $part;
-
-		  for my $field ($part->direct_fields) {
-			
-			my $importer = $field->get_importer($context)
-			  or next;
-			
-			if (ref $importer) {
-			  push @import_closures, $importer;
-			  push @import_sources, 'shift(@closures)->($obj, $row, $context)';
-			} else {
-			  push @import_sources, $importer;
-			}
-		  }
-		}
-		
-		my $import_source = join ";\n", @import_sources;
-		my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
-		
-		# $Tangram::TRACE = \*STDOUT;
-		
-		$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
-		
-		print $Tangram::TRACE "Compiling importer for $class->{name}...\n$import_source\n"
-		  if $Tangram::TRACE;
-		
-		# use Data::Dumper; print Dumper \@cols;
-		eval $import_source or die;
-	  };
-  }
-
-sub get_deletes
-  {
-	my ($self, $class) = @_;
-	
-	return $self->{CLASSES}{$class}{DELETES} ||= do {
-	  my $id_col = $self->{SCHEMA}{sql}{id_col};
-	  [ map { "DELETE FROM $_ WHERE $id_col = ?" } $self->get_table_set($class)->tables() ]
-	};
   }
 
 sub deploy
@@ -703,5 +546,255 @@ sub extract
   splice @$row, 0, @{ $self->[1] } - 2;
   return ($id, $class_id, $state);
 }	
+
+1;
+
+#########################################################################
+#########################################################################
+#########################################################################
+#########################################################################
+#########################################################################
+#########################################################################
+
+package Tangram::Relational::Engine;
+
+sub get_class_engine {
+  my ($engine, $class) = @_;
+
+  my $class_engine;
+
+  unless ($class_engine = $engine->{CLASS}{$class->{name}}) {
+	$class_engine = $engine->{CLASS}{$class->{name}} = $engine->make_class_engine($class);
+	$class_engine->initialize($engine, $class, $class);
+  }
+
+  return $class_engine;
+}
+
+sub make_class_engine {
+  my ($self, $class) = @_;
+  return Tangram::Relational::Engine::Class->new();
+}
+
+# forward some methods to class engine
+
+for my $method (qw( get_instance_select
+					get_insert_statements get_insert_fields
+					get_update_statements get_update_fields
+					get_deletes
+					get_table_set
+				  )) {
+  eval qq{
+	sub $method {
+				 my (\$self, \$class) = \@_;
+				 return \$self->get_class_engine(\$class)->$method(\$self);
+				}
+  }
+}
+
+sub DESTROY {
+  my ($self) = @_;
+  
+  for my $class (values %{ $self->{CLASS} }) {
+	$class->fracture()
+	  if $class;
+  }
+}
+
+package Tangram::Relational::Engine::Class;
+
+use base qw( Tangram::Node );
+
+sub new {
+  bless { }, shift;
+}
+
+sub fracture {
+  my ($self) = @_;
+  delete $self->{BASES};
+  delete $self->{SPECS};
+}
+
+sub initialize {
+  my ($self, $engine, $class, $mapping) = @_;
+  $self->{CLASS} = $class;
+  $self->{MAPPING} = $mapping;
+  $self->{BASES} = [ map { $engine->get_class_engine($_) } $class->get_bases() ];
+  $self->{SPECS} = [ map { $engine->get_class_engine($_) } $class->get_specs() ];
+  $self->{ID_COL} = $engine->{SCHEMA}{sql}{id_col};
+}
+
+sub get_instance_select {
+  my ($self, $engine) = @_;
+
+  return $self->{INSTANCE_SELECT} ||= do {
+	my $schema = $engine->{SCHEMA};
+	my $id_col = $schema->{sql}{id_col};
+	my $context = { engine => $engine, schema => $schema, layout1 => $engine->{layout1} };
+	my (@tables, %seen, @cols, $root);
+	
+	$self->for_composing( sub {
+							 my ($part) = @_;
+							 $root ||= $part;
+							 $context->{class} = $part->{CLASS};
+							 push @cols, map {
+							   my ($table, $col) = @$_;
+							   push @tables, $table unless $seen{$table}++;
+							   "$table.$col" } $part->{MAPPING}->get_import_cols($context)
+						   } );
+
+	unless (@tables) {
+	  # in case the class has absolutely no state at all...
+	  @cols = $id_col;
+	  @tables = $root->{MAPPING}->get_table;
+	}
+
+	my $first_table = shift @tables;
+	
+	sprintf("SELECT %s FROM %s WHERE %s",
+			join(', ', @cols),
+			join(', ', $first_table, @tables),
+			join(' AND ', "$first_table.$id_col = ?", map { "$first_table.$id_col = $_.$id_col" } @tables));
+  };
+}
+
+sub get_insert_statements {
+  my ($self, $engine) = @_;
+  return @{ $self->get_save_cache($engine)->{INSERTS} };
+}
+
+sub get_insert_fields {
+  my ($self, $engine) = @_;
+  return @{ $self->get_save_cache($engine)->{INSERT_FIELDS} };
+}
+
+sub get_update_statements {
+  my ($self, $engine) = @_;
+  return @{ $self->get_save_cache($engine)->{UPDATES} };
+}
+
+sub get_update_fields {
+  my ($self, $engine) = @_;
+  return @{ $self->get_save_cache($engine)->{UPDATE_FIELDS} };
+}
+
+sub get_save_cache
+  {
+	my ($class, $engine) = @_;
+
+	return $class->{SAVE} ||= do {
+	  
+	  my $schema = $engine->{SCHEMA};
+	  my $id_col = $schema->{sql}{id_col};
+	  my $type_col = $engine->{TYPE_COL};
+
+	  my (%tables, @tables);
+	  my (@export_sources, @export_closures);
+	  
+	  my $context = { layout1 => $engine->{layout1} };
+
+	  my $field_index = 2;
+	  
+	  $class->for_composing( sub {
+							   my ($part) = @_;
+							   
+							   my $table_name =  $part->{MAPPING}{table};
+							   my $table = $tables{$table_name} ||= do { push @tables, my $table = [ $table_name, [], [] ]; $table };
+							   
+							   $context->{class} = $part;
+							   
+							   for my $field ($part->{MAPPING}->get_direct_fields()) {
+								 my @export_cols = $field->get_export_cols($context);
+								 push @{ $table->[1] }, @export_cols;
+								 push @{ $table->[2] }, $field_index..($field_index + $#export_cols);
+								 $field_index += @export_cols;
+							   }
+							 } );
+
+	  my (@inserts, @updates, @insert_fields, @update_fields);
+
+	  for my $table (@tables) {
+		my ($table_name, $cols, $fields) = @$table;
+		my @meta = ( $id_col );
+		my @meta_fields = ( 0 );
+
+		if ($engine->{ROOT_TABLES}{$table_name}) {
+		  push @meta, $type_col;
+		  push @meta_fields, 1;
+		}
+
+		next unless @meta > 1 || @$cols;
+		
+		push @inserts, sprintf('INSERT INTO %s (%s) VALUES (%s)',
+								$table_name,
+								join(', ', @meta, @$cols),
+								join(', ', ('?') x (@meta + @$cols)));
+		push @insert_fields, [ @meta_fields, @$fields ];
+
+		if (@$cols) {
+		  push @updates, sprintf('UPDATE %s SET %s WHERE %s = ?',
+								 $table_name,
+								 join(', ', map { "$_ = ?" } @$cols),
+								 $id_col);
+		  push @update_fields, [ @$fields, 0 ];
+		}
+	  }
+
+	  {
+		INSERT_FIELDS => \@insert_fields, INSERTS => \@inserts,
+		UPDATE_FIELDS => \@update_fields, UPDATES => \@updates,
+	  }
+	};
+  }
+
+sub get_deletes
+  {
+	my ($self, $engine) = @_;
+	
+	return @{ $self->{DELETE} ||= do {
+	  my $schema = $engine->{SCHEMA};
+	  my $context = { engine => $engine, schema => $schema, layout1 => $engine->{layout1} };
+	  my (@tables, %seen);
+	  
+	  $self->for_composing( sub {
+							  my ($part) = @_;
+							  my $mapping = $part->{MAPPING};
+							  
+							  my $home_table = $mapping->{table};
+							  push @tables, $home_table if $mapping->is_root() && !$seen{$home_table}++;
+							  
+							  $context->{class} = $part->{CLASS};
+
+							  for my $qcol ($mapping->get_export_cols($context)) {
+								my ($table) = @$qcol;
+								push @tables, $table unless $seen{$table};
+							  }
+							} );
+	  
+	  my $id_col = $engine->{SCHEMA}{sql}{id_col};
+	  [ map { "DELETE FROM $_ WHERE $id_col = ?" } @tables ]
+	} };
+  }
+
+sub get_table_set {
+  my ($self, $engine) = @_;
+
+  # return the TableSet on which the object's state resides
+  # it doesn't include tables resulting solely from an intrusion
+  # tabled that carry only meta-information are also included
+  
+  return $self->{TABLE_SET} ||= do {
+	
+	my $mapping = $self->{MAPPING};
+	my $home_table = $mapping->{table};
+	my $context = { layout1 => $engine->{layout1}, class => $self->{CLASS} };
+
+	my @table = map { $_->[0] } $mapping->get_export_cols($context);
+	push @table, $home_table if $engine->{ROOT_TABLES}{$home_table};
+	
+	Tangram::Relational::TableSet
+	  ->new((map { $_->get_table_set($engine)->tables } $self->direct_bases()), @table );
+  };
+}
 
 1;
