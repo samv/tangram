@@ -233,10 +233,9 @@ set.
 C<distinct> specifies that each object in the result set must be
 unique (Tangram generates a SELECT DISTINCT).
 
-C<order> is an array of Expr; order result set by increasing value of Exprs.
+C<order> THIS OPTION IS DEPRECATED!
 
-C<desc> is a boolean; a true value reverses the order specified by the
-C<order> option.
+C<desc> THIS OPTION IS DEPRECATED!
 
 C<distinct> is a boolean; a true value specifies that the same object
 should ocur only once in the result set.
