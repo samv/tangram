@@ -3,7 +3,6 @@
 use strict;
 
 use Tangram;
-use Tangram::Deploy;
 use Tangram::Springfield;
 
 use DBI;
@@ -172,7 +171,7 @@ object-relational mapping, but in this tour we will use all the defaults.
 
 Here is the Schema for Springfield:
 {{
-   $schema = Tangram::Schema->new( {
+   $schema = Tangram::Relational->schema( {
 
       classes =>
       [
@@ -238,7 +237,8 @@ may have both persistent and non-persistent bases.  As for attributes,
 Perl's most typical representation for objects - a hash - even allows
 two objects of the same class to have a different set of attributes.
 
-For more information on creating Schemas, see L<Tangram::Schema>.
+For more information on creating Schemas, see L<Tangram::Relational>
+and  L<Tangram::Schema>.
 
 =head2 Setting up a database
 
@@ -246,16 +246,15 @@ Now we create a database. The simplest way is to create an
 empty database and let Tangram initialize it:
 {{
 	use Tangram;
-	use Tangram::Deploy;
 
 	$dbh = DBI->connect(
 		@cp ); 	
 
-   	$schema->deploy( $dbh );
+   	Tangram::Relational->deploy($schema, $dbh );
 
 	$dbh->disconnect();
 }}
-For more information on deploying databases, see L<Tangram::Deploy>.
+For more information on deploying databases, see L<Tangram::Relational>.
 
 =head2 Connecting to a database
 
@@ -267,7 +266,7 @@ used to communicate with the database.
 
 For example:
 {{
-   	$storage = Tangram::Relational->connect( $schema,
+   	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 }}
 connects to a database named Springfield via the Sybase driver, using

@@ -8,6 +8,12 @@ sub connect
 	return Tangram::Storage->connect( @_ );
   }
 
+sub schema
+  {
+	my $self = shift;
+	return Tangram::Schema->new( @_ );
+  }
+
 sub deploy
   {
 	shift; # class

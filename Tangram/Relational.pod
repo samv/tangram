@@ -5,13 +5,17 @@ Tangram::Relational - Orthogonal Object Persistence in Relational Databases
 =head1 SYNOPSIS
 
    use Tangram;
-   
+
+   $schema = Tangram::Relational->schema( $hashref );
+
+   $schema->deploy( $dbh );
+      
    $storage = Tangram::Relational->connect( $schema,
       $data_source, $username, $password );
 
-   # save and load objects
-
    $storage->disconnect();
+
+   $schema->retreat( $dbh );
 
 =head1 DESCRIPTION
 
@@ -21,6 +25,23 @@ implement persistence in XML documents, pure object databases etc.
 
 =head1 CLASS METHODS
 
+=head2 schema
+
+   $schema = Tangram::Relational->schema( $hashref );
+
+Returns a new Schema object. See L<Tangram::Schema>. 
+
+=head2 deploy( HANDLE )
+
+Writes SQL statements to HANDLE. The SQL code prepares a database for
+use with this Schema, and consists mostly in a series of CREATE TABLE
+instructions.
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against an empty database.
+
 =head2 connect
 
    $storage = Tangram::Relational->connect( $schema,
@@ -29,7 +50,7 @@ implement persistence in XML documents, pure object databases etc.
 Connects to a storage and return a handle object. Dies in case of
 failure.
 
-$schema is an L<Tangram::Schema> object describing the system of
+$schema is a Schema object describing the system of
 classes stored in the database.
 
 $data_source, $user and $password are passed directly to
@@ -38,20 +59,15 @@ DBI::connect().
 \%options is a reference to a hash containing connection options. See
 L<Tangram::Storage> for a description of available options.
 
-This method tries to pick the most appropriate backend by examining
-the DBI connect string. First it tries to load (via the C<use>
-directive) the module C<Tangram::DRIVER>, where C<DRIVER> is the
-driver part of the DBI connect string. Then it checks whether that
-module implements its own connect() method. If it does, it is called
-with the same argument list. The object returned by the specialized
-connect() method is an instance of a subclass of
-C<Tangram::Storage> that uses vendor-specific features to add
-functionality and/or improve performance.
+=head2 retreat( HANDLE )
 
-If the C<Tangram::DRIVER> module fails to load (probably because it
-doesn't exist), C<Tangram::Storage::connect()> is called with the
-original argument list. Vanilla C<Tangram::Storage> assumes that the
-database understands standard SQL constructs and that the DBD driver
-implements the DBI specification fully and correctly.
+Writes SQL statements to HANDLE. The SQL code removes whatever was set
+up by deploy().
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against a database that was
+deployed using exactly the same schema.
 
 

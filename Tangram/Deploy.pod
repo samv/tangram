@@ -1,54 +1,8 @@
 =head1 NAME
 
-Tangram::Deploy - prepare a database for use with a Schema
-
-=head1 SYNOPSIS
-
-   use Tangram::Core;
-   use Tangram::Deploy;
-
-   $schema = Tangram::Schema->new( $hashref );
-
-   # deploy to opened DBI handle
-   $dbh = DBI->connect(...);
-   $schema->deploy($dbh, $schema);
-
-   # write SQL to FILE
-   $schema->deploy( \*FILE );
-
-   # write SQL to STDOUT
-   $schema->deploy();
-   
+Tangram::Deploy - obsolete
 
 =head1 DESCRIPTION
 
-This module adds two functions to L<Tangram::Schema>, deploy() and
-retreat().
-
-=head1 INSTANCE METHODS
-
-=head2 deploy( HANDLE )
-
-Writes SQL statements to HANDLE. The SQL code prepares a database for
-use with this Schema, and consists mostly in a series of CREATE TABLE
-instructions.
-
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
-
-The SQL code is only guaranteed to work against an empty database.
-
-=head2 retreat( HANDLE )
-
-Writes SQL statements to HANDLE. The SQL code removes whatever was set
-up by deploy().
-
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
-
-The SQL code is only guaranteed to work against a database that was
-deployed using exactly the same schema.
-
-=head1 SEE ALSO
-
-L<Tangram::Schema>, L<Tangram::Storage>
+This module is now obsolete; its functionality has been moved to
+Tangram::Relational. See L<Tangram::Relationa>.

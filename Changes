@@ -125,3 +125,14 @@ Revision history for Perl extension Tangram.
 	- minor improvement to Schema.pod
 	- added Springfield.pm for users to play with
 	- added support for SELECT SUM
+
+2.00  Feb ?? 2001 - first S.O.L. release
+	- added copyright notices
+	- added a copy of the GPL
+	- implemented inlined exports
+	- INSERT and UPDATE now make use of prepared statements when available
+	- re-executable Cursors
+	- changed database layout, Class Table is gone and 'control' table in there
+	- object ids are no longer allocated on a class basis
+	- introduced Tangram::Relational
+	- dialect are now done via derivation

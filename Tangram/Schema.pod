@@ -10,6 +10,13 @@ Tangram::Schema - describe a system of persistent classes
 
    Tangram::Relational->connect( $schema, ... );
 
+   # write SQL to FILE
+   $schema->deploy( \*FILE );
+
+   # write SQL to STDOUT
+   $schema->deploy();
+   
+
 =head1 DESCRIPTION
 
 A Schema contains all the information about the persistent aspects of
@@ -234,3 +241,27 @@ Tangram comes with built-in support for the following types:
 * array : see L<Tangram::Array>, L<Tangram::IntrArray>
 
 * Set::Object : see L<Tangram::Set>, L<Tangram::IntrSet>
+
+=head1 INSTANCE METHODS
+
+=head2 deploy( HANDLE )
+
+Writes SQL statements to HANDLE. The SQL code prepares a database for
+use with this Schema, and consists mostly in a series of CREATE TABLE
+instructions.
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against an empty database.
+
+=head2 retreat( HANDLE )
+
+Writes SQL statements to HANDLE. The SQL code removes whatever was set
+up by deploy().
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against a database that was
+deployed using exactly the same schema.
