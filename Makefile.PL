@@ -100,7 +100,8 @@ MSG
 NOTESTS:
 
 WriteMakefile(
-    'NAME'	=> 'Tangram',
-    'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
-    PREREQ_PM => { 'Set::Object' => 0, DBI => 0 }
+			  'NAME'	=> 'Tangram',
+			  'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
+			  PREREQ_PM =>
+			  { qw( Set::Object 0  DBI 0  Date::Manip 0  ) }
 );
