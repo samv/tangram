@@ -235,3 +235,4 @@ Revision history for Perl extension Tangram.
 	- deep_update with Tangram::Ref bug fix (reported by Aaron Mackey)
 	- Makefile.PL should now hopefully be more informative about
 	  which modules are needed for what.
+	- Removed Selfloader from Tangram::Ref (Kate Pugh)

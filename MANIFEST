@@ -107,6 +107,8 @@ t/set.t
 t/iset.t
 # t/datetime.t
 t/hash.t
+t/new_types.t
+t/RefImage.pm
 
 
 t/mysql.t
