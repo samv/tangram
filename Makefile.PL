@@ -4,8 +4,7 @@ use ExtUtils::MakeMaker;
 
 my %required =
     (
-     'Set::Scalar' => 0,
-     'Set::Object' => 1.04,
+     'Set::Object' => 1.08,
      "Test::More" => 0,
      #"Date::Manip" => 0,
      "Time::Piece" => 0,

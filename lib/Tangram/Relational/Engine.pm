@@ -562,7 +562,7 @@ sub new
 	bless [ @_ ], $class;
   }
 
-use Set::Scalar;
+use Set::Object;
 
 use vars qw($paren);
 $paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
@@ -600,7 +600,7 @@ sub instantiate {
 	$DB::single = 1; # ?
 
 	# make sure all grouped columns are selected
-	$selected = Set::Scalar->new(@cols, @$xcols);
+	$selected = Set::Object->new(@cols, @$xcols);
 
 	push @$xcols, (grep { $selected->insert($_) }
 		       map { ref $_ ? $_->expr : $_ } @$group);
@@ -608,12 +608,9 @@ sub instantiate {
 
     if (my $order = $o{order}) {
 	# ordering, make sure that all ordered columns are selected
-	$selected ||= Set::Scalar->new(@cols, @$xcols);
+	$selected ||= Set::Object->new(@cols, @$xcols);
 
-	push @$xcols, (grep {( $selected->has($_)
-			       ? undef
-			       : $selected->insert($_)
-			     )}
+	push @$xcols, (grep { $selected->insert($_) }
 		       map { ref $_ ? $_->expr : $_ } @$order);
     }
 
@@ -630,31 +627,26 @@ sub instantiate {
 	# ugh.  we need to add a new clause for every join, and in
 	# order of joinedness.  Which means that we have to go and
 	# break up some joins.
-	#print STDERR "owhere: @$owhere\n";
-	$owhere = Set::Scalar->new(map {
+
+	# this is highly ugly, but at least it makes something that
+	# was impossible, possible.  This requires a thorough
+	# re-engineering to fix, as I see it.
+
+	$owhere = Set::Object->new(map {
 	    my @x;
 	    while ( s{^\(((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)\)$}{$1}is
 		    or s{^((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)$}{$1}is
 		  ) {
-		#print STDERR "got: $2\n";
 		push @x, $2;
 	    }
-	    #print STDERR "left: $_\n";
 	    @x, $_
 	} @{$o{owhere}});
-	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
-	#print STDERR "ofrom: @$ofrom\n";
-	$ofrom = Set::Scalar->new(@{$o{ofrom}});
-	#print STDERR "new ofrom: ".join("/",$ofrom->members)."\n";
-
-	# ugh ugh ugh
-	#my $tmp_sel = sprintf $select, map { $tables[$_] }
-	    #@$expand;
+	$ofrom = Set::Object->new(@{$o{ofrom}});
 
 	(my $tmp_sel = $select) =~ s{.*^FROM}{}ms;
 
 	# ook ook
-	my $seen_from = Set::Scalar->new( map { m{\b(tl?\d+)\b}sg }
+	my $seen_from = Set::Object->new( map { m{\b(tl?\d+)\b}sg }
 					  (@from, @$xfrom) );
 
 	my (@ofrom, @ojoin, %owhen);
@@ -693,9 +685,9 @@ sub instantiate {
 			# hooray!  SQL will accept it in this order!
 			$seen_from->insert($tnum);
 			#print STDERR "SEEN ADDED: $tnum\n";
-			$ofrom-= Set::Scalar->new($from);
+			$ofrom-= Set::Object->new($from);
 			#print STDERR "OFROM REMOVED: $from\n";
-			$owhere-= Set::Scalar->new($join);
+			$owhere-= Set::Object->new($join);
 
 			# we're joining in $from, so add all clauses
 			# that have nothing but seen tables and from

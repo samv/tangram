@@ -179,6 +179,9 @@ is($CD::c, 0, "no objects leaked");
 is($CD::c, 0, "no objects leaked");
 
 {
+    #use YAML;
+    #local($Tangram::TRACE) = \*STDERR;
+    #local($Tangram::DEBUG_LEVEL) = 3;
     # 8. update a record or two
     my ($pfloyd) = $storage->select
 	( $r_artist,

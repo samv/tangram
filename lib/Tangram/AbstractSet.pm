@@ -142,6 +142,7 @@ sub remember_state
 	}
 
 	if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2 ) {
+	    require 'YAML.pm';
 	    print $Tangram::TRACE
 		"Tangram::AbstractSet->remember(".ref($self)."[".$storage->id($obj)."].$member); new: ".YAML::Dump(\%new_state);
 	}
