@@ -15,8 +15,8 @@ utility class.
 =head1 COMPATIBILITY
 
 Tangram is known to run in the following environments, however,
-Tangram uses standard SQL and should be usable with any database
-that complies to the SQL-83 standard.
+Tangram uses standard SQL and should be usable with any SQL-83
+compliant database.
 
 Note that some functions (e.g. transactions and subselects) may not be
 available in some environments. This is reported during the test suite.
