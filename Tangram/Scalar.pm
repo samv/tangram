@@ -58,13 +58,13 @@ sub get_exporter
 	my ($self) = @_;
 	return if $self->{automatic};
 	my $field = $self->{name};
-	return "exists \$obj->{$field} ? \$obj->{$field} : undef";
+	return "exists \$obj->{q{$field}} ? \$obj->{q{$field}} : undef";
   }
 
 sub get_importer
   {
 	my ($self) = @_;
-	return "\$obj->{$self->{name}} = shift \@\$row";
+	return "\$obj->{q{$self->{name}}} = shift \@\$row";
   }
 
 sub get_export_cols
