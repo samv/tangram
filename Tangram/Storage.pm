@@ -30,7 +30,6 @@ sub _open
     my $cursor = $self->sql_cursor("SELECT classId, className FROM $schema->{class_table}", $self->{db});
 
     my $classes = $schema->{classes};
-    my %table2class = map { $classes->{$_}{table}, $_ } keys %$classes;
    
     my $id2class = {};
     my $class2id = {};
