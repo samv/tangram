@@ -26,9 +26,6 @@ do {
     open STDOUT, '>Tangram/Tour.pod';
   }
   
-  system 'dropdb -U postgres tour 2>/dev/null';
-  system 'createdb -U postgres tour';
-  
   my $tour = join '', <DATA>;
   
   if (exists $opt{p})
@@ -42,6 +39,9 @@ do {
   $tour =~ s[\@cp][$cp]g;
   
   if ($opt{x}) {
+	system 'dropdb -q -U postgres tour 2>/dev/null';
+	system 'createdb -q -U postgres tour';
+
     while ($tour =~ m[ {{ (.*?) }} ]sgx) {
       my $chunk = $1;
       my $show = $chunk;
