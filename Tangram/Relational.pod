@@ -8,19 +8,23 @@ Tangram::Relational - Orthogonal Object Persistence in Relational Databases
 
    $schema = Tangram::Relational->schema( $hashref );
 
-   $schema->deploy( $dbh );
+   Tangram::Relational->deploy($schema, $dbh);
       
    $storage = Tangram::Relational->connect( $schema,
       $data_source, $username, $password );
 
    $storage->disconnect();
 
-   $schema->retreat( $dbh );
+   Tangram::Relational->retreat($schema, $dbh);
 
 =head1 DESCRIPTION
 
-This is the entry point in the object-relational persistence
-backend. More backends will be added in the future; they will
+This is the entry point in the vanilla object-relational persistence
+backend. Vendor-specific backends should be used when they
+exist. Currently Mysql and Sybase have such backends; see
+L<Tangram::mysql> and L<Tangram::Sybase>.
+
+More backends will be added in the future; they will
 implement persistence in XML documents, pure object databases etc.
 
 =head1 CLASS METHODS
@@ -33,17 +37,23 @@ Returns a new Schema object. See L<Tangram::Schema>.
 
 =head2 deploy
 
-   Tangram::Relational->deploy();
-   Tangram::Relational->deploy(HANDLE);
+   Tangram::Relational->deploy($schema);
+   Tangram::Relational->deploy($schema, HANDLE);
+   Tangram::Relational->deploy($schema, @dbi_args);
 
-Writes SQL statements to HANDLE. The SQL code prepares a database for
-use with this Schema, and consists mostly in a series of CREATE TABLE
-instructions.
+Writes SQL statements for preparing a database for use with the given
+$schema.
 
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
+Called with a single argument, writes SQL statements to STDOUT.
 
-The SQL code is only guaranteed to work against an empty database.
+Called with two arguments, writes SQL statements to HANDLE. HANDLE may
+be a DBI connection handle or a file handle.
+
+Called with more than two arguments, passes all but the first to
+DBI::connect() and writes statements to the resulting DBI handle,
+which is automatically closed.
+
+The SQL code is only guaranteed to work on newly created databases.
 
 =head2 connect
 
@@ -64,16 +74,13 @@ L<Tangram::Storage> for a description of available options.
 
 =head2 retreat
 
-   Tangram::Relational->retreat();
-   Tangram::Relational->retreat(HANDLE);
+   Tangram::Relational->retreat($schema);
+   Tangram::Relational->retreat($schema, HANDLE);
+   Tangram::Relational->retreat($schema, @dbi_args);
 
-Writes SQL statements to HANDLE. The SQL code removes whatever was set
-up by deploy().
+Remove the tables created by deploy(). Only guaranteed to work against
+a database that was deployed using exactly the same schema.
 
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
-
-The SQL code is only guaranteed to work against a database that was
-deployed using exactly the same schema.
+For an explanation of the possible argument lists, see L<deploy>.
 
 
