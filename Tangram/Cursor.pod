@@ -31,6 +31,11 @@ Returns the current object, or undef() if the result set is exhausted.
 Moves to the next object in the result set, if any. Returns the new
 current object, or undef() if the result set is exhausted.
 
+=head2 residue
+
+Returns the values of the Expr that were passed to the C<retrieve>
+directive of the Storage::select() or Storage::cursor() statement.
+
 =head1 MULTIPLE CURSORS
 
 Each Cursor has its own connection to the database, thus making it
