@@ -409,7 +409,7 @@ sub binop
 	my $objects = Set::Object->new(@objects);
 	my $storage = $self->{storage};
 
-	if ($arg)
+	if (defined $arg)
 	{
 		if (my $type = ref($arg))
 		{
@@ -601,6 +601,11 @@ sub new
 	my $sql = "SELECT";
 	$sql .= ' DISTINCT' if $args{distinct};
 	$sql .= "  $cols";
+	if (exists $args{order}) {
+	    $sql .= join("", map {", $_"}
+			 grep { $sql !~ m/ \Q$_\E,|$/ }
+			 map { $_->{expr} } @{$args{order}});
+	}
 	$sql .= "\nFROM $from" if $from;
 	$sql .= "\nWHERE $where" if $where;
 
