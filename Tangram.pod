@@ -56,38 +56,29 @@ DBD::Pg 0.93
 
 =head1 LICENSE & WARRANTY
 
-Tangram is free software. You may use, modify and redistribute this
-module under the same terms as Perl itself.
+You may use Tangram, free of charge, under the terms of the GPL.
+You can obtain a commercial license from Sound Object Logic, see
+L<http://www.soundobjectlogic.com/tangram/licenses>.
 
 TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 
 =head1 SUPPORT
 
-Please send bug reports directly to me (jll@tangram-persistence.org)
+Please send bug reports directly to me (jll@soundobjectlogic.com)
 or to the Tangram mailing list (tangram-users@lists.sourceforge.net).
 
-Whenever possible, join a short, complete script demonstrating the
+Whenever possible, include a short, complete script demonstrating the
 problem.
 
 Questions of general interest should should be posted either to the
 mailing list or to comp.lang.perl.modules, which I monitor daily. Make
 sure to include 'Tangram' in the subject line.
 
-Commercial support for Tangram is available. Visit the Tangram website
-(www.tangram-persistence.org) for support options or contact me
-at jll@skynet.be.
-
-=head1 ACKNOWLEDGEMENTS
-
-I'd like to thank all the people that have helped me build Tangram by
-contributing code, testing, sending bug reports and remarks.
+Commercial support for Tangram is available, see
+L<http://www.soundobjectlogic.com/tangram/support>.
 
 =head1 AUTHOR
 
-Jean-Louis Leroy, jll@tangram-persistence.org
-
-=head1 SEE ALSO
-
-perl(1), DBI, overload, Set::Object.
+Jean-Louis Leroy, jll@soundobjectlogic.com
 
 =cut
