@@ -89,6 +89,7 @@ t/cursor.t
 t/poly.t
 t/mi.t
 t/queries.t
+t/datetime.t
 t/stateless.t
 t/tx.t
 t/reload.t
