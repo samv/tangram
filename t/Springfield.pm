@@ -2,9 +2,17 @@ use strict;
 
 use Tangram;
 
+use Tangram::RawDate;
+use Tangram::RawTime;
+use Tangram::RawDateTime;
+
 package Springfield;
 
-use vars qw( $schema );
+use vars qw( $schema @ISA @EXPORT );
+
+require Exporter;
+@ISA = qw( Exporter );
+@EXPORT = qw( optional_tests );
 
 $schema = Tangram::Schema->new( {
 
@@ -20,126 +28,125 @@ $schema = Tangram::Schema->new( {
 
       NaturalPerson =>
       {
-         bases =>
-            [ qw( Person ) ],
+	   bases => [ qw( Person ) ],
 
-         fields =>
-         {
-            string =>
-	    {
-		firstName => { sql => 'VARCHAR(40)' },
-		name => undef,
-	    },
+	   fields =>
+	   {
+		string =>
+		{
+		 firstName => { sql => 'VARCHAR(40)' },
+		 name => undef,
+		},
 
-            int =>
-               [ qw( age ) ],
+		int => [ qw( age ) ],
 
-            ref =>
-               [ qw( partner ) ],
+		ref => [ qw( partner ) ],
 
-            array =>
-            {
-               a_children =>
-               {
-                  class => 'NaturalPerson',
-                  table => 'a_children',
-               }
-            },
+		rawdate => [ qw( birthDate ) ],
+		rawtime => [ qw( birthTime ) ],
+		rawdatetime => [ qw( birth ) ],
 
-            hash =>
-            {
-               h_opinions =>
-               {
-                  class => 'Opinion',
-                  table => 'h_opinions',
-               }
-            },
+		array =>
+		{
+		 a_children =>
+		 {
+		  class => 'NaturalPerson',
+		  table => 'a_children',
+		 }
+		},
 
-            iarray =>
-            {
-               ia_children =>
-               {
-                  class => 'NaturalPerson',
-                  coll => 'ia_ref',
-                  slot => 'ia_slot',
-                  back => 'ia_parent'
-               }
-            },
+		hash =>
+		{
+		 h_opinions =>
+		 {
+		  class => 'Opinion',
+		  table => 'h_opinions',
+		 }
+		},
 
-            set =>
-            {
-               s_children =>
-               {
-                  class => 'NaturalPerson',
-                  table => 's_children',
-               }
-            },
+		iarray =>
+		{
+		 ia_children =>
+		 {
+		  class => 'NaturalPerson',
+		  coll => 'ia_ref',
+		  slot => 'ia_slot',
+		  back => 'ia_parent'
+		 }
+		},
 
-            iset =>
-            {
-               is_children =>
-               {
-                  class => 'NaturalPerson',
-                  coll => 'is_ref',
-                  slot => 'is_slot',
-                  back => 'is_parent'
-               }
-            },
-         },
+		set =>
+		{
+		 s_children =>
+		 {
+		  class => 'NaturalPerson',
+		  table => 's_children',
+		 }
+		},
+
+		iset =>
+		{
+		 is_children =>
+		 {
+		  class => 'NaturalPerson',
+		  coll => 'is_ref',
+		  slot => 'is_slot',
+		  back => 'is_parent'
+		 }
+		},
+	   },
       },
 
-      Opinion =>
-      {
-         fields =>
-         {
-            string =>
-               [ qw( statement ) ],
-         },
-      },
+	Opinion =>
+	{
+	 fields =>
+	 {
+	  string => [ qw( statement ) ],
+	 },
+	},
 
-      LegalPerson =>
-      {
-         bases =>
-            [ qw( Person ) ],
+	LegalPerson =>
+	{
+	 bases => [ qw( Person ) ],
 
-         fields =>
-         {
-            string =>
-               [ qw( name ) ],
+	 fields =>
+	 {
+	  string =>
+	  [ qw( name ) ],
 
-            ref =>
-	    {		
-		manager => { null => 0 }
-	    },
-         },
-      },
+	  ref =>
+	  {		
+	   manager => { null => 0 }
+	  },
+	 },
+	},
 
-      EcologicalRisk =>
-      {
-         abstract => 1,
+	EcologicalRisk =>
+	{
+	 abstract => 1,
 
-         fields =>
-         {
-            int => [ qw( curies ) ],
-         },
-      },
+	 fields =>
+	 {
+	  int => [ qw( curies ) ],
+	 },
+	},
    
-      NuclearPlant =>
-      {
-         bases => [ qw( LegalPerson EcologicalRisk ) ],
+	NuclearPlant =>
+	{
+	 bases => [ qw( LegalPerson EcologicalRisk ) ],
 
-         fields =>
-         {
-            array =>
-            {
-               employees =>
-               {
-                  class => 'NaturalPerson',
-                  table => 'employees'
-               }
-            },
-         },
-      },
+	 fields =>
+	 {
+	  array =>
+	  {
+	   employees =>
+	   {
+		class => 'NaturalPerson',
+		table => 'employees'
+	   }
+	  },
+	 },
+	},
 
    } } );
 
@@ -229,6 +236,20 @@ sub tx_tests
 	{
 		&$code;
 	}
+}
+
+sub optional_tests
+{
+	my ($what, $proceed, $tests) = @_;
+
+	unless ($proceed)
+	{
+		print STDERR "tests $test-", $test + $tests - 1,
+			" ($what) skipped on this platform ";
+		test(1) while $tests--;
+	}
+
+	return $proceed;
 }
 
 #use Data::Dumper;

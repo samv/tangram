@@ -17,6 +17,9 @@ Tangram/Hash.pm
 Tangram/IntrArray.pm
 Tangram/IntrHash.pm
 Tangram/IntrSet.pm
+Tangram/RawDate.pm
+Tangram/RawDateTime.pm
+Tangram/RawTime.pm
 Tangram/Ref.pm
 Tangram/Scalar.pm
 Tangram/Schema.pm
@@ -38,6 +41,7 @@ Tangram/Set.pod
 Tangram/IntrSet.pod
 t/array.t
 t/cursor.t
+t/datetime.t
 t/iarray.t
 t/iset.t
 t/mi.t
