@@ -35,6 +35,8 @@ lib/Tangram/Oracle.pm
 lib/Tangram/Oracle.pod
 lib/Tangram/Pg.pm
 lib/Tangram/Pg.pod
+lib/Tangram/SQLite.pm
+lib/Tangram/SQLite.pod
 
 lib/Tangram/Ref.pm
 lib/Tangram/IntrRef.pm
@@ -102,9 +104,14 @@ lib/Tangram/Type/Extending.pod
 META.yml                                Module meta-data (added by MakeMaker)
 
 t/test_manifest
+t/Capture.pm
+t/DBConfig.pm
+t/README.pod
+t/TestNeeds.pm
 
 t/misc/bughunt.t
 t/misc/new_types.t
+t/misc/RefImage.pm
 
 t/springfield/00-deploy.t
 t/springfield/01-mappings.t
@@ -126,18 +133,27 @@ t/springfield/34-iarray.t
 t/springfield/35-hash.t
 t/springfield/36-ihash.t
 t/springfield/37-prefetch.t
-t/springfield/38-save.t
-t/springfield/39-stateless.t
+t/springfield/39-save.t
+t/springfield/38-stateless.t
 t/springfield/40-dump.t
 t/springfield/41-storable.t
 t/springfield/42-idbif.t
 t/springfield/70-mysql.t
 t/springfield/80-mi.t
 t/springfield/81-poly.t
-t/springfield/90-aggregate.t
-t/springfield/99-retreat.t
+t/springfield/82-aggregate.t
+t/springfield/zz-retreat.t
+t/springfield/Springfield.pm
 
 t/musicstore/00-deploy.t
 t/musicstore/01-simple.t
+t/musicstore/02-reorg.t.todo
 t/musicstore/03-reschema.t
 t/musicstore/zz-retreat.t
+t/musicstore/CD.pm
+t/musicstore/MusicStore.pm
+t/musicstore/Prerequisites.pm
+t/musicstore/insert_extra_data.pl
+
+t/rt/RT.pm
+t/rt/RT.pod

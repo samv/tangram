@@ -13,7 +13,7 @@ meaning that it does not require anything of the objects stored in it
 (other than the common convention that base objects be based upon
 HASHes; individual columns can be anything).
 
-It consists of an I<schema language> that can describe or be built
+It consists of a I<schema language> that can describe or be built
 around an object structure, or so as to closely match an existing SQL
 schema (with some limitations).  This schema language is rich enough
 to express such common RDBMS features as links, foreign keys, and link
@@ -82,9 +82,14 @@ The original "Guided Tour" of the features of Tangram, by the author
 of Tangram versions 1 through 2.04 (and a somewhat divergant version 3
 ;-)), Jean-Louis LeRoy.
 
+=item L<Tangram::Intro>
+
+The humble beginnings of a new guided tour, based on the
+next-generation features found in Tangram 2.08.
+
 =item L<Tangram::Springfield>
 
-The classes and schema used in the Guided Tour.
+The classes and schema used in the Guided Tour(s).
 
 =item L<Tangram::Storage>
 
@@ -162,7 +167,7 @@ DBD::Sybase 0.21
 
 =item *
 
-DBD::SQLite 1.07 (needs testing)
+DBD::SQLite 1.07
 
 =item *
 
