@@ -259,3 +259,15 @@ Revision history for Perl extension Tangram.
 	- and hey, why not write a Tangram::Storable 
 	- and a Tangram::YAML (not working, waiting for a CPAN bug to
 	  be fixed)
+
+2.07.3, 11-Apr-2004 - ks.perl@kurtstephens.com
+
+        - Do not $self->{db}->disconnect in Storage::disconnect() and DESTROY(),
+          if $self->{db} eq $opts->{dbh} in Tangram::Storage->connect($schema, $cs, $user, $pw, { 'dbh' => ... } );  See $self->{db_owned}.
+        - Handle objects that lazily initialize Tangram::AbstractSet 
+          Set::Object fields.  See UMMF.
+        - Added IntrRef.pm ("Intrusive Ref") for 1-to-1 bi-directional 
+          Association navigation using only one column in one table.
+          Derived from IntrSet.  I need help with this one. :)
+
+

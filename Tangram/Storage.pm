@@ -979,7 +979,7 @@ sub disconnect
 	}
     }
    
-    $self->{db}->disconnect;
+    $self->{db}->disconnect if $self->{db_owned};
 
     %$self = ();
 }
@@ -1046,7 +1046,11 @@ sub connect
 
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
-    my $db = $opts->{dbh} || $self->open_connection;
+    my $db = $opts->{dbh};
+    unless ( $db ) {
+      $db = $self->open_connection;
+      $self->{db_owned} = 1;
+    }
  
 	if (exists $opts->{no_tx}) {
 	  $self->{no_tx} = $opts->{no_tx};
@@ -1173,7 +1177,7 @@ sub oid_isa
 sub DESTROY
 {
     my $self = shift;
-    $self->{db}->disconnect if $self->{db};
+    $self->{db}->disconnect if $self->{db} && $self->{db_owned};
 }
 
 package Tangram::Storage::Statement;

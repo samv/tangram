@@ -11,6 +11,14 @@ use vars qw(@ISA);
 
 use Carp;
 
+# Support for classes that lazily create Set::Objects for instance vars.
+# -- ks.perl@kurtstephens.com 2004/03/30
+sub __lazy_members
+{
+  $_[0] ? $_[0]->members : ();
+}
+
+
 sub get_exporter
   {
 	my ($self, $context) = @_;
@@ -25,7 +33,7 @@ sub get_exporter
 		
 		my $storage = $context->{storage};
 		
-		foreach my $item ($obj->{$field}->members) {
+		foreach my $item ( __lazy_members($obj->{$field}) ) {
 		  $storage->_save($item, $context->{SAVING});
 		}
 		
@@ -46,7 +54,7 @@ sub get_exporter
 		  die "Data error in ${obj}"."->{$field}; expected "
 		      ."Set, got $s"
 	      } else {
-		  foreach my $item ($s->members) {
+		  foreach my $item ( $s->members ) {
 		      $storage->insert($item)
 			  unless $storage->id($item);
 		  }
@@ -70,7 +78,7 @@ sub update
 	my $old_state = $old_states->{$member};
 	my %new_state = ();
 
-	foreach my $item ($obj->{$member}->members)
+	foreach my $item ( __lazy_members($obj->{$member}) )
 	{
 		my $item_id = $storage->id($item) || croak "member $item has no id";
       
@@ -97,7 +105,7 @@ sub remember_state
 	my ($self, $def, $storage, $obj, $member, $set) = @_;
 
 	my %new_state;
-	for my $member ( $set->members ) {
+	for my $member ( __lazy_members($set) ) {
 	    my $id = $storage->id($member);
 	    $id && ($new_state{ $id } = 1);
 	}
@@ -109,7 +117,7 @@ sub remember_state
 sub content
 {
 	shift;
-	shift->members;
+	__lazy_members(shift); #?#?
 }
 
 1;
