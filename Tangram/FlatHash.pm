@@ -257,8 +257,7 @@ sub erase
 
 	foreach my $def (values %$members)
 	{
-		my $id = $storage->id($obj);
-		$storage->sql_do("DELETE FROM $def->{table} WHERE coll = $id");
+		$storage->sql_do("DELETE FROM $def->{table} WHERE coll = $coll_id");
 	}
 }
 
