@@ -990,9 +990,12 @@ sub connect
 
     my $db = $opts->{dbh} || DBI->connect($cs, $user, $pw);
 
-    eval { $db->{AutoCommit} = 0 };
-
-    $self->{no_tx} = $db->{AutoCommit};
+	if ($opts->{no_tx}) {
+	  $self->{no_tx} = 1;
+	} else {
+	  eval { $db->{AutoCommit} = 0 };
+	  $self->{no_tx} = $db->{AutoCommit};
+	}
 
     $self->{db} = $db;
 
