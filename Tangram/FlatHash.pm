@@ -121,7 +121,7 @@ sub get_exporter
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  $self->defered_save($context->{storage}, $obj, $self->{name}, $self);
+	  $context->{storage}->defer(sub { $self->defered_save($context->{storage}, $obj, $self->{name}, $self) } );;
 	  ();
 	}
   }
