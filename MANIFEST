@@ -9,6 +9,7 @@ Tangram.pm
 Tangram.pod
 Tangram/Tour.pod
 
+Tangram/Relational.pm
 Tangram/Relational.pod
 
 Tangram/Schema.pm

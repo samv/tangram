@@ -20,9 +20,13 @@ sub make_id
   {
     my ($storage, $class_id) = @_;
 
-	my $table = $storage->{schema}{class_table};
-
-	$storage->sql_do("UPDATE $table SET lastObjectId = LAST_INSERT_ID(lastObjectId + 1) WHERE classId = $class_id");
+	if ($storage->{layout1}) {
+	  my $table = $storage->{schema}{class_table};
+	  $storage->sql_do("UPDATE $table SET lastObjectId = LAST_INSERT_ID(lastObjectId + 1) WHERE classId = $class_id");
+	} else {
+	  my $table = $storage->{schema}{control};
+	  $storage->sql_do("UPDATE $table SET mark = LAST_INSERT_ID(mark + 1)");
+	}
 
     return sprintf "%d%0$storage->{cid_size}d",
 	  $storage->sql_selectall_arrayref("SELECT LAST_INSERT_ID()")->[0][0],
@@ -33,7 +37,7 @@ sub tx_start
   {
     my $storage = shift;
     $storage->sql_do(q/SELECT GET_LOCK("tx", 10)/)
-      if @{ $storage->{tx} };
+      unless @{ $storage->{tx} };
     $storage->SUPER::tx_start(@_);
   }
 
@@ -42,7 +46,7 @@ sub tx_commit
     my $storage = shift;
     $storage->SUPER::tx_commit(@_);
     $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/)
-      if @{ $storage->{tx} };
+      unless @{ $storage->{tx} };
   }
 
 sub tx_rollback

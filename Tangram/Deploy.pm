@@ -225,16 +225,6 @@ sub deploy
 			  join( ",\n  ", @base_cols, map { "$_ $cols->{$_}" } keys %$cols ),
 			  "\n)" );
     }
-	
-    $do->( <<SQL );
-CREATE TABLE $schema->{class_table}
-(
- classId $schema->{sql}{cid} NOT NULL,
- className $classname_type,
- lastObjectId $schema->{sql}{oid},
- PRIMARY KEY ( classId )
-)
-SQL
 
 my $control = $schema->{control};
 	
@@ -250,14 +240,6 @@ SQL
 my ($major, $minor) = split '\.', $Tangram::VERSION;
 
     $do->("INSERT INTO $control (major, minor, mark) VALUES ($major, $minor, 0)");
-		  
-
-    my $cids = $self->classids();
-    foreach (keys %$cids) {
-      $do->("INSERT INTO $schema->{class_table}(classId, className, lastObjectId) VALUES ($cids->{$_}, '$_', 0)" );
-    }
-	
-      #  for keys %$cids;
 }
 
 sub classids

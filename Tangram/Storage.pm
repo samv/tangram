@@ -51,32 +51,22 @@ sub _open
 		$self->{class_col} = $schema->{sql}{class_col};
 	  } else {
 		$self->{class_col} = 'classId';
+		$self->{layout1} = 1;
 	  }
 	}
 
-    my $cursor = $self->sql_cursor("SELECT classId, className FROM $schema->{class_table}", $self->{db});
+	my %id2class;
 
-    my $classes = $schema->{classes};
+	if ($self->{layout1}) {
+	  # compatibility with version 1.x
+	  %id2class = map { @$_ } @{ $self->{db}->selectall_arrayref("SELECT classId, className FROM $schema->{class_table}") };
+	} else {
+	  my $classes = $schema->{classes};
+	  %id2class = map { $classes->{$_}{id}, $_ } keys %$classes;
+	}
 
-    my $id2class = {};
-    my $class2id = {};
-
-    my ($classId, $className);
-
-    while (($classId, $className) = $cursor->fetchrow()) {
-      $id2class->{$classId} = $className;
-      $class2id->{$className} = $classId;
-    }
-
-    $cursor->close();
-
-    $self->{id2class} = $id2class;
-    $self->{class2id} = $class2id;
-
-    foreach my $class (keys %$classes) {
-      warn "no class id for '$class'\n"
-	if $classes->{$class}{concrete} && !exists $self->{class2id}{$class};
-    }
+	$self->{id2class} = \%id2class;
+	@{ $self->{class2id} }{ values %id2class } = keys %id2class;
 
     $self->{set_id} = $schema->{set_id} ||
       sub
@@ -183,44 +173,61 @@ sub prepare
 sub make_id
   {
     my ($self, $class_id) = @_;
-    
+	
+	unless ($self->{layout1}) {
+	  my $id;
+	  
+	  if (exists $self->{mark}) {
+		$id = $self->{mark}++;
+		$self->{set_mark} = 1;	# cleared by tx_start
+	  } else {
+		$id = $self->make_1st_id_in_tx();
+	  }
+	  
+	  return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
+	}
+
+	# ------------------------------
+	# compatibility with version 1.x
+
     my $alloc_id = $self->{alloc_id} ||= {};
     
     my $id = $alloc_id->{$class_id};
     
-    if ($id)
-      {
+    if ($id)      {
 		$id = -$id if $id < 0;
 		$alloc_id->{$class_id} = ++$id;
-      }
-    else
-      {
-		$id = $self->make_1st_id_in_tx($class_id);
+      } else {
+		my $table = $self->{schema}{class_table};
+		$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
+		$id = $self
+		  ->sql_selectall_arrayref("SELECT lastObjectId from $table WHERE classId = $class_id")->[0][0];
 		$alloc_id->{$class_id} = -$id;
       }
     
     return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
-}
+  }
 
 sub make_1st_id_in_tx
   {
-    my ($self, $class_id) = @_;
+    my ($self) = @_;
     
 	unless ($self->{make_id}) {
-	  my $table = $self->{schema}{class_table};
+	  my $table = $self->{schema}{control};
 	  my $dbh = $self->{db};
-	  $self->{make_id}{update} = $self->prepare("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = ?");
-	  $self->{make_id}{select} = $self->prepare("SELECT lastObjectId from $table WHERE classId = ?");
+	  $self->{make_id}{inc} = $self->prepare("UPDATE $table SET mark = mark + 1");
+	  $self->{make_id}{set} = $self->prepare("UPDATE $table SET mark = ?");
+	  $self->{make_id}{get} = $self->prepare("SELECT mark from $table");
 	}
 	
 	my $sth;
 	
-	$sth = $self->{make_id}{update};
-	$sth->execute($class_id);
+	$sth = $self->{make_id}{inc};
+	$sth->execute();
 	$sth->finish();
 	
-	$sth = $self->{make_id}{select};
-	$sth->execute($class_id);
+	$sth = $self->{make_id}{get};
+	$sth->execute();
 	my $id = $sth->fetchrow_arrayref()->[0];
 	$sth->finish();
 
@@ -247,6 +254,12 @@ my $error_no_transaction = 'no transaction is currently active';
 sub tx_start
 {
     my $self = shift;
+
+	unless (@{ $self->{tx} }) {
+	  delete $self->{set_mark};
+	  delete $self->{mark};
+	}
+
     push @{ $self->{tx} }, [];
 }
 
@@ -260,29 +273,39 @@ sub tx_commit
     
     # update lastObjectId's
     
-    if (my $alloc_id = $self->{alloc_id})
-      {
-	my $table = $self->{schema}{class_table};
-	
-	for my $class_id (keys %$alloc_id)
-	  {
-	    my $id = $alloc_id->{$class_id};
-	    next if $id < 0;
-	    $self->sql_do("UPDATE $table SET lastObjectId = $id WHERE classId = $class_id");
-	  }
-	
-	delete $self->{alloc_id};
-      }
-    
-    unless ($self->{no_tx} || @{ $self->{tx} } > 1)
-      {
-	# committing outer tx: commit to db
-	$self->{db}->commit;
-      }
+    if ($self->{set_mark}) {
+	  my $sth = $self->{make_id}{set};
+	  $sth->execute($self->{mark});
+	  $sth->finish();
+	}
 
-    pop @{ $self->{tx} };		# drop rollback subs
-}
+	# ------------------------------
+	# compatibility with version 1.x
+
+    if (my $alloc_id = $self->{alloc_id}) {
+	  my $table = $self->{schema}{class_table};
+	
+	  for my $class_id (keys %$alloc_id)
+		{
+		  my $id = $alloc_id->{$class_id};
+		  next if $id < 0;
+		  $self->sql_do("UPDATE $table SET lastObjectId = $id WHERE classId = $class_id");
+		}
+	  
+	  delete $self->{alloc_id};
+	}
+	
+	# compatibility with version 1.x
+	# ------------------------------
     
+    unless ($self->{no_tx} || @{ $self->{tx} } > 1) {
+	  # committing outer tx: commit to db
+	  $self->{db}->commit;
+	}
+	
+    pop @{ $self->{tx} };		# drop rollback subs
+  }
+
 sub tx_rollback
   {
     my $self = shift;
@@ -291,19 +314,19 @@ sub tx_rollback
     
     if ($self->{no_tx})
       {
-	pop @{ $self->{tx} };
+		pop @{ $self->{tx} };
       }
     else
       {
-	$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
-	
-	# execute rollback subs in reverse order
-	
-	foreach my $rollback ( @{ pop @{ $self->{tx} } } )
-	  {
-	    $rollback->($self);
+		$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
+		
+		# execute rollback subs in reverse order
+		
+		foreach my $rollback ( @{ pop @{ $self->{tx} } } )
+		  {
+			$rollback->($self);
+		  }
 	  }
-    }
 }
 
 sub tx_do
