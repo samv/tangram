@@ -92,3 +92,11 @@ Revision history for Perl extension Tangram.
 	- some more doc in Type.pod
 	- date & time doc moved to DateTime.pod
 	- deploy() puts \n between instructions in trace
+
+1.15  Jul 21 2000 - interim version
+	- new PerlDump mapping contributed by Gabor Herr
+          <herr@iti.informatik.tu-darmstadt.de>
+
+1.16  Jul 25 2000 - interim version
+	- fixed deploy() bug: didn't take col names into account for Array, Set and Hash
+	- fixed query_expr bug in Scalar and Ref: used field name instead of col name

@@ -40,7 +40,11 @@ Tangram/IntrHash.pm
 Tangram/RawDate.pm
 Tangram/RawDateTime.pm
 Tangram/RawTime.pm
+Tangram/DMDateTime.pm
 # Tangram/Lobs.pm
+
+Tangram/PerlDump.pm
+Tangram/PerlDump.pod
 
 Tangram/Core.pod
 Tangram/Schema.pod
