@@ -54,60 +54,9 @@ $tour =~ s[ {{ (.*?) }} ][ eval "use vars qw( @tour_vars ); $1"; $1 ]smgex if ex
 __END__
 =head1 NAME
 
-Tangram - Orthogonal Object Persistence in Relational Databases
+Tangram - Guided Tour
 
-=head1 DESCRIPTION
-
-Tangram is an object-relational mapper. It makes objects persist in
-relational databases, and provides powerful facilities for retrieving
-and filtering them.  Tangram fully supports object-oriented
-programming, including polymorphism, multiple inheritance and
-collections.  It does so in an orthogonal fashion, that is, it doesn't
-require your classes to implement support functions nor inherit from a
-utility class.
-
-=head1 SUPPORTED PLATFORMS
-
-Tangram is known to run in the following environments, however,
-Tangram uses standard SQL and should be usable SQL-83 database.
-
-Note that some functions (e.g. transactions and subselects) may not be
-available in some environments. This is reported during the test suite.
-
-
-=over 4
-
-=item *
-
-Perl 5.00503
-
-=item *
-
-Set::Object 1.02
-
-=item *
-
-DBI 1.14
-
-=item *
-
-DBD::mysql 2.0402
-
-=item *
-
-DBD::Oracle 1.06
-
-=item *
-
-DBD::Sybase 0.21
-
-=item *
-
-DBD::Pg 0.93
-
-=back
-
-=head1 GUIDED TOUR
+=head1 INTRODUCTION
 
 In this tour, we add persistence to a simple Person design.
 
@@ -220,6 +169,7 @@ Here is the Schema for Springfield:
       },
    ] } );
 }}
+
 The Schema lists all the classes that need persistence, along with
 their attributes and the inheritance relationships.  We must provide
 type information for the attributes, because SQL is more typed than
@@ -250,6 +200,8 @@ empty database and let Tangram initialize it:
 
 	$dbh->disconnect();
 }}
+
+
 For more information on deploying databases, see L<Tangram::Relational>.
 
 =head2 Connecting to a database
@@ -261,10 +213,12 @@ DBI::connect. The method returns a Tangram::Storage object that will be
 used to communicate with the database.
 
 For example:
+
 {{
    	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 }}
+
 connects to a database named Springfield via the Sybase driver, using
 a specific account and password.
 
@@ -278,14 +232,18 @@ Now we can populate the database:
    $storage->insert( NaturalPerson->new(
       firstName => 'Montgomery', name => 'Burns' ) );
 }}
+
 This inserts a single NaturalPerson object into the database. We can
 insert several objects in one call:
+
 {{
    $storage->insert(
       NaturalPerson->new( firstName => 'Patty', name => 'Bouvier' ),
       NaturalPerson->new( firstName => 'Selma', name => 'Bouvier' ) );
 }}
+
 Sometimes Tangram saves objects implicitly:
+
 {{
    	@kids = (
 		NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ),
@@ -311,6 +269,7 @@ Sometimes Tangram saves objects implicitly:
    
    	$homer_id = $storage->insert( $homer );
 }}
+
 In the process of saving Homer, Tangram detects that it contains
 references to objects that are not persistent yet (Marge, the
 addresses and the kids), and inserts them automatically. Note that
@@ -324,6 +283,7 @@ For more information on inserting objects, see L<Tangram::Storage>.
 =head2 Updating objects
 
 Updating works pretty much the same as inserting:
+
 {{
    	my $maggie = NaturalPerson->new( firstName => 'Maggie', name => 'Simpson' );
 
@@ -332,6 +292,7 @@ Updating works pretty much the same as inserting:
 
    	$storage->update( $homer, $marge );
 }}
+
 Here again Tangram detects that Maggie is not already persistent in
 $storage and automatically inserts it. Note that we need to update
 Marge explicitly because she was already persistent.
@@ -343,13 +304,17 @@ For more information on updating objects, see L<Tangram::Storage>.
 ...is still up to you. Tangram won't break in-memory cycles, it's a
 persistence tool, not a memory management tool. Let's make sure we
 don't leak objects:
+
 {{
    $homer->{partner} = undef; # do this before $homer goes out of scope
 }}
+
 Also, when we're finished with a storage, we can explicitly disconnect it:
+
 {{
    $storage->disconnect();
 }}
+
 Whether it's important or not to disconnect the Storage depends on
 what version of Perl you use. If it's prior to 5.6, you I<must>
 disconnect the storage explicitly (or at least call unload())
@@ -382,6 +347,7 @@ We use a query.
 When an object is inserted, Tangram assigns an identifier to it.
 IDs are numbers that uniquely identify objects in the database.
 C<insert> returns the ID(s) of the object(s) it was passed:
+
 {{
    	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
@@ -393,17 +359,21 @@ C<insert> returns the ID(s) of the object(s) it was passed:
       	NaturalPerson->new( firstName => 'Patty', name => 'Bouvier' ),
       	NaturalPerson->new( firstName => 'Selma', name => 'Bouvier' ) );
 }}
+
 This enables us to retrieve the objects:
+
 {{
    	$ned = $storage->load( $ned_id );
    	@sisters = $storage->load( @sisters_id );
 }}
+
 For more information on loading objects by id, see L<Tangram::Storage>.
 
 =head2 Obtaining objects from other objects
 
 Once Homer has been restored to his previous state, including his relations
 with his family. Thus we can say:
+
 {{
    	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
@@ -413,6 +383,7 @@ with his family. Thus we can say:
    	$marge = $homer->{partner};
    	@kids = @{ $homer->{children} };
 }}
+
 Actually, when Tangram loads an object that contains references to
 other persistent objects, it doesn't retrieve the referenced objects
 immediately. Marge is retrieved only when Homer's 'partner' field is
@@ -426,19 +397,23 @@ L<Tangram::Set> and L<Tangram::IntrSet>.
 =head2 select
 
 To retrieve all the objects of a given class, we use C<select>:
+
 {{
    	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
 
    	my @people = $storage->select( 'NaturalPerson' );
 }}
+
 We can also retrieve tuples of objects:
+
 {{
 	my ($parent, $child) = $storage->remote('NaturalPerson', 'NaturalPerson');
 
 	@pairs = $storage->select( [ $parent, $child ],
 		$parent->{children}->includes($child) );
 }}
+
 @pairs contains a list of references to arrays of size two; each array
 contains a pair of parent and child.
 
@@ -450,10 +425,12 @@ Usually we won't want to load I<all> the NaturalPersons, only those
 objects that satisfy some condition. Say, for example, that we want to
 load only the NaturalPersons whose name field is 'Simpson'. Here's how
 this can be done:
+
 {{
    	my $person = $storage->remote( 'NaturalPerson' );
    	my @simpsons = $storage->select( $person, $person->{name} eq 'Simpson' );
 }}
+
 This will bring in memory only the Simpsons; Burns or the Bouvier
 sisters won't turn up.  The filtering happens on the database server
 side, not in Perl space. Internally, Tangram translates the
@@ -462,6 +439,7 @@ is passed down to the database.
 
 The above example only begins to scratch the surface of Tangram's
 filtering capabilities. The following examples are all legal and working code:
+
 {{
 	# find all the persons *not* named Simpson
 
@@ -527,6 +505,7 @@ filtering capabilities. The following examples are all legal and working code:
    	my (@parents) = $storage->select( $person,
       	$person->{children}->includes( $bart ) );
 }}
+
 Note that Tangram uses a single ampersand (&) or vertical bar (|) to
 represent logical conjunction or disjunction, not the usual && or
 ||. This is due to a limitation in Perl's operator overloading
@@ -541,6 +520,7 @@ Cursors provide a way of retrieving objects one at a time.  This is
 important is the result set is potentially large.  cursor() takes the
 same arguments as select() and returns a Cursor objects that can be
 used to iterate over the result set via methods current() and next():
+
 {{
    	$storage = Tangram::Sybase->connect( $schema,
 		@cp );
@@ -557,6 +537,7 @@ used to iterate over the result set via methods current() and next():
 
    	$cursor->close();
 }}
+
 The Cursor will be automatically closed when $cursor is garbage-collected,
 but Perl doesn't define just when that may happen :( Thus it's a good idea to
 explicitly close the cursor.
@@ -608,12 +589,14 @@ For more information on remote objects, see L<Tangram::Remote>.
 =head2 Multiple loads
 
 What happens when we load the same object twice? Consider:
+
 {{
    	my $person = $storage->remote( 'NaturalPerson' );
    	my @simpsons = $storage->select( $person, $person->{name} eq 'Simpson' );
 
    	my @people = $storage->select( 'NaturalPerson' );
 }}
+
 Obviously Homer Simpson will be retrieved by both selects. Are there
 two Homers in memory now? Fortunately not. There is only one copy of
 Homer in memory. When Tangram load an object, it checks whether an
@@ -682,47 +665,20 @@ For more information on remote objects, see L<Tangram::Storage>.
 Up to now we've always used NaturalPerson. However, everything we've
 seen thus far also works in presence of polymorphism. Let's create a
 LegalPerson:
+
 {{
    	$storage->insert( LegalPerson->new(
       	name => 'Springfield Nuclear Power Plant', manager => $burns ) );
 }}
+
 we now have two kinds of Person objects in the storage: Natural- and
 LegalPersons. If we select all the Persons:
+
 {{
    	my @all = $storage->select( 'Person' );
 }}
+
 ...Tangram does what you would expect: it retrieves Homer and all the
 other persons of flesh and blood I<and> the Nuclear Power Plant.
-
-=head1 LICENSE & WARRANTY
-
-You may use Tangram, free of charge, under the terms of the GPL.
-You can obtain a commercial license from Sound Object Logic, see
-L<http://www.soundobjectlogic.com/tangram/licenses>.
-
-TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
-
-=head1 SUPPORT
-
-Please send bug reports directly to me (jll@soundobjectlogic.com)
-or to the Tangram mailing list (tangram-users@lists.sourceforge.net).
-
-Whenever possible, include a short, complete script demonstrating the
-problem.
-
-Questions of general interest should should be posted either to the
-mailing list or to comp.lang.perl.modules, which I monitor daily. Make
-sure to include 'Tangram' in the subject line.
-
-Commercial support for Tangram is available, see
-L<http://www.soundobjectlogic.com/tangram/support>.
-
-=head1 AUTHOR
-
-Jean-Louis Leroy, jll@soundobjectlogic.com
-
-=head1 SEE ALSO
-
-perl(1), DBI, overload, Set::Object.
 
 =cut
