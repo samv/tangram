@@ -43,7 +43,7 @@ sub set_load_state
 
 sub get_load_state
 {
-	my ($self, $storage, $obj, $member, $state) = @_;
+	my ($self, $storage, $obj, $member) = @_;
 	return $storage->{scratch}{ref($self)}{$storage->id($obj)}{$member};
 }
 
