@@ -141,5 +141,4 @@ $person is not $bart's parent
 
 =head1 SEE ALSO
 
-L<Tangram::Remote>, L<Tangram::Expr>, L<Tangram::Storage>,
-L<overload>
+L<Tangram::Remote>, L<Tangram::Expr>, L<Tangram::Storage>
