@@ -1,0 +1,57 @@
+libtangram-perl (2.0501) unstable; urgency=low
+
+  * Added Tangram::Storage->oid_isa
+
+ -- Sam Vilain <sam@vilain.net>  Wed, 21 May 2003 03:46:21 +1200
+
+libtangram-perl (2.05) unstable; urgency=low
+
+  * First stable version a la Sam
+  * Incorporate a plethora of bugfixes from CVS and other sources
+  * More bug fixes
+
+ -- Sam Vilain <sam@vilain.net>  Wed, 21 May 2003 03:46:21 +1200
+
+libtangram-perl (2.04-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Stephen Zander <gibreel@debian.org>  Fri, 21 Sep 2001 10:20:34 -0700
+
+libtangram-perl (2.03-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Stephen Zander <gibreel@debian.org>  Wed, 21 Mar 2001 13:17:07 -0800
+
+libtangram-perl (1.18-2) unstable; urgency=low
+
+  * New maintainer, Closes: #74627
+  * Updated for policy 3.5.1 and the new perl packaging policy
+
+ -- Stephen Zander <gibreel@debian.org>  Thu,  1 Mar 2001 02:16:11 -0800
+
+libtangram-perl (1.18-1) unstable; urgency=low
+
+  * New upstream release (Closes: #72147).
+  * Orphaned package (WNPP bug report #74627).
+
+ -- Yann Dirson <dirson@debian.org>  Thu, 19 Oct 2000 22:13:35 +0200
+
+libtangram-perl (1.11-2) unstable; urgency=low
+
+  * Added HTMLized PODs and created an index for them, using something
+    I'll call a hack - we probably need a sub-poolicy and a tool for this
+    feature.
+
+ -- Yann Dirson <dirson@debian.org>  Tue, 25 Jul 2000 22:10:00 +0200
+
+libtangram-perl (1.11-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Yann Dirson <dirson@debian.org>  Thu, 20 Jul 2000 00:06:46 +0200
+
+Local variables:
+mode: debian-changelog
+End:

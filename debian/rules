@@ -1,0 +1,51 @@
+#! /usr/bin/make -f
+# -*-makefile-*-
+# debian/rules file for libtangram-perl
+
+export DH_COMPAT=2
+
+ifndef PERL
+PERL = /usr/bin/perl
+endif
+
+package	:= $(shell sed -ne 's/^Package: *//p' debian/control)
+prefix	:= $(PWD)/debian/$(package)/usr
+
+build:	build-stamp
+build-stamp:
+	dh_testdir
+	echo n | $(PERL) Makefile.PL INSTALLDIRS=vendor PERL=$(PERL)
+	$(MAKE) LD_RUN_PATH=
+	touch $@
+
+clean:	checkroot
+	rm -f build-stamp
+	-$(MAKE) distclean
+	dh_clean
+
+binary-indep:	checkroot build
+	dh_clean
+	dh_installdirs
+
+	$(MAKE) pure_install PREFIX=$(prefix)
+
+	dh_installdocs README
+	dh_installexamples tour 
+#	dh_installchangelogs Changes
+	dh_compress
+	dh_fixperms
+	dh_perl
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary-arch:	checkroot build
+
+binary:	binary-indep binary-arch
+
+checkroot:
+	dh_testdir
+	dh_testroot
+
+.PHONY:	binary binary-arch binary-indep clean checkroot build
