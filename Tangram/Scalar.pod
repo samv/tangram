@@ -45,6 +45,11 @@ for mapping the various subtypes of scalars. The first three mappings
 are documented here since they differ very little. See L<Tangram::Ref>
 for information on mapping references.
 
+Tangram::String uses DBI's quote() method to quote strings if that
+method is available, thus making it possible to store binary objects
+or multiline text in databases that support it (thanks to Marian Kelc
+<marian.kelc@ruhr-uni-bochum.de> for suggesting this improvement).
+
 Classes Tangram::RawDate, ::RawTime and ::RawDateTime are responsible
 for mapping strings to SQL date or time types. These classes are not
 imported by Tangram.pm, thus they must be explicitly imported via a
