@@ -70,6 +70,9 @@ There is no support for creating views based on existing classes to
 make new derived classes; you have to use your database SQL and create
 corresponding Tangram classes manually to do that.
 
+Tangram has a web site at L<http://tangram.utsl.gen.nz/>, currently
+sponsored by MarketView (New Zealand) Ltd.
+
 =head1 DOCUMENTATION INDEX
 
 =head1 CONTENTS
@@ -78,9 +81,8 @@ corresponding Tangram classes manually to do that.
 
 =item L<Tangram::Tour>
 
-The original "Guided Tour" of the features of Tangram, by the author
-of Tangram versions 1 through 2.04 (and a somewhat divergant version 3
-;-)), Jean-Louis LeRoy.
+The original "Guided Tour" of the features of Tangram, by Jean-Louis
+LeRoy.
 
 =item L<Tangram::Intro>
 
@@ -177,7 +179,8 @@ DBD::Pg 0.93
 
 =head1 LICENSE & WARRANTY
 
-You may use Tangram, free of charge, under the terms of the GPL.
+You may use Tangram, free of charge, under the terms of the GPL.  This
+notice applies to the entire distribution and all of its parts.
 
 You can obtain a commercial license for old (2.04 and earlier)
 versions of Tangram from Sound Object Logic, see
@@ -193,7 +196,7 @@ SUCH AS MAGNETIC MEDIA OR PUNCH CARDS.
 =head1 SUPPORT
 
 Please send bug reports directly to the Tangram 2 maintainer's mailing
-list <tangram-t2-maintainers@tangram-persistence.org>, and please CC:
+list <t2-users@lists.utsl.gen.nz>, and please CC:
 <bug-Tangram@rt.cpan.org> so your fault can be tracked accurately.
 
 Whenever possible, include a short yet complete script demonstrating
@@ -202,14 +205,13 @@ the problem.  (read: if you want it fixed quicker, demonstrate it)
 Questions of general interest should should be posted to the mailing
 list, but not sent to rt.cpan.org.
 
-Commercial support for Tangram is available, see
-http://www.soundobjectlogic.com/tangram/support.html.
-
 =head1 AUTHORS
 
-Except where noted, all the code and documentation was written by
-Jean-Louis Leroy (jll@soundobjectlogic.com) and Sound Object Logic.
+All the code and documentation for_versions 2.04 and earlier, as well
+as some changes in the 2.05 release, were written by Jean-Louis Leroy
+(jll@soundobjectlogic.com) and Sound Object Logic.
 
-Sam Vilain <sam@vilain.net> is the current humble maintainer.
+Sam Vilain <sam@vilain.net> is the author of the derived work that is
+Tangram 2.05 and later.
 
 =cut

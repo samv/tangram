@@ -1,4 +1,4 @@
-# (c) Sound Object Logic 2000-2001
+
 
 package Tangram::DMDateTime;
 

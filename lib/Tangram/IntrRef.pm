@@ -1,4 +1,4 @@
-# (c) Sound Object Logic 2000-2001
+
 # (c) Kurt Stephens 2003
 # Derived from IntrSet.pm.
 

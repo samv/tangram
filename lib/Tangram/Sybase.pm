@@ -1,4 +1,4 @@
-# (c) Sound Object Logic 2000-2001
+
 
 # The old man page for Tangram::Dialect, reproduced here, is incorrect
 # but documents this code well so is included here.

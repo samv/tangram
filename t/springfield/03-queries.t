@@ -1,5 +1,5 @@
 # -*- perl -*-
-# (c) Sound Object Logic 2000-2001
+
 
 # Portions Copyright (c) 2002-2004, Sam Vilain.  All rights reserved.
 # This program is free software; you may use it and/or modify it under

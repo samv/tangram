@@ -1,6 +1,6 @@
 #  -*- perl -*-
 #
-# (c) Sound Object Logic 2000-2001
+
 #
 # Portions (c) Sam Vilain, 2003
 

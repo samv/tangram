@@ -1,4 +1,4 @@
-# (c) Sound Object Logic 2000-2001
+
 
 use strict;
 
@@ -409,6 +409,7 @@ sub class_id
     my $self = shift;
     $self->{class2id}{$_[0]} or do {
 	# crawl ISA tree...
+	kill 2, $$;
 	my @stack = \%{$_[0]."::"};
 	my $seen = Set::Object->new(@stack);
 	while ( my $stash = pop @stack ) {
