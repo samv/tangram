@@ -1,0 +1,2 @@
+# chmod -R 644 website/htdocs/*
+rsync -vae ssh website/ tangram.sourceforge.net:/home/groups/tangram
