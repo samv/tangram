@@ -1174,8 +1174,27 @@ sub sum
 sub id
 {
     my $self = shift;
-	return map { $self->{get_id}->($_) } @_ if wantarray;
+    return map { $self->{get_id}->($_) } @_ if wantarray;
     $self->{get_id}->(shift());
+}
+
+sub id_maybe_insert
+{
+    my $self = shift;
+    return map { scalar($self->id_maybe_insert($_)) }
+	@_ if wantarray;
+
+    my $object = shift;
+    if ( my $id = $self->{get_id}->($object) ) {
+	return $id;
+    } else {
+	my $class = ref $object;
+	if ( $self->class_id($class) ) {
+	    print $Tangram::TRACE "id_maybe_insert: inserting $object\n"
+		if $Tangram::TRACE;
+	    return $self->insert($object);
+	}
+    }
 }
 
 sub disconnect

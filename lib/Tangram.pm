@@ -15,7 +15,7 @@ require Exporter;
 );
 
 { local($^W) = 0;
-$VERSION = '2.07_07';
+$VERSION = '2.07_07+svn';
 my $force_numeric = $VERSION + 0;
 }
 

@@ -4,9 +4,9 @@
 
 package Tangram::IntrHash;
 
+use base qw( Tangram::AbstractHash );
+
 use strict;
-use vars qw(@ISA);
-BEGIN { @ISA = qw( Tangram::AbstractHash ) };
 
 use Carp;
 
@@ -22,9 +22,14 @@ sub reschema {
 		$members->{$member} = $def;
 	    }
 
-	$def->{coll} ||= $schema->{normalize}->($class) . "_$member";
-	$def->{slot} ||=($schema->{normalize}->($class) . "_$member"
-			 . "_slot");
+	$def->{coll} ||= $schema->{normalize}->
+	    ($schema->{normalize}->($class, "tablename")
+	     . "_" .  $schema->{normalize}->($member, "fieldname"), "colname");
+
+	$def->{slot} ||= $schema->{normalize}->
+	    ($schema->{normalize}->($class, "tablename") 
+	     . "_". $schema->{normalize}->($member, "fieldname") . "_slot",
+	     "colname");
    
 	$schema->{classes}{$def->{class}}{stateless} = 0;
 	if (exists $def->{back}) {

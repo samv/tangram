@@ -159,12 +159,16 @@ is($CD::c, 0, "no objects leaked");
 
     # 7. fetch unique CD records by matching on a partial artist's
     #    *or* partial CD name, using a cursor if possible.
-    my $query = $r_cd->{title}->upper()->like(uc("%beat%"));
+    my $query =
+	( $r_artist->{name}->upper()->like(uc("%beat%"))
+	  | $r_cd->{title}->upper()->like(uc("%beat%")) );
+
     my $filter = $join & $query;
     my $cursor = $storage->cursor ( $r_cd, $filter );
 
     my @cds=();
     while ( my $cd = $cursor->current ) {
+	diag ("found cd = " .$cd->title.", artist = ".$cd->artist->name);
 	push @cds, $cd;
 	$cursor->next;
     }

@@ -32,7 +32,7 @@ my @bands =
 "Stand Down Margaret",
 			 ]
 	      }),
-       CD->new({ title => "Special Beat Service",
+       CD->new({ title => "Special Meat Service",
 		publishdate => iso("1999-10-26"),
 		songs => [ map { CD::Song->new({name => $_}) }
 			   "I Confess",

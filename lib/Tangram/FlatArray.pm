@@ -82,7 +82,7 @@ sub reschema
 			$def = $members->{$field} = { type => 'string' };
 		}
 
-		$def->{table} ||= $schema->{normalize}->($class . "_$field", 'tablename');
+		$def->{table} ||= $schema->{normalize}->($class . "_" .$schema->{normalize}->($field, "fieldname"), 'tablename');
 		$def->{type} ||= 'string';
 		$def->{string_type} = $def->{type} eq 'string';
 		$def->{sql} ||= $def->{string_type} ? 'VARCHAR(255)' : uc($def->{type});

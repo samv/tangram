@@ -217,13 +217,16 @@ sub get_importer
     return sub {
 	my ($obj, $row, $context2) = @_;
 	my $col = shift @$row;
+
+	my $storage = $context2->{storage};
 	#print STDERR "About to load: `$col'\n";
-	defined(my $tmpobj = $self->{loader}->($col)) or do {
-	    warn "loader for IDBIF on ".ref($obj)."[".$context2->{storage}->id($obj)."] returned no value from >-\n$col\n...";
+	defined(my $tmpobj = $self->{loader}->($storage->from_dbms("blob", $col))) or do {
+	
+	    warn "loader for IDBIF on ".ref($obj)."[".$storage->id($obj)."] returned no value from >-\n$col\n...";
 	    return $obj;
 	};
 	#print STDERR "Got `$tmpobj'\n";
-	Tangram::Dump::unflatten($context2->{storage}, $tmpobj);
+	Tangram::Dump::unflatten($storage, $tmpobj);
 	if ($self->{save_all}) {
 	    for my $member (keys %$tmpobj) {
 		$obj->{$member} = delete $tmpobj->{$member};
@@ -265,7 +268,12 @@ sub get_exporter
 	    }
 	}
 	Tangram::Dump::flatten($context2->{storage}, $tmpobj);
-	my $text = $self->{dumper}->($tmpobj);
+	my $text = $context2->{storage}->to_dbms
+	    ("blob", $self->{dumper}->($tmpobj));
+
+	print $Tangram::TRACE "IDBIF - storing: ".Data::Dumper::Dumper($tmpobj)
+	    if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2;
+
 	Tangram::Dump::unflatten($context2->{storage}, $tmpobj);
 	%$tmpobj = ();
 	bless $tmpobj, "nothing";

@@ -102,7 +102,7 @@ sub flatten {
 	} else {
 	    if ( ref $_[0] ) {
 		if (blessed $_[0] and
-		    my $id = $storage->id($_[0])) {
+		    my $id = $storage->id_maybe_insert($_[0])) {
 
 		    ($id,my $cid) = $storage->split_id($id);
 		    $id.=",$cid";

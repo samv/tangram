@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram - Mapping inheritance
+Tangram::Relational::Mappings - Mapping inheritance
 
 =head1 DESCRIPTION
 
