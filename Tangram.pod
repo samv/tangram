@@ -58,7 +58,7 @@ DBD::Pg 0.93
 
 You may use Tangram, free of charge, under the terms of the GPL.
 You can obtain a commercial license from Sound Object Logic, see
-L<http://www.soundobjectlogic.com/tangram/licenses>.
+http://www.soundobjectlogic.com/tangram/licenses.html.
 
 TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 
@@ -75,10 +75,11 @@ mailing list or to comp.lang.perl.modules, which I monitor daily. Make
 sure to include 'Tangram' in the subject line.
 
 Commercial support for Tangram is available, see
-L<http://www.soundobjectlogic.com/tangram/support>.
+http://www.soundobjectlogic.com/tangram/support.html.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Jean-Louis Leroy, jll@soundobjectlogic.com
+Except where noted, all the code and documentation was written by
+Jean-Louis Leroy (jll@soundobjectlogic.com) and Sound Object Logic.
 
 =cut
