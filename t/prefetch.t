@@ -6,7 +6,7 @@ use lib "..";
 # command line parameters - see perlrun (-s switch)
 use vars qw($debug);
 
-use Test::More tests => 99;
+use Test::More tests => 110;
 
 use lib "t";
 use Springfield qw(%id stdpop leaked @kids @opinions);
@@ -15,7 +15,7 @@ my $tests = {(
 	      "IntrArray" => [ 1, "ia_children", "NaturalPerson", ],
 	      "Array"     => [ 0, "children",    "NaturalPerson", ],
 	      "Hash"      => [ 0, "h_opinions",  "Opinion",       ],
-	      #"IntrHash"  => [ 1, "ih_opinions", "Opinion",       ],
+	      "IntrHash"  => [ 1, "ih_opinions", "Opinion",       ],
 	      "Set"       => [ 0, "s_children",  "NaturalPerson", ],
 	      "IntrSet"   => [ 1, "is_children", "NaturalPerson", ],
 	      "DiffIntrArray" => [ 1, "ia_opinions", "Opinion", ],

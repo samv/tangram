@@ -9,6 +9,7 @@ use Tangram::RawDateTime;
 use Tangram::FlatArray;
 use Tangram::FlatHash;
 use Tangram::PerlDump;
+use Tangram::Storable;
 
 package Springfield;
 use Exporter;
@@ -201,6 +202,8 @@ $schema = Tangram::Schema->new
 		flat_hash => [ qw( opinions ) ],
 
 		perl_dump => [ qw( brains ) ],
+
+		storable => [ qw( thought ) ],
 	   },
       },
 
@@ -491,7 +494,9 @@ sub new
 {
    my $pkg = shift;
    ++$pop;
-   return bless { $pkg->defaults, @_ }, $pkg;
+   my $foo = bless { $pkg->defaults, @_ }, $pkg;
+   #print STDERR "I am alive!  $foo\n";
+   return $foo;
 }
 
 sub defaults
@@ -502,6 +507,7 @@ sub defaults
 sub DESTROY
 {
 #   die if exists shift->{id};
+    #print STDERR "I am dying!  $_[0]\n";
    --$pop;
 }
 

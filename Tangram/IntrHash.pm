@@ -161,12 +161,13 @@ sub prefetch
 
    $cursor->retrieve
        ($coll->{id},
-	Tangram::Expr->new("t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}", Tangram::Integer->instance()
-			  )
+	$storage->expr(Tangram::Scalar->instance,
+		       "t$ritem->{object}{table_hash}{$def->{class}}"
+		       .".$def->{slot}")
        );
-   
+
    $cursor->select($includes);
-   
+
    while (my $item = $cursor->current)
    {
       my ($coll_id, $slot) = $cursor->residue;

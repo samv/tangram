@@ -12,6 +12,54 @@ collections.  It does so in an orthogonal fashion, that is, it doesn't
 require your classes to implement support functions nor inherit from a
 utility class.
 
+=head1 CONTENTS
+
+=over
+
+=item L<Tangram::Tour>
+
+a "Guided Tour" of the features of Tangram
+
+=item L<Tangram::Springfield>
+
+Classes and schema used in the Guided Tour
+
+=item L<Tangram::Storage>
+
+The main database handle class.  Includes details on query syntax.
+
+=item L<Tangram::Cursor>
+
+Return an iterator that retrieves persistent objects in a result set
+one by one.
+
+=item L<Tangram::Schema>
+
+The Tangram schema structure - representing your data model so that
+Tangram can map it.
+
+=item L<Tangram::Relational::Mappings>
+
+An informative text on exactly how Object Relational Mapping is
+accomplished by the Tangram::Relational back-end, what the different
+styles of mapping are, and how each is selected.
+
+=item L<Tangram::Type>
+
+What Tangram types are available.  This page is an index of other
+manual pages that express the data and relationship types available in
+Tangram.
+
+=item L<Tangram::Type::Extending>
+
+How to write your own custom types for Tangram.
+
+=item L<Tangram::Dialect>
+
+Database-specific extensions to Tangram, such as L<Tangram::mysql> and
+L<Tangram::Sybase>.  These extensions only add functionality, and are
+not required for core operation of Tangram.
+
 =head1 COMPATIBILITY
 
 Tangram is known to run in the following environments, however,
@@ -21,16 +69,15 @@ compliant database.
 Note that some functions (e.g. transactions and subselects) may not be
 available in some environments. This is reported during the test suite.
 
-
 =over 4
 
 =item *
 
-Perl 5.00503
+Perl 5.6.1
 
 =item *
 
-Set::Object 1.03
+Set::Object 1.04
 
 =item *
 
@@ -57,7 +104,9 @@ DBD::Pg 0.93
 =head1 LICENSE & WARRANTY
 
 You may use Tangram, free of charge, under the terms of the GPL.
-You can obtain a commercial license from Sound Object Logic, see
+
+You can obtain a commercial license for old (2.04 and earlier)
+versions of Tangram from Sound Object Logic, see
 http://www.soundobjectlogic.com/tangram/licenses.html.
 
 TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
@@ -66,13 +115,13 @@ TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 
 Please send bug reports directly to the Tangram 2 maintainer's mailing
 list <tangram-t2-maintainers@tangram-persistence.org>, and please CC:
-<bug-Tangram@rt.cpan.org> so I can track your fault accurately.
+<bug-Tangram@rt.cpan.org> so your fault can be tracked accurately.
 
-Whenever possible, include a short, complete script demonstrating the
-problem.  (read: if you want it fixed quicker, demonstrate it)
+Whenever possible, include a short yet complete script demonstrating
+the problem.  (read: if you want it fixed quicker, demonstrate it)
 
 Questions of general interest should should be posted to the mailing
-list, but not rt.cpan.org.
+list, but not sent to rt.cpan.org.
 
 Commercial support for Tangram is available, see
 http://www.soundobjectlogic.com/tangram/support.html.

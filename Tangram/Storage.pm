@@ -505,8 +505,18 @@ sub _insert
 	my $sths = $self->{INSERT_STHS}{$class_name} ||=
 	  [ map { $self->prepare($_) } $engine->get_insert_statements($class) ];
 
-	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
-	my @state = ( $self->{export_id}->($id), $classId, $class->get_exporter({layout1 => $self->{layout1} })->($obj, $context) );
+	my $context =
+	    { storage => $self,
+	      dbh => $dbh,
+	      id => $id,
+	      SAVING => $saving };
+
+	my @state = (
+		     $self->{export_id}->($id),
+		     $classId,
+		     $class->get_exporter({layout1 => $self->{layout1} })
+		         ->($obj, $context)
+		    );
 
 	my @fields = $engine->get_insert_fields($class);
 
@@ -565,7 +575,11 @@ sub _update
     my $class = $self->{schema}->classdef(ref $obj);
 	my $engine = $self->{engine};
 	my $dbh = $self->{db};
-	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
+	my $context =
+	    { storage => $self,
+	      dbh => $dbh,
+	      id => $id,
+	      SAVING => $saving };
 
 	my @state = ( $self->{export_id}->($id), substr($id, -$self->{cid_size}), $class->get_exporter({ layout1 => $self->{layout1} })->($obj, $context) );
 	my @fields = $engine->get_update_fields($class);

@@ -125,3 +125,10 @@ debian/copyright
 
 META.yml                                Module meta-data (added by MakeMaker)
 t/prefetch.t
+Tangram/Dump.pm
+Tangram/Storable.pm
+Tangram/Storable.pod
+Tangram/YAML.pm
+t/dump.t
+t/ihash.t
+t/storable.t

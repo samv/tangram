@@ -1,3 +1,12 @@
+libtangram-perl (2.07.2) unstable; urgency=low
+
+  * Tangram::Dump
+  * Tangram::Storable
+  * Tangram::YAML (unfinished)
+  * Tangram::IntrHash pre-fetch support
+
+ -- Sam Vilain <sam@vilain.net>  Tue,  6 Jan 2004 12:14:24 +1300
+
 libtangram-perl (2.07.1) unstable; urgency=low
 
   * Tangram::IntrHash

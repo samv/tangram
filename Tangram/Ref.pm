@@ -14,10 +14,16 @@ sub FETCH
 {
    my $self = shift;
    my ($storage, $id, $member, $refid) = @$self;
-   my $obj = $storage->{objects}{$id};
-   my $refobj = $storage->load($refid);
-   untie $obj->{$member};
-   $obj->{$member} = $refobj;
+   my $refobj;
+   if ($id) {
+       my $obj = $storage->{objects}{$id};
+       $refobj = $storage->load($refid);
+       untie $obj->{$member};
+       $obj->{$member} = $refobj;
+   } else {
+       untie $$member;
+       $refobj = $$member = $storage->load($refid);
+   }
    return $refobj;
 }
 
@@ -25,15 +31,20 @@ sub STORE
 {
    my ($self, $val) = @_;
    my ($storage, $id, $member, $refid) = @$self;
-   my $obj = $storage->{objects}{$id};
-   untie $obj->{$member};
-   return $obj->{$member} = $val;
+   if ($id) {
+       my $obj = $storage->{objects}{$id};
+       untie $obj->{$member};
+       return $obj->{$member} = $val;
+   } else {
+       untie $$member;
+       $$member = $val;
+   }
 }
 
 sub id
 {
    my ($storage, $id, $member, $refid) = @{shift()};
-   $refid
+   $refid;
 }
 
 use Tangram::Scalar;

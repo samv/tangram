@@ -1,29 +1,23 @@
-# (c) Sound Object Logic 2000-2001
 
-# Copyright 1999-2001 Gabor Herr. All rights reserved.
-# This program is free software; you can redistribute it and/or modify it
-# under the same terms as Perl itself
+# (c) Sam Vilain, 2004.  All Rights Reserved.
+# This program is free software; you may use it and/or distribute it
+# under the same terms as Perl itself.
 
-# Modified 29dec2000 by Jean-Louis Leroy
-# replaced save() by get_exporter()
-# fixed reschema(): $def->{dumper} was not set when using abbreviated forms
+package Tangram::Storable;
 
 use strict;
 
 use Tangram::Scalar;
-
-package Tangram::PerlDump;
-
 use Tangram::Dump qw(flatten unflatten);
+
+use Storable qw(freeze thaw);
+
+use Set::Object qw(reftype);
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
-use Data::Dumper;
-use Set::Object qw(reftype);
 
-$Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;
-
-my $DumpMeth = (defined &Data::Dumper::Dumpxs) ? 'Dumpxs' : 'Dump';
+$Tangram::Schema::TYPES{storable} = __PACKAGE__->new;
 
 sub reschema {
   my ($self, $members, $class, $schema) = @_;
@@ -49,15 +43,10 @@ sub reschema {
 	
     $def->{col} ||= $schema->{normalize}->($field, 'colname');
     $def->{sql} ||= 'VARCHAR(255)';
-    $def->{indent} ||= 0;
-    $def->{terse} ||= 1;
-    $def->{purity} ||= 0;
+    $def->{deparse} ||= 0;
     $def->{dumper} ||= sub {
-      local($Data::Dumper::Indent) = $def->{indent};
-      local($Data::Dumper::Terse)  = $def->{terse};
-      local($Data::Dumper::Purity) = $def->{purity};
-      local($Data::Dumper::Varname) = '_t::v';
-      Data::Dumper->$DumpMeth([@_], []);
+	local($Storable::Deparse) = $def->{deparse};
+	freeze([@_]);
     };
   }
 
@@ -67,7 +56,7 @@ sub reschema {
 sub get_importer
 {
 	my ($self, $context) = @_;
-	return("\$obj->{$self->{name}} = eval shift \@\$row;"
+	return("\$obj->{$self->{name}} = \${Storable::thaw(shift \@\$row)}[0];"
 	       ."Tangram::Dump::unflatten(\$context->{storage}, "
 	       ."\$obj->{$self->{name}})");
   }

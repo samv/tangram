@@ -249,3 +249,13 @@ Revision history for Perl extension Tangram.
 	- make_1st_id_in_tx now only called for 1st insert
 	  (Chengzhi Liang)
 
+2.07.2, 6-Jan-2004 - SamV
+
+	- Tangram::IntrHash prefetch test added
+	- Documentation enhancements
+	- Tangram::Dump class to `fix' persistent references in data
+	  structures prior to insertion, so that :
+	- Tangram::PerlDump now can contain persistent objects safely
+	- and hey, why not write a Tangram::Storable 
+	- and a Tangram::YAML (not working, waiting for a CPAN bug to
+	  be fixed)
