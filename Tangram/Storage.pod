@@ -311,9 +311,10 @@ The select method is valid only in list context.
 
 =head2 sum
 
-   $sum = sum( $expr, $filter );
+   $sum = $storage->sum( $expr, $filter );
 
-   ($sum_expr1, $sum_expr2) = sum( [ $expr1, $expr2] );
+   ($sum_expr1, $sum_expr2)
+       = $storage->sum( [ $expr1, $expr2] );
 
 Gets the sum of the expression.  $filter is optional.
 

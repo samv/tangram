@@ -1,6 +1,10 @@
 # -*- perl -*-
 # (c) Sound Object Logic 2000-2001
 
+# Portions Copyright (c) 2002-2004, Sam Vilain.  All rights reserved.
+# This program is free software; you may use it and/or modify it under
+# the same terms as Perl itself.
+
 use strict;
 use lib "t";
 use Springfield;
@@ -9,6 +13,8 @@ use Springfield;
 
 use Test::More tests => 14;
 
+#--------------------
+# setup tests
 {
    my $storage = Springfield::connect_empty;
 
@@ -20,90 +26,85 @@ use Test::More tests => 14;
 
    $storage->insert( $homer );
 
-   $storage->insert( NaturalPerson->new( firstName => 'Montgomery', name => 'Burns' ) );
+   $storage->insert( NaturalPerson->new( firstName => 'Montgomery',
+					 name => 'Burns' ) );
 
    delete $homer->{partner};
 
    $storage->disconnect();
 }
-
 is(&leaked, 0, "leaktest");
 
-# BEGIN ks.perl@kurtstephens.com 2002/10/16
-# Test non-commutative operator argument swapping
-{
-   my $storage = Springfield::connect;
-
-   my ($person) = $storage->remote(qw( NaturalPerson ));
- 
-   #$DB::single = 1;
-   # local $Tangram::TRACE = \*STDERR;
-   my @results = $storage->select( $person,
-      (1 <= $person->{person_id}) & ($person->{person_id} <= 2) );
-   
-   is(@results, 2, "non-commutative operator argument swapping" );
-
-   $storage->disconnect();
-}      
-
-is(&leaked, 0, "leaktest");
-# END ks.perl@kurtstephens.com 2002/10/16
-
-
+#--------------------
 # filter on string field
-
 {
    my $storage = Springfield::connect;
 
    my ($person) = $storage->remote(qw( NaturalPerson ));
 
-   my @results = $storage->select( $person, $person->{name} eq 'Simpson' );
+   my @results = $storage->select
+       ( $person,
+	 $person->{name} eq 'Simpson' );
+
    is(join( ' ', sort map { $_->{firstName} } @results ),
       'Homer Marge',
       "filter on string field");
 
    $storage->disconnect();
 }      
-
 is(&leaked, 0, "leaktest");
 
+#--------------------
 # logical and
-
 {
    my $storage = Springfield::connect;
 
    my ($person) = $storage->remote(qw( NaturalPerson ));
 
-   my @results = $storage->select( $person,
-      $person->{firstName} eq 'Homer' & $person->{name} eq 'Simpson' );
+   my @results = $storage->select
+       ( $person,
+	 ($person->{firstName} eq 'Homer') &
+	 ($person->{name}      eq 'Simpson'  ) );
 
    is( @results, 1, "Logical and");
-   is ( $results[0]{firstName}, 'Homer', "Logical and" );
+   is ( $results[0]{firstName},
+	'Homer',
+	"Logical and" );
 
    $storage->disconnect();
 }      
-
 is(&leaked, 0, "leaktest");
 
+#--------------------
+# join on a ref link
 {
    my $storage = Springfield::connect;
 
-   my ($person, $partner) = $storage->remote(qw( NaturalPerson NaturalPerson ));
+   my ($person, $partner) = $storage->remote(qw( NaturalPerson
+						 NaturalPerson ));
 
-   my @results = $storage->select( $person,
-      ($person->{partner} == $partner) & ($partner->{firstName} eq 'Marge') );
+   my @results = $storage->select
+       ( $person,
+	 ($person->{partner} == $partner) &
+	 ($partner->{firstName} eq 'Marge') );
 
    is( @results, 1, "Logical and");
-   is ( $results[0]{firstName}, 'Homer', "Logical and" );
+   is ( $results[0]{firstName},
+	'Homer',
+	"Logical and" );
 
    $storage->disconnect();
 }      
-
 is(&leaked, 0, "leaktest");
 
+#--------------------
+# two birds with one stone; test that Tangram doesn't go disconnecting
+# DBI handles that it was passed!
 my $dbh = DBI->connect($cs, $user, $passwd)
     or die "DBI->connect failed; $DBI::errstr";
 
+#--------------------
+# now, test IS NOT NULL query
 {
    my $storage = Springfield::connect(undef, { dbh => $dbh });
 
@@ -117,18 +118,40 @@ my $dbh = DBI->connect($cs, $user, $passwd)
 
    $storage->disconnect();
 }
+is(&leaked, 0, "leaktest");
 
+# here is the test for Tangram not disconnecting - this should work.
 eval {
     my $sth = $dbh->prepare("select count(*) from Tangram")
 	or die $DBI::errstr;
-
     $sth->execute();
     my @res = $sth->fetchall_arrayref;
 };
-
-is($@||$DBI::errstr||"", "",
+ok(!$DBI::err,
    "Disconnect didn't disconnect a supplied DBI handle");
 
-$dbh->disconnect();
+#--------------------
+# BEGIN ks.perl@kurtstephens.com 2002/10/16
+# Test non-commutative operator argument swapping
+{
+   my $storage = Springfield::connect;
+
+   my ($person) = $storage->remote(qw( NaturalPerson ));
+ 
+   # local $Tangram::TRACE = \*STDERR;
+   my @results = $storage->select
+       ( $person,
+	 ( 1 <= $person->{person_id} )      &
+	 ( $person->{person_id} <= 2 )
+	 );
+   
+   is(@results, 2, "non-commutative operator argument swapping" );
+
+   $storage->disconnect();
+}      
 
 is(&leaked, 0, "leaktest");
+# END ks.perl@kurtstephens.com 2002/10/16
+
+
+$dbh->disconnect();

@@ -260,7 +260,10 @@ Revision history for Perl extension Tangram.
 	- and a Tangram::YAML (not working, waiting for a CPAN bug to
 	  be fixed)
 
-2.07_03, 02-May-2004 - ks.perl@kurtstephens.com
+2.07_03, 04-May-2004 - SamV
+
+	Most changes from Kurt <ks.perl@kurtstephens.com>, with many
+	thanks:
 
         - Do not $self->{db}->disconnect in Storage::disconnect() and
           DESTROY(), if $self->{db} eq $opts->{dbh} in
@@ -280,3 +283,9 @@ Revision history for Perl extension Tangram.
         - Prevent additional records in Tangram control table on redeploy.
         - Added support for GROUP BY in Tangram::Cursor.
         - Added COUNT($remote) and SUM($filter_expr) support.
+
+	Editorial release changes:
+		
+	- [SamV] Started using _NN version style, so CPAN marks it as
+	  a development release
+	- added brief test suite for aggregate functions

@@ -44,6 +44,7 @@ Tangram/FlatHash.pm
 Tangram/AbstractSet.pm
 Tangram/Set.pm
 Tangram/IntrSet.pm
+Tangram/IDBIF.pm
 
 Tangram/AbstractHash.pm
 Tangram/Hash.pm
@@ -133,3 +134,5 @@ Tangram/YAML.pm
 t/dump.t
 t/ihash.t
 t/storable.t
+t/idbif.t
+t/aggregate.t

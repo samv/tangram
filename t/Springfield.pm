@@ -459,6 +459,9 @@ sub stdpop
 
     my @children = (map { NaturalPerson->new( firstName => $_ ) }
 		    @kids);
+    $children[0]->{age} = 10;
+    $children[1]->{age} = 8;
+    $children[2]->{age} = 1;
     @id{ @kids } = $storage->insert( @children );
     # *cough* hack *cough*
     main::like("@id{@kids}", qr/^\d+ \d+ \d+$/, "Got ids back OK");
@@ -474,6 +477,7 @@ sub stdpop
     {
 	$homer = NaturalPerson->new
 	(
+	 age => 38,
 	 firstName => 'Homer',
 	 ($children =~ m/children/
 	  ? ($children =~ m/s_/
@@ -496,7 +500,9 @@ sub stdpop
     $id{Homer} = $storage->insert($homer);
     main::isnt($id{Homer}, 0, "Homer inserted OK");
 
-    my $marge = NaturalPerson->new( firstName => 'Marge' );
+    my $marge = NaturalPerson->new( firstName => 'Marge',
+				    age => 37,
+				  );
 
     # cannot have >1 parent with a one to many relationship!
     if ($children =~ m/children/) {
@@ -512,6 +518,7 @@ sub stdpop
     main::isnt($id{Marge}, 0, "Marge inserted OK");
 
     my $abraham = NaturalPerson->new( firstName => 'Abraham',
+				      age => 62,
 				      ($children =~ m/children/
 				       ? ($children =~ m/s_/
 					  ? ( $children => Set::Object->new($homer) )

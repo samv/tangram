@@ -1,16 +1,33 @@
 =head1 NAME
 
-Tangram - Orthogonal Object Persistence in Relational Databases
+Tangram - storing objects in standard relational databases
 
 =head1 DESCRIPTION
 
-Tangram is an object-relational mapper. It makes objects persist in
-relational databases, and provides powerful facilities for retrieving
-and filtering them.  Tangram fully supports object-oriented
-programming, including polymorphism, multiple inheritance and
-collections.  It does so in an orthogonal fashion, that is, it doesn't
-require your classes to implement support functions nor inherit from a
-utility class.
+Tangram is an I<object-relational mapper>.
+
+It consists of an I<schema language> that can be built around an
+object structure, or around an existing SQL schema (with some
+limitations).  This schema language is rich enough to express such
+common RDBMS features as links, foreign keys, and mapping tables.
+
+It also consists of a I<relational database storage> engine, which
+based on the schema structure, will make Perl structures persist in a
+relational (SQL compliant) database.
+
+In short, it implements one type of B<object persistence>.
+
+Once your object are persistent, you can build query expressions to
+find them in terms of the schema language that you used to put them
+in.  The schema data structure does not describe a data structure, it
+describes a I<data access pattern>.
+
+If you are looking for a tool that implements I<SQL abstraction> only,
+you have probably missed the point (of this module, anyway), and a
+well-supported module like L<Class::DBI> will likely suit your needs
+more.
+
+=head1 DOCUMENTATION INDEX
 
 =head1 CONTENTS
 
@@ -18,11 +35,13 @@ utility class.
 
 =item L<Tangram::Tour>
 
-a "Guided Tour" of the features of Tangram
+The original "Guided Tour" of the features of Tangram, by the author
+of Tangram versions 1 through 2.04 (and a somewhat divergant version 3
+;-)), Jean-Louis LeRoy.
 
 =item L<Tangram::Springfield>
 
-Classes and schema used in the Guided Tour
+The classes and schema used in the Guided Tour.
 
 =item L<Tangram::Storage>
 
