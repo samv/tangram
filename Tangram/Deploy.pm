@@ -174,10 +174,10 @@ sub _deploy_do
     my $output = shift;
 
     return ref($output) && eval { $output->isa('DBI::db') }
-		? sub { $output->do( join '', @_ ) }
+		? sub { print $Tangram::TRACE @_ if $Tangram::TRACE;
+			$output->do( join '', @_ ); }
 		: sub { print $output @_, ";\n\n" };
 }
-
 
 sub retreat
 {
