@@ -13,3 +13,7 @@ for my $CFG (qw( mysql sybase pg )) {
   system 'yes 2>/dev/null|perl Makefile.PL';
   system 'make test';
 }
+
+if (!@ARGV || exists $target{layout1}) {
+  system 'layout_test.pl';
+}
