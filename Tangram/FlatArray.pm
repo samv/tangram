@@ -10,13 +10,21 @@ sub new
 	bless [ @_ ], $pkg;
 }
 
+sub quote
+  {
+	my $item = shift or return 'NULL';
+	$item =~ s/'/''/g;	# 'emacs ;
+	$item = "'$item'";
+	return $item;
+  }
+
 sub includes
 {
 	my ($self, $item) = @_;
 	my ($coll, $memdef) = @$self;
 
-	$item = Tangram::String::quote($item)
-		if $memdef->{string_type};
+	$item = quote($item)
+	  if $memdef->{string_type};
 
 	my $coll_tid = 't' . $coll->root_table;
 	my $data_tid = 't' . Tangram::Alias->new;
@@ -35,8 +43,8 @@ sub exists
 	my ($self, $item) = @_;
 	my ($coll, $memdef) = @$self;
 
-	$item = Tangram::String::quote($item)
-		if $memdef->{string_type};
+	$item = quote($item)
+	  if $memdef->{string_type};
 
 	my $coll_tid = 't' . $coll->root_table;
 

@@ -1,4 +1,4 @@
-use t::Springfield;
+use Springfield;
 
 my %id;
 

@@ -52,19 +52,6 @@ sub field_reschema
 	$def->{type_col} ||= "${field}_type";
   }
 
-sub save
-{
-   my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
-
-   foreach my $member (keys %$members)
-   {
-      push @$cols, $members->{$member}{col};
-      my $tied = tied($obj->{$member});
-	  my $refid = $tied ? $tied->id : $storage->auto_insert($obj->{$member}, $table, $member, $id, $members->{$member}->{deep_update});
-      push @$vals, $refid && $storage->{export_id}->($refid);
-   }
-}
-
 sub get_export_cols
 {
     my ($self, $context) = @_;
@@ -101,7 +88,7 @@ sub get_exporter
 		
 		my $id = $storage->id($obj);
 		
-		if ($storage->is_being_saved($ref)) {
+		if ($context->{SAVING}->includes($ref)) {
 		  $storage->defer( sub
 						   {
 							 my $storage = shift;
@@ -115,10 +102,10 @@ sub get_exporter
 		  return undef;
 		}
 		
-		$storage->_save($ref)
+		$storage->_save($ref, $context->{SAVING})
 		  if $deep_update;
 		
-		return $storage->id($ref) || $storage->_insert($ref);
+		return $storage->id($ref) || $storage->_insert($ref, $context->{SAVING});
 	  }
 	}
 	
@@ -138,7 +125,7 @@ sub get_exporter
 	  
 	  my $exp_id = $storage->export_object($obj);
 	  
-	  if ($storage->is_being_saved($ref)) {
+	  if ($context->{SAVING}->includes($ref)) {
 		$storage->defer( sub
 						 {
 						   my $storage = shift;
@@ -154,10 +141,10 @@ sub get_exporter
 		return (undef, undef);
 	  }
 	  
-	  $storage->_save($ref)
+	  $storage->_save($ref, $context->{SAVING})
 		if $deep_update;
 	  
-	  return $storage->split_id($storage->id($ref) || $storage->_insert($ref));
+	  return $storage->split_id($storage->id($ref) || $storage->_insert($ref, $context->{SAVING}));
 	}
   }
 
@@ -179,29 +166,6 @@ sub get_importer
 	  $obj->{$field} = undef;
 	}
   }
-}
-
-sub read
-{
-   my ($self, $row, $obj, $members, $storage) = @_;
-   
-   my $id = $storage->id($obj);
-
-   foreach my $r (keys %$members)
-   {
-      my $rid = shift @$row;
-	  my $cid = shift @$row unless $storage->{layout1};
-#	  die "$rid :: $cid" unless !$rid == !$cid;
-
-      if ($rid)
-      {
-         tie $obj->{$r}, 'Tangram::RefOnDemand', $storage, $id, $r, $storage->combine_ids($rid, $cid);
-      }
-      else
-      {
-         $obj->{$r} = undef;
-      }
-   }
 }
 
 sub query_expr

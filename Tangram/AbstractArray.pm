@@ -68,7 +68,7 @@ sub deep_save_content
 	my $storage = $context->{storage};
 
 	foreach my $item (@{$obj->{$field}}) {
-	  $storage->_save($item);
+	  $storage->_save($item, $context->{SAVING});
 	}
   }
 
@@ -95,32 +95,6 @@ sub get_exporter
 	  ();
 	}
   }
-
-sub save
-{
-	my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
-
-	foreach my $coll (keys %$members)
-	{
-		next if tied $obj->{$coll};
-
-		my $class = $members->{$coll}{class};
-
-		foreach my $item (@{$obj->{$coll}})
-		{
-			Tangram::Coll::bad_type($obj, $coll, $class, $item) if $^W && !$item->isa($class);
-			if ($members->{$coll}->{deep_update}) {
-				$storage->_save($item);
-			} else {
-				$storage->insert($item)	unless $storage->id($item);
-		        }
-		}
-	}
-
-	$storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
-
-	return ();
-}
 
 sub defered_save
   {

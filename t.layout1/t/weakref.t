@@ -1,5 +1,4 @@
 use strict;
-use lib 't';
 use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;

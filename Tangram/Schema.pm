@@ -83,7 +83,7 @@ sub new
 	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
 	$self->{sql}{id_col} ||= 'id';
 	$self->{sql}{id} ||= 'INTEGER';
-	$self->{sql}{class_col} ||= 'class';
+#	$self->{sql}{class_col} ||= 'type';
 	$self->{sql}{cid} ||= 'INTEGER';
 	$self->{sql}{oid} ||= 'INTEGER';
 	$self->{sql}{cid_size} ||= 4;
@@ -139,15 +139,14 @@ sub new
 
 			for my $field (keys %$memdefs) {
 			  $memdefs->{$field}{name} = $field;
-			  bless $memdefs->{$field}, ref $type;
+			  my $fielddef = bless $memdefs->{$field}, ref $type;
+			  my @cols = $fielddef->get_export_cols( {} );
+			  $cols += @cols;
 			}
 
 			@{$classdef->{member_type}}{@members} = ($type) x @members;
 	    
 			@{$classdef->{MEMDEFS}}{keys %$memdefs} = values %$memdefs;
-	    
-			local $^W = undef;
-			$cols += $type->isa('Tangram::Ref') || scalar($type->cols($memdefs));
 		}
 
 		$classdef->{stateless} = !$cols
@@ -423,7 +422,7 @@ sub relational_schema
 		my $cols = $tabledef->{COLS} ||= {};
 
 		$cols->{ $self->{sql}{id_col} } = $self->{sql}{id};
-		$cols->{ $self->{sql}{class_col} } = $self->{sql}{cid} if $classdef->{root} == $classdef;
+		$cols->{ $self->{sql}{class_col} || 'type' } = $self->{sql}{cid} if $classdef->{root} == $classdef;
 
 		foreach my $typetag (keys %{$classdef->{members}})
 		{
@@ -613,7 +612,7 @@ sub deploy
 		my @base_cols;
 
 		my $id_col = $schema->{sql}{id_col};
-		my $class_col = $schema->{sql}{class_col};
+		my $class_col = $schema->{sql}{class_col} || 'type';
 
 		push @base_cols, "$id_col $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{$id_col};
 		push @base_cols, "$class_col $schema->{sql}{cid} NOT NULL" if exists $cols->{$class_col};

@@ -137,56 +137,9 @@ sub where
 	map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables];
 }
 
-sub cols
-{
-	return join ', ', &cols unless wantarray;
-
-	my ($self) = @_;
-
-	my $tables = $self->tables;
-	my $root = $tables->[0][1];
-	my $storage = $self->storage;
-	my $schema = $storage->{schema};
-
-	my $cols = "t$root.id, t$root.$self->{storage}{class_col}";
-	my $context = { storage => $storage };
-
-	foreach my $table (@$tables)
-	{
-		my ($class, $id) = @$table;
-		my $classdef = $schema->classdef($class);
-
-		foreach my $typetag (keys %{$classdef->{members}})
-		{
-			my $members = $classdef->{members}{$typetag};
-
-			foreach my $col ($schema->{types}{$typetag}->cols($members, $context))
-			{
-				$cols .= ", t$table->[1].$col";
-			}
-		}
-	}
-
-	return $cols;
-}
-
 sub mark
 {
 	return @{ shift->{tables} };
-}
-
-sub push_spec
-{
-	my ($self, $spec) = @_;
-	my $tables = $self->tables;
-	push @$tables, [ $spec, $self->storage->alloc_table ];
-}
-
-sub pop_spec
-{
-	my ($self, $mark) = @_;
-	my $tables = $self->{tables};
-	$self->storage->free_table( map { $_->[1] } splice @$tables, $mark, @$tables - $mark );
 }
 
 sub expr_hash

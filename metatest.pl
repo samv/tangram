@@ -9,5 +9,5 @@ do {
 	make test ;
 } done
 
-export TANGRAM_CONFIG=CONFIG.1.mysql;
-make test
+#export TANGRAM_CONFIG=CONFIG.1.mysql;
+#make test

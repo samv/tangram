@@ -21,8 +21,6 @@ BEGIN {
   }
 }
 
-use vars qw( %done );
-
 sub new
 {
     my $pkg = shift;
@@ -108,8 +106,15 @@ sub _open
 	  }
 	};
 
-    $self->{get_id} = $schema->{get_id}
-      || sub { $self->{ids}{0 + shift()} };
+    $self->{get_id} = $schema->{get_id} || sub {
+	  my $address = 0 + shift();
+	  my $id = $self->{ids}{$address};
+	  return undef unless $id;
+	  return $id if $self->{objects}{$id};
+	  delete $self->{ids}{$address};
+	  delete $self->{objects}{$id};
+	  return undef;
+	};
 
     return $self;
   }
@@ -427,9 +432,8 @@ sub insert
 		   my ($self, @objs) = @_;
 		   map
 		   {
-			   local %done = ();
 			   local $self->{defered} = [];
-			   my $id = $self->_insert($_);
+			   my $id = $self->_insert($_, Set::Object->new() );
 			   $self->do_defered;
 			   $id;
 		   } @objs;
@@ -440,13 +444,16 @@ sub insert
 
 sub _insert
 {
-    my ($self, $obj) = @_;
+    my ($self, $obj, $saving) = @_;
+
+	die unless $saving;
+
     my $schema = $self->{schema};
 
     return $self->id($obj)
       if $self->id($obj);
 
-    $done{$obj} = 1;
+    $saving->insert($obj);
 
     my $class_name = ref $obj;
     my $classId = $self->{class2id}{$class_name} or unknown_classid $class_name;
@@ -464,7 +471,7 @@ sub _insert
 	my $sths = $self->{INSERT_STHS}{$class_name} ||=
 	  [ map { $self->prepare($_) } @{ $cache->{INSERTS} } ];
 
-	my $context = { storage => $self, dbh => $dbh, id => $id };
+	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
 	my @state = ( $self->{export_id}->($id), $classId, $cache->{EXPORTER}->($obj, $context) );
 
 	my $fields = $cache->{INSERT_FIELDS};
@@ -487,12 +494,6 @@ sub _insert
     return $id;
   }
 
-sub is_being_saved
-  {
-	shift;
-	return exists $done{ shift() };
-  }
-
 #############################################################################
 # update
 
@@ -508,111 +509,30 @@ sub update
 		     my ($self, @objs) = @_;
 		     foreach my $obj (@objs)
 		     {
-			 local %done = ();
-			 local $self->{defered} = [];
+			   local $self->{defered} = [];
 
-			 $self->_update($obj);
-			 $self->do_defered;
+			   $self->_update($obj, Set::Object->new() );
+			   $self->do_defered;
 		     }
 		   }, $self, @objs);
-}
-
-sub get_export_cache
-  {
-    my ($self, $class) = @_;
-
-	my $cache = $self->{cache}{$class} ||= {};
-    my $schema = $self->{schema};
-    my $types = $schema->{types};
-
-	my $context = { schema => $schema, storage => $self };
-	
-	unless ($cache->{exporter})
-	  {
-		my (@export_sources, @export_closures);
-
-		$schema->visit_up($class,
-						  sub
-						  {
-							my $class = shift;
-							my $classdef = $schema->classdef($class);
-							my $fields = $classdef->{fields};
-							my @cols;
-							
-							$context->{class} = $classdef;
-
-							foreach my $typetag (keys %$fields) {
-
-							  for my $field (values %{ $fields->{$typetag} }) {
-								push @cols, $field->get_export_cols($context);
-							  }
-
-							  for my $exporter ($types->{$typetag}->get_exporters($fields->{$typetag}, $context)) {
-								if (ref $exporter) {
-								  push @export_closures, $exporter;
-								  push @export_sources, 'shift(@closures)->($obj, $context)';
-								} else {
-								  push @export_sources, $exporter;
-								}
-							  }
-							}
-							
-							if (@cols) {
-							  my $assigns = join ', ', map { "$_ = ?" } @cols;
-							  my $update = "UPDATE $classdef->{table} SET $assigns WHERE id = ?";
-							  #print "$update\n";
-							  push @{ $cache->{update} }, [ undef, $update, scalar(@cols) ];
-							}
-
-							my $root = !@{ $classdef->{bases} };
-
-							my @metacols = 'id';
-
-							if ($root)
-							  {
-								push @metacols, $self->{class_col};
-							  }
-
-							if (@cols || $root) {
-							  my $cols = join ', ', @metacols, @cols;
-							  my $vals = join ', ', map { '?' } @metacols, @cols;
-							  my $insert = "INSERT INTO $classdef->{table} ($cols) VALUES ($vals)";
-							  # print "$insert\n";
-							  push @{ $cache->{insert} }, [ undef, $insert, scalar(@cols), $root ];
-							}
-
-						  } );
-
-		my $export_source = join ",\n", @export_sources;
-
-		my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
-
-		$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
-
-		print $Tangram::TRACE "Compiling exporter for $class...\n$export_source\n"
-		  if $Tangram::TRACE;
-
-		# use Data::Dumper; print Dumper \@cols;
-		$cache->{exporter} = eval $export_source or die;
-	  };
-
-	return $cache;
   }
 
 sub _update
   {
-    my ($self, $obj) = @_;
+    my ($self, $obj, $saving) = @_;
+
+	die unless $saving;
 
     my $id = $self->id($obj) or confess "$obj must be persistent";
 
-    $done{$obj} = 1;
+    $saving->insert($obj);
 
     my $class = $self->{schema}->classdef(ref $obj);
 	my $dbh = $self->{db};
-	my $context = { storage => $self, dbh => $dbh, id => $id };
+	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
 
 	my $cache = $self->{engine}->get_save_cache($class);
-	my @state = ( $self->split_id($id), $cache->{EXPORTER}->($obj, $context) );
+	my @state = ( $self->{export_id}->($id), substr($id, -$self->{cid_size}), $cache->{EXPORTER}->($obj, $context) );
 
 	my $fields = $cache->{UPDATE_FIELDS};
 
@@ -642,37 +562,28 @@ sub _update
 # save
 
 sub save
-{
+  {
     my $self = shift;
-
-    foreach my $obj (@_)
-    {
-	if ($self->id($obj))
-	{
+	
+    foreach my $obj (@_) {
+	  if ($self->id($obj)) {
 	    $self->update($obj)
-	}
-	else
-	{
+	  }	else {
 	    $self->insert($obj)
-	}
+	  }
     }
-}
+  }
 
 sub _save
-{
-    my $self = shift;
-    foreach my $obj (@_)
-    {
-        if ($self->id($obj))
-	{
-	    $self->_update($obj)
+  {
+	my ($self, $obj, $saving) = @_;
+	
+	if ($self->id($obj)) {
+	  $self->_update($obj, $saving)
+	} else {
+	  $self->_insert($obj, $saving)
 	}
-	else
-	{
-	    $self->_insert($obj)
-	}
-    }
-}
+  }
 
 
 #############################################################################
@@ -689,12 +600,13 @@ sub erase
 		   my $schema = $self->{schema};
 		   my $classes = $self->{schema}{classes};
 
-		   foreach my $obj (@objs) # causes memory leak??
+		   foreach my $obj (@objs)
 		     {
 		       my $id = $self->id($obj) or confess "object $obj is not persistent";
+			   my $class = $schema->classdef(ref $obj);
 
 		       local $self->{defered} = [];
-      
+			   
 		       $schema->visit_down(ref($obj),
 					   sub
 					   {
@@ -708,16 +620,15 @@ sub erase
 					     }
 					   } );
 
+			   my $sths = $self->{DELETE_STHS}{$class->{name}} ||=
+				 [ map { $self->prepare($_) } @{ $self->{engine}->get_deletes($class) } ];
+		   
 		       my $eid = $self->{export_id}->($id);
 
-		       $schema->visit_down(ref($obj),
-					   sub
-					   {
-					     my $class = shift;
-					     my $classdef = $classes->{$class};
-					     $self->sql_do("DELETE FROM $classdef->{table} WHERE id = $eid")
-					       unless $classdef->{stateless};
-					   } );
+			   for my $sth (@$sths) {
+				 $sth->execute($eid);
+				 $sth->finish();
+			   }
 
 		       $self->do_defered;
 
@@ -836,7 +747,8 @@ sub read_object
 sub _row_to_object
   {
     my ($self, $obj, $id, $class, $row) = @_;
-	$self->{engine}->get_import_cache($self->{schema}->classdef($class))->($obj, $row, { storage => $self, id => $id });
+	$self->{engine}->get_import_cache($self->{schema}->classdef($class))
+	  ->($obj, $row, { storage => $self, id => $id, layout1 => $self->{layout1} });
 	return $obj;
 }
 
@@ -1230,7 +1142,13 @@ sub new
 
 	my $heterogeneity = { };
 	my $engine = bless { SCHEMA => $schema,	HETEROGENEITY => $heterogeneity }, $class;
-	$engine->{layout1} = 1 if $opts{layout1};
+
+	if ($opts{layout1}) {
+	  $engine->{layout1} = 1;
+	  $engine->{TYPE_COL} = $schema->{sql}{class_col} || 'classId';
+	} else {
+	  $engine->{TYPE_COL} = $schema->{sql}{class_col} || 'type';
+	}
 
 	for my $class ($schema->all_classes) {
 	  $engine->{ROOT_TABLES}{$class->{table}} = 1
@@ -1308,7 +1226,7 @@ sub get_save_cache
 	  
 	  my $schema = $self->{SCHEMA};
 	  my $id_col = $schema->{sql}{id_col};
-	  my $type_col = $schema->{sql}{class_col};
+	  my $type_col = $self->{TYPE_COL};
 
 	  my (%tables, @tables);
 	  my (@export_sources, @export_closures);
@@ -1337,7 +1255,7 @@ sub get_save_cache
 			push @export_sources, $exporter;
 		  }
 
-		  my @export_cols = $field->get_export_cols($field, $context);
+		  my @export_cols = $field->get_export_cols($context);
 		  push @{ $table->[1] }, @export_cols;
 		  push @{ $table->[2] }, $field_index..($field_index + $#export_cols);
 		  $field_index += @export_cols;
@@ -1427,7 +1345,7 @@ sub get_polymorphic_select
 	my $selects = $self->{CLASSES}{$class}{POLYMORPHIC_SELECT} ||= do {
 	  my $schema = $self->{SCHEMA};
 	  my $id_col = $schema->{sql}{id_col};
-	  my $class_col = $schema->{sql}{class_col};
+	  my $type_col = $self->{TYPE_COL};
 	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
 	  
 	  my $table_set = $self->get_table_set($class);
@@ -1456,7 +1374,7 @@ sub get_polymorphic_select
 		
 		my $root_table = $tables[0];
 		push @cols, qualify($id_col, $root_table, \%base_tables, \@expand);
-		push @cols, qualify($class_col, $root_table, \%base_tables, \@expand);
+		push @cols, qualify($type_col, $root_table, \%base_tables, \@expand);
 		
 		my %used;
 		$used{$root_table} += 2;
@@ -1480,7 +1398,7 @@ sub get_polymorphic_select
 			}
 		  }
 		  
-		  $slice{$class->{id}} = \@slice;
+		  $slice{ $storage->{class2id}{$class->{name}} || $class->{id} } = \@slice; # should be $class->{id} (compat)
 		}
 		
 		my @from;
@@ -1500,7 +1418,7 @@ sub get_polymorphic_select
 		} grep { $used{$_} } @tables[1..$#tables];
 
 		unless (@$mates == $self->{HETEROGENEITY}{$table_set_key}) {
-		  push @where, sprintf "%s IN (%s)", qualify($class_col, $root_table, \%base_tables, \@expand),
+		  push @where, sprintf "%s IN (%s)", qualify($type_col, $root_table, \%base_tables, \@expand),
 		  join ', ', map {
 			$storage->{class2id}{$_->{name}} or $_->{id} # try $storage first for compatibility with layout1
 		  } @$mates
@@ -1559,7 +1477,7 @@ sub get_import_cache
 		  }
 		}
 		
-		my $import_source = join ",\n", @import_sources;
+		my $import_source = join ";\n", @import_sources;
 		my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
 		
 		# $Tangram::TRACE = \*STDOUT;
@@ -1572,6 +1490,16 @@ sub get_import_cache
 		# use Data::Dumper; print Dumper \@cols;
 		eval $import_source or die;
 	  };
+  }
+
+sub get_deletes
+  {
+	my ($self, $class) = @_;
+	
+	return $self->{CLASSES}{$class}{DELETES} ||= do {
+	  my $id_col = $self->{SCHEMA}{sql}{id_col};
+	  [ map { "DELETE FROM $_ WHERE $id_col = ?" } $self->get_table_set($class)->tables() ]
+	};
   }
 
 package Tangram::Relational::PolySelectTemplate;

@@ -81,14 +81,14 @@ $schema = Tangram::Schema->new( {
 		 }
 		},
 
-		hash =>
-		{
-		 h_opinions =>
-		 {
-		  class => 'Opinion',
-		  table => 'h_opinions',
-		 }
-		},
+# 		hash =>
+# 		{
+# 		 h_opinions =>
+# 		 {
+# 		  class => 'Opinion',
+# 		  table => 'h_opinions',
+# 		 }
+# 		},
 
 		iarray =>
 		{

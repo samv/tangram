@@ -9,21 +9,10 @@ package Tangram::Coll;
 
 use base qw( Tangram::Type );
 
-sub members
-{
-	my ($self, $members) = @_;
-	keys %$members;
-}
-
 sub get_import_cols
   {
 	()
   }
-
-sub cols
-{
-	()
-}
 
 sub get_importer
 {
@@ -307,12 +296,6 @@ sub get_export_cols
   {
 	()
   }
-
-sub cols
-{
-    my ($self, $members, $context) = @_;
-	return map { $_->{col} } values %$members;
-}
 
 sub get_exporter
   {
