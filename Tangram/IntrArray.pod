@@ -4,28 +4,28 @@ Tangram::IntrArray - map Perl arrays using a foreign key
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
-	use Tangram::IntrArray;
+   # or
+   use Tangram::Core;
+   use Tangram::IntrArray;
 
-	$schema = Tangram::Schema->new(
+   $schema = Tangram::Schema->new(
 
-		classes => { Agenda => { fields => {
+      classes => { Agenda => { fields => {
 
-		iarray =>
-		{
-			# long form
-			entries =>
-			{
-				class => 'Entry',
-				coll => 'agenda',
-			},
+      iarray =>
+      {
+         # long form
+         entries =>
+         {
+            class => 'Entry',
+            coll => 'agenda',
+         },
 
-			# or (short form)
-			entries => 'Entry',
-		}
+         # or (short form)
+         entries => 'Entry',
+      }
 
 =head1 DESCRIPTION
 

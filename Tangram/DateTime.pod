@@ -4,22 +4,20 @@ Tangram::DateTime - map date & time fields
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
+   # any of:
+   use Tangram::RawDate;
+   use Tangram::RawTime;
+   use Tangram::RawDateTime;
+   use Tangram::DMDateTime;
 
-	use Tangram::RawDate;		# rawdate
-	use Tangram::RawTime;		# rawtime
-	use Tangram::RawDateTime;	# rawdatetime
-	use Tangram::DMDateTime;	# dmdatetime
-
-	$schema = Tangram::Schema->new(
-	    classes => { NaturalPerson => { fields => {
-			rawdatetime => [ qw( birth death ) ],
-			rawdate => [ qw( beginVacation endVacation ) ],
-			rawtime => [ qw( breakfast lunch dinner ) ],
-			dmdatetime => [ qw( attack retreat ) ],
+   Tangram::Schema->new(
+      classes => { NaturalPerson => { fields => {
+         rawdatetime => [ qw( birth death ) ],
+         rawdate => [ qw( depart return ) ],
+         rawtime => [ qw( breakfast lunch dinner ) ],
+         dmdatetime => [ qw( attack retreat ) ],
 
 
 =head1 DESCRIPTION

@@ -4,25 +4,25 @@ Tangram::PerlDump - map any Perl object as scalar dump
 
 =head1 SYNOPSIS
 
-	use Tangram::Core;
-	use Tangram::PerlDump; # always
+   use Tangram::Core;
+   use Tangram::PerlDump; # always
 
-	$schema = Tangram::Schema->new(
-		classes => { NaturalPerson => { fields => {
+   $schema = Tangram::Schema->new(
+      classes => { NaturalPerson => { fields => {
 
-		perl_dump =>
-		{
-			diary => # diary is a perl hash 
-			{
-				col => 'diarydata',
-				sql => 'TEXT',
-				indent => 0,
-				terse => 1,
-				purity => 0
-			},
+      perl_dump =>
+      {
+         diary => # diary is a perl hash 
+         {
+            col => 'diarydata',
+            sql => 'TEXT',
+            indent => 0,
+            terse => 1,
+            purity => 0
+         },
 
-			lucky_numbers => 'int', # use defaults
-		}
+         lucky_numbers => 'int', # use defaults
+      }
 
 =head1 DESCRIPTION
 

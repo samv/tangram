@@ -12,10 +12,11 @@ collections.  It does so in an orthogonal fashion, that is, it doesn't
 require your classes to implement support functions nor inherit from a
 utility class.
 
-=head1 SUPPORTED PLATFORMS
+=head1 COMPATIBILITY
 
 Tangram is known to run in the following environments, however,
-Tangram uses standard SQL and should be usable SQL-83 database.
+Tangram uses standard SQL and should be usable with any database
+that complies to the SQL-83 standard.
 
 Note that some functions (e.g. transactions and subselects) may not be
 available in some environments. This is reported during the test suite.

@@ -4,22 +4,22 @@ Tangram::FlatArray - map Perl array of strings or numbers
 
 =head1 SYNOPSIS
 
-	use Tangram::Core;
-	use Tangram::FlatArray; # always
+   use Tangram::Core;
+   use Tangram::FlatArray; # always
 
-	$schema = Tangram::Schema->new(
-		classes => { NaturalPerson => { fields => {
+   $schema = Tangram::Schema->new(
+      classes => { NaturalPerson => { fields => {
 
-		flat_array =>
-		{
-			interests =>
-			{
-				table => 'NP_int',
-				sql => 'VARCHAR(50)',
-			},
+      flat_array =>
+      {
+         interests =>
+         {
+            table => 'NP_int',
+            sql => 'VARCHAR(50)',
+         },
 
-			lucky_numbers => 'int', # use defaults
-		}
+         lucky_numbers => 'int', # use defaults
+      }
 
 =head1 DESCRIPTION
 

@@ -4,24 +4,24 @@ Tangram::FlatHash - map Perl hash of scalar keys and values
 
 =head1 SYNOPSIS
 
-	use Tangram::Core;
-	use Tangram::FlatHash; # always
+   use Tangram::Core;
+   use Tangram::FlatHash; # always
 
-	$schema = Tangram::Schema->new(
-		classes => { NaturalPerson => { fields => {
+   $schema = Tangram::Schema->new(
+      classes => { NaturalPerson => { fields => {
 
-		flat_hash =>
-		{
-			opinions =>
-			{
-				table => 'NP_ops',
-				key_sql => 'VARCHAR(10)',
-				type => 'int',
-				sql => 'NUMERIC(1)',
-			},
+      flat_hash =>
+      {
+         opinions =>
+         {
+            table => 'NP_ops',
+            key_sql => 'VARCHAR(10)',
+            type => 'int',
+            sql => 'NUMERIC(1)',
+         },
 
-			lucky_numbers => 'int', # use defaults
-		}
+         lucky_numbers => 'int', # use defaults
+      }
 
 =head1 DESCRIPTION
 

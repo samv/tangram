@@ -21,7 +21,10 @@ implement persistence in XML documents, pure object databases etc.
 
 =head1 CLASS METHODS
 
-=head2 connect( $schema, $data_source, $user, $password, \%options )
+=head2 connect
+
+   $storage = Tangram::Relational->connect( $schema,
+      $data_source, $user, $password, \%options )
 
 Connects to a storage and return a handle object. Dies in case of
 failure.

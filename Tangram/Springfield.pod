@@ -4,11 +4,11 @@ Tangram::Springfield - classes and schema used in the Guided Tour
 
 =head1 SYNOPSIS
 
-	use Tangram;
-	use Tangram::Springfield;
+   use Tangram;
+   use Tangram::Springfield;
 
-	# deploy the storage
-	# store & retrieve objects
+   # deploy the storage
+   # store & retrieve objects
 
 =head1 DESCRIPTION
 

@@ -4,11 +4,11 @@ Tangram::Core - import core Tangram modules
 
 =head1 SYNOPSIS
 
-	use Tangram::Core;
+   use Tangram::Core;
 
-	# use additional types, e.g.:
-	use Tangram::Array;
-	use Tangram::IntrSet;
+   # use additional types, e.g.:
+   use Tangram::Array;
+   use Tangram::IntrSet;
 
 =head1 DESCRIPTION
 

@@ -4,28 +4,28 @@ Tangram::IntrSet - map Set::Object using a foreign key
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
-	use Tangram::IntrSet;
+   # or
+   use Tangram::Core;
+   use Tangram::IntrSet;
 
-	$schema = Tangram::Schema->new(
+   $schema = Tangram::Schema->new(
 
-		classes => { Basket => { fields => {
+      classes => { Basket => { fields => {
 
-		iset =>
-		{
-			# long form
-			fruits =>
-			{
-				class => 'Fruit',
-				coll => 'basket',
-			},
+      iset =>
+      {
+         # long form
+         fruits =>
+         {
+            class => 'Fruit',
+            coll => 'basket',
+         },
 
-			# or (short form)
-			fruits => 'Fruit',
-		}
+         # or (short form)
+         fruits => 'Fruit',
+      }
 
 =head1 DESCRIPTION
 

@@ -65,11 +65,11 @@ to a system of persistent classes. It has the following aspect:
 
    {
       classes =>
-	  {
-	     Identity =>
+     {
+        Identity =>
          {
             table => 'IdentityState',
-			abstract => 1
+         abstract => 1
          },
 
       NaturalPerson =>

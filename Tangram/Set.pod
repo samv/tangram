@@ -4,30 +4,30 @@ Tangram::Set - maps Set::Object using a link table
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
-	use Tangram::Set;
+   # or
+   use Tangram::Core;
+   use Tangram::Set;
 
-	$schema = Tangram::Schema->new(
+   $schema = Tangram::Schema->new(
 
-		classes => { Company => { fields => {
+      classes => { Company => { fields => {
 
-		set =>
-		{
-			# long form
-			employee =>
-			{
-				class => 'Person',
-				table => 'Company_employees',
-				coll => 'company',
-				item => 'employee',
-			},
+      set =>
+      {
+         # long form
+         employee =>
+         {
+            class => 'Person',
+            table => 'Company_employees',
+            coll => 'company',
+            item => 'employee',
+         },
 
-			# short form
-			assets => 'Asset',
-		}
+         # short form
+         assets => 'Asset',
+      }
 
 =head1 DESCRIPTION
 

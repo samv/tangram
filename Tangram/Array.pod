@@ -4,31 +4,31 @@ Tangram::Array - map Perl arrays using a link table
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
-	use Tangram::Array;
+   # or
+   use Tangram::Core;
+   use Tangram::Array;
 
-	$schema = Tangram::Schema->new(
+   $schema = Tangram::Schema->new(
 
-		classes => { Company => { fields => {
+      classes => { Company => { fields => {
 
-		array =>
-		{
-			# long form
-			employee =>
-			{
-				class => 'Person',
-				table => 'Company_employees',
-				coll => 'company',
-				item => 'employee',
-				slot => 'slot'
-			},
+      array =>
+      {
+         # long form
+         employee =>
+         {
+            class => 'Person',
+            table => 'Company_employees',
+            coll => 'company',
+            item => 'employee',
+            slot => 'slot'
+         },
 
-			# short form
-			assets => 'Asset',
-		}
+         # short form
+         assets => 'Asset',
+      }
 
 =head1 DESCRIPTION
 

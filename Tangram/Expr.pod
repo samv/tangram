@@ -4,13 +4,13 @@ Tangram::Expr - manipulate expressions on database server side
 
 =head1 SYNOPSIS
    
-	my ($r1, $r2) = $storage->remote(qw( ... ));
+   my ($r1, $r2) = $storage->remote(qw( ... ));
 
-	$r1->{field} operator $value
-   	$r1->{field} operator $r2->{field2}
+   $r1->{field} operator $value
+      $r1->{field} operator $r2->{field2}
    
-   	$r1->{collection}->includes( $obj )
-   	$r1->{collection}->exists( $obj, $filter )
+      $r1->{collection}->includes( $obj )
+      $r1->{collection}->exists( $obj, $filter )
 
 =head1 DESCRIPTION
 
@@ -109,37 +109,37 @@ Returns the Storage associated with this expression.
 
 $person is called 'Homer'
 
-   	$person->{name} eq 'Homer'
+      $person->{name} eq 'Homer'
 
 $person's name ends with 'mer'
 
-   	$person->{name}->like('%mer');
+      $person->{name}->like('%mer');
 
 $person is older than 35
 
-   	$person->{age} > 35
+      $person->{age} > 35
 
 $person is married to $homer
 
-   	$person->{partner} == $homer
+      $person->{partner} == $homer
 
 $person is not $homer
 
-   	$person != $homer
+      $person != $homer
 
 $person is not $homer and is older than 65
 
-   	$person != $homer & $person->{age} > 65
+      $person != $homer & $person->{age} > 65
 
 $person is $bart's parent
 
-   	$person->{children}->includes( $bart )
-   	$person->{children} < $bart
+      $person->{children}->includes( $bart )
+      $person->{children} < $bart
 
 $person is not $bart's parent
 
-   	!$person->{children}->includes( $bart )
-   	!($person->{children} < $bart)
+      !$person->{children}->includes( $bart )
+      !($person->{children} < $bart)
 
 =head1 SEE ALSO
 

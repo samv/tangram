@@ -4,20 +4,20 @@ Tangram::Deploy - prepare a database for use with a Schema
 
 =head1 SYNOPSIS
 
-	use Tangram::Core;
-	use Tangram::Deploy;
+   use Tangram::Core;
+   use Tangram::Deploy;
 
-	$schema = Tangram::Schema->new( $hashref );
+   $schema = Tangram::Schema->new( $hashref );
 
-	# deploy to opened DBI handle
-	$dbh = DBI->connect(...);
-	$schema->deploy($dbh, $schema);
+   # deploy to opened DBI handle
+   $dbh = DBI->connect(...);
+   $schema->deploy($dbh, $schema);
 
-	# write SQL to FILE
-	$schema->deploy( \*FILE );
+   # write SQL to FILE
+   $schema->deploy( \*FILE );
 
-	# write SQL to STDOUT
-	$schema->deploy();
+   # write SQL to STDOUT
+   $schema->deploy();
    
 
 =head1 DESCRIPTION

@@ -4,33 +4,33 @@ Tangram::Ref - map references to persistent objects
 
 =head1 SYNOPSIS
 
-	use Tangram;
+   use Tangram;
 
-	# or
-	use Tangram::Core;
-	use Tangram::Ref;
+   # or
+   use Tangram::Core;
+   use Tangram::Ref;
 
-	$schema = Tangram::Schema->new(
-	    classes => { Company => { fields => {
-			ref => [ qw( ceo vice_ceo ) ]
+   $schema = Tangram::Schema->new(
+       classes => { Company => { fields => {
+         ref => [ qw( ceo vice_ceo ) ]
 
-	# or
+   # or
 
-	$schema = Tangram::Schema->new(
-	    classes => { Company => { fields => {
-			ref =>
-			{
-				ceo =>
-				{
-					col => 'ceo',
-					null => 0
-				},
+   $schema = Tangram::Schema->new(
+       classes => { Company => { fields => {
+         ref =>
+         {
+            ceo =>
+            {
+               col => 'ceo',
+               null => 0
+            },
 
-				vice_ceo =>
-				{
-					...
-				}
-		
+            vice_ceo =>
+            {
+               ...
+            }
+      
 
 =head1 DESCRIPTION
 
