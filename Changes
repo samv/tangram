@@ -80,3 +80,8 @@ Revision history for Perl extension Tangram.
 	- tx_do() can now propagate arguments to closure/anon-sub;
 	  insert(), update() and erase() pass anon-subs to tx_do to prevent
 	  leaks (thanks Radu Greab)
+
+1.11  May 29 2000 - public version
+	- ordering result set by descending order is now supported
+	- die() on attempt to load from an invalid id
+	- removed silly table id allocation limit (t1000) in Coll.pm
