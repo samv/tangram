@@ -1,3 +1,5 @@
+DROP DATABASE
+CREATE DATABASE
 =head1 NAME
 
 Tangram - Guided Tour
@@ -26,7 +28,7 @@ All this is expressed in the following UML diagram:
                        +---------------------+        +--------------+ 
                        |       Person        |        |    Address   |
                        |     { abstract }    |1<>-->-*|--------------|
-                       |---------------------|        | type: string |
+                       |---------------------|        | kind: string |
                        +---------------------+        | city: string |
                                    |                  +--------------+
                                    |
@@ -77,19 +79,19 @@ Here is the Schema for Springfield:
 
       classes => [
 
-         Person => {
-            abstract => 1,
-
-            fields => {
-                iarray => { addresses => { class => 'Address', aggreg => 1 } }
-            }
-         }
-      },
+       Person => {
+          abstract => 1,
+      
+          fields => {
+              iarray => {
+                 addresses => { class => 'Address', aggreg => 1 } }
+          }
+       },
 
       Address => {
          fields => {
-            string => [ qw( type city ) ],
-         }
+            string => [ qw( kind city ) ],
+         },
       },
 
       NaturalPerson => {
@@ -101,7 +103,7 @@ Here is the Schema for Springfield:
             int      => [ qw( age ) ],
             ref      => [ qw( partner ) ],
             array    => { children => 'NaturalPerson' },
-         },
+         }
       },
 
       LegalPerson => {
@@ -110,8 +112,8 @@ Here is the Schema for Springfield:
          fields => {
             string   => [ qw( name ) ],
             ref      => [ qw( manager ) ],
+            }
          },
-      },
    ] } );
 
 The Schema lists all the classes that need persistence, along with
@@ -143,24 +145,35 @@ empty database and let Tangram initialize it:
 
     $dbh->disconnect();
 
+Tangram::Relational is the vanilla object-relational backend. It
+assumes that the database understands standard SQL, and that both the
+database and the related DBI driver fully implements the DBI
+specification.
 
-For more information on deploying databases, see L<Tangram::Relational>.
+Tangram also comes with vendor-specific backends for Mysql and
+Sybase. When a vendor-specific backend exists, it should be used in
+place of the vanilla backend.
+
+For more information, see L<Tangram::Relational>, L<Tangram::Sybase>
+and L<Tangram::mysql>.
 
 =head2 Connecting to a database
 
 We are now ready to store objects. First we connect to the database,
-using the class method Tangram::Relational::connect. Its
-first argument is the schema object; the others are passed directly to
-DBI::connect. The method returns a Tangram::Storage object that will be
-used to communicate with the database.
+using the class method Tangram::Relational::connect (or
+Tangram::mysql::connect for Mysql).
+
+The first argument of connect() the schema object; the others are
+passed directly to DBI::connect. The method returns a Tangram::Storage
+object that will be used to communicate with the database.
 
 For example:
 
-    $storage = Tangram::Sybase->connect( $schema,
+    $storage = Tangram::Relational->connect( $schema,
         @cp );
 
-connects to a database named Springfield via the Sybase driver, using
-a specific account and password.
+connects to a database named Springfield via the vanilla Relational
+backend, using a specific account and password.
 
 For more information on connecting to databases, see  L<Tangram::Relational> and
 L<Tangram::Storage>.
@@ -189,15 +202,15 @@ Sometimes Tangram saves objects implicitly:
         firstName => 'Marge', name => 'Simpson',
         addresses => [
             Address->new(
-                type => 'residence', city => 'Springfield' ) ],
+                kind => 'residence', city => 'Springfield' ) ],
         children => [ @kids ] );
 
     $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson',
         addresses => [
             Address->new(
-                type => 'residence', city => 'Springfield' ),
+                kind => 'residence', city => 'Springfield' ),
             Address->new(
-                type => 'work', city => 'Springfield' ) ],
+                kind => 'work', city => 'Springfield' ) ],
         children => [ @kids ] );
 
     $homer->{partner} = $marge;
@@ -278,10 +291,10 @@ When an object is inserted, Tangram assigns an identifier to it.
 IDs are numbers that uniquely identify objects in the database.
 C<insert> returns the ID(s) of the object(s) it was passed:
 
-    $storage = Tangram::Sybase->connect( $schema,
+    $storage = Tangram::Relational->connect( $schema,
         @cp );
 
-    $flanders_id = $storage->insert( NaturalPerson->new(
+    $ned_id = $storage->insert( NaturalPerson->new(
         firstNname => 'Ned', name => 'Flanders' ) );
 
     @sisters_id = $storage->insert(
@@ -300,7 +313,7 @@ For more information on loading objects by id, see L<Tangram::Storage>.
 Once Homer has been restored to his previous state, including his relations
 with his family. Thus we can say:
 
-    $storage = Tangram::Sybase->connect( $schema,
+    $storage = Tangram::Relational->connect( $schema,
         @cp );
 
     $homer = $storage->load( $homer_id ); # load by id
@@ -322,20 +335,22 @@ L<Tangram::Set> and L<Tangram::IntrSet>.
 
 To retrieve all the objects of a given class, we use C<select>:
 
-    $storage = Tangram::Sybase->connect( $schema,
+    $storage = Tangram::Relational->connect( $schema,
         @cp );
 
     my @people = $storage->select( 'NaturalPerson' );
 
-We can also retrieve tuples of objects:
+Tangram supports polymorphic retrieval. Let's first insert a
+LegalPerson:
 
-    my ($parent, $child) = $storage->remote('NaturalPerson', 'NaturalPerson');
+    $storage->insert( LegalPerson->new(
+        name => 'Springfield Nuclear Power Plant', manager => $burns ) );
 
-    @pairs = $storage->select( [ $parent, $child ],
-        $parent->{children}->includes($child) );
 
-@pairs contains a list of references to arrays of size two; each array
-contains a pair of parent and child.
+Now we can retrieve all the Persons - Natural or Legal - by making a
+single call to select(), passing it the base class name:
+
+    my @all = $storage->select( 'Person' );
 
 For more information on select(), see L<Tangram::Storage>.
 
@@ -402,24 +417,26 @@ filtering capabilities. The following examples are all legal and working code:
 
     my @population = $storage->select( $person,
         $person->{addresses}->includes( $address )
-        & $address->{type} eq 'work'
-        & $address->{city} eq 'Springfield
+        & $address->{kind} eq 'work'
+        & $address->{city} eq 'Springfield');
 
     # find the parents of Bart Simpson
 
     my ($person1, $person2) = $storage->remote(
         qw( NaturalPerson NaturalPerson ));
 
-    my (@parents) = $storage->select( $person1,
+    my @parents = $storage->select( $person1,
         $person1->{children}->includes( $person2 )
-        & $person2->{firstName} eq 'Bart' & $person2->{name} eq 'Simpson' );
+           & $person2->{firstName} eq 'Bart'
+           & $person2->{name} eq 'Simpson' );
 
-    # find the parents of Bart Simpson - he's already loaded
+    # load Bart
+    my ($bart) = $storage->select( $person1, $person1->{firstName} eq 'Bart');
 
-    my $bart = $storage->load( $bart_id );
+    # find the parents of Bart, this time given an object already loaded
     my $person = $storage->remote( 'NaturalPerson' );
 
-    my (@parents) = $storage->select( $person,
+    @parents = $storage->select( $person,
         $person->{children}->includes( $bart ) );
 
 Note that Tangram uses a single ampersand (&) or vertical bar (|) to
@@ -427,6 +444,16 @@ represent logical conjunction or disjunction, not the usual && or
 ||. This is due to a limitation in Perl's operator overloading
 mechanism. Make sure you never forget this, because, unfortunately,
 using && or || in place of & or | is not even a syntax error :(
+
+Finally, Tangram make it possible to retrieve tuples of related objects:
+
+    my ($parent, $child) = $storage->remote('NaturalPerson', 'NaturalPerson');
+
+    @pairs = $storage->select( [ $parent, $child ],
+        $parent->{children}->includes($child) );
+
+@pairs contains a list of references to arrays of size two; each array
+contains a pair of parent and child.
 
 For more information on filters, see L<Tangram::Expr> and L<Tangram::Remote>.
 
@@ -437,7 +464,7 @@ important is the result set is potentially large.  cursor() takes the
 same arguments as select() and returns a Cursor objects that can be
 used to iterate over the result set via methods current() and next():
 
-    $storage = Tangram::Sybase->connect( $schema,
+    $storage = Tangram::Relational->connect( $schema,
         @cp );
 
     # iterate over all the NaturalPersons in storage
@@ -532,7 +559,7 @@ Tangram wraps database transactions in a object-oriented interface:
 Both Marge and Homer will be updated, or none will. tx_rollback() drops
 the changes.
 
-Tangram does not emulate transactions fo rdatabases that do not
+Tangram does not emulate transactions for databases that do not
 support them (like earlier versions of mySql).
 
 Unlike DBI, Tangram allows the nested transactions:
@@ -570,23 +597,6 @@ first example can be rewritten:
         $storage->update( $homer, $marge };
         } );
 
-For more information on remote objects, see L<Tangram::Storage>.
-
-=head2 Polymorphism
-
-Up to now we've always used NaturalPerson. However, everything we've
-seen thus far also works in presence of polymorphism. Let's create a
-LegalPerson:
-
-    $storage->insert( LegalPerson->new(
-        name => 'Springfield Nuclear Power Plant', manager => $burns ) );
-
-we now have two kinds of Person objects in the storage: Natural- and
-LegalPersons. If we select all the Persons:
-
-    my @all = $storage->select( 'Person' );
-
-...Tangram does what you would expect: it retrieves Homer and all the
-other persons of flesh and blood I<and> the Nuclear Power Plant.
+For more information on transactions, see L<Tangram::Storage>.
 
 =cut
