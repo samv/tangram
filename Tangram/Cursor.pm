@@ -42,6 +42,8 @@ sub select
 	}
 
 	$self->{-order} = $args{order};
+	$self->{-desc} = $args{desc};
+
 	$self->retrieve( @{ $args{retrieve} } ) if exists $args{retrieve};
 
 	local $stored = $self->{-stored};
@@ -195,6 +197,11 @@ sub build_select
 	if (my $order = $self->{-order})
 	{
 		$select .= "\n\tORDER BY " . join ', ', map { $_->{expr} } @$order;
+	}
+
+	if ($self->{-desc})
+	{
+		$select .= ' DESC';
 	}
 
 	return $select;
