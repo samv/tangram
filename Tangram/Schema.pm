@@ -12,32 +12,23 @@ sub class
    $self->{$class} or croak "unknown class '$class'";
 }
 
-package Tangram::Class;
+package Tangram::Node;
 
-sub members
-{
-   my ($self, $type) = @_;
-   return @{$self->{$type}};
-}
-
-sub direct_bases
+sub get_bases
   {
 	@{ shift->{BASES} }
   }
 
-sub is_root
-  {
-	!@{ shift->{BASES} }
-  }
+*direct_bases = \&get_bases;
 
-sub direct_fields
+sub get_specs
   {
-	map { values %$_ } values %{ shift->{fields} }
+	@{ shift->{SPECS} }
   }
 
 sub for_conforming
 {
-   my ($class, $fun) = @_;
+   my ($class, $fun, @args) = @_;
    my $done = Set::Object->new;
 
    my $traverse;
@@ -46,7 +37,7 @@ sub for_conforming
 	 my $class = shift;
 	 return if $done->includes($class);
 	 $done->insert($class);
-	 $fun->($class);
+	 $fun->($class, @args);
 
 	 foreach my $derived (@{ $class->{SPECS} }) {
 	   $traverse->($derived);
@@ -55,6 +46,142 @@ sub for_conforming
 
    $traverse->($class);
  }
+
+sub for_composing
+{
+   my ($class, $fun, @args) = @_;
+   my $done = Set::Object->new;
+
+   my $traverse;
+
+   $traverse = sub {
+	 my $class = shift;
+	 return if $done->includes($class);
+	 $done->insert($class);
+
+	 foreach my $base (@{ $class->{BASES} }) {
+	   $traverse->($base);
+	 }
+
+	 $fun->($class, @args);
+   };
+
+   $traverse->($class);
+ }
+
+sub get_exporter {
+  my ($self, $context) = @_;
+  
+  return $self->{EXPORTER} ||= do {
+	
+	my (@export_sources, @export_closures);
+
+	
+	$self->for_composing( sub {
+							my ($part) = @_;
+
+							$context->{class} = $part;
+							
+							for my $field ($part->direct_fields()) {
+							  if (my $exporter = $field->get_exporter($context)) {
+								if (ref $exporter) {
+								  push @export_closures, $exporter;
+								  push @export_sources, 'shift(@closures)->($obj, $context)';
+								} else {
+								  push @export_sources, $exporter;
+								}
+							  }
+							}
+						  } );
+	
+	my $export_source = join ",\n", @export_sources;
+	my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
+	
+	# $Tangram::TRACE = \*STDOUT;
+	
+	$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
+	
+	print $Tangram::TRACE "Compiling exporter for $self->{name}...\n$export_source\n"
+	  if $Tangram::TRACE;
+	
+	eval $export_source or die;
+	}
+  }
+
+sub get_importer {
+  my ($self, $context) = @_;
+  
+  return $self->{IMPORTER} ||= do {
+	my (@import_sources, @import_closures);
+	
+	$self->for_composing( sub {
+							my ($part) = @_;
+							
+							$context->{class} = $part;
+							
+							for my $field ($part->get_direct_fields()) {
+							  
+							  my $importer = $field->get_importer($context)
+								or next;
+							  
+							  if (ref $importer) {
+								push @import_closures, $importer;
+								push @import_sources, 'shift(@closures)->($obj, $row, $context)';
+							  } else {
+								push @import_sources, $importer;
+							  }
+							}
+						  } );
+	
+	my $import_source = join ";\n", @import_sources;
+	my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
+	
+	# $Tangram::TRACE = \*STDOUT;
+	
+	$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
+	
+	print $Tangram::TRACE "Compiling importer for $self->{name}...\n$import_source\n"
+	  if $Tangram::TRACE;
+	
+	# use Data::Dumper; print Dumper \@cols;
+	eval $import_source or die;
+  };
+}
+
+package Tangram::Class;
+use base qw( Tangram::Node );
+
+sub members
+{
+   my ($self, $type) = @_;
+   return @{$self->{$type}};
+}
+
+sub is_root
+  {
+	!@{ shift->{BASES} }
+  }
+
+sub get_direct_fields
+  {
+	map { values %$_ } values %{ shift->{fields} }
+  }
+
+sub get_table { shift->{table} }
+
+*direct_fields = \&get_direct_fields;
+
+sub get_import_cols {
+  my ($self, $context) = @_;
+  my $table = $self->{table};
+  map { map { [ $table, $_ ] } $_->get_import_cols($context) } $self->get_direct_fields()
+}
+
+sub get_export_cols {
+  my ($self, $context) = @_;
+  my $table = $self->{table};
+  map { map { [ $table, $_ ] } $_->get_export_cols($context) } $self->get_direct_fields()
+}
 
 package Tangram::Schema;
 #use base qw( SelfLoader );
@@ -65,7 +192,7 @@ use vars qw( %TYPES );
 %TYPES = 
 (
    %TYPES,
-   ref      => new Tangram::Ref,
+#   ref      => new Tangram::Ref,
 );
 
 sub new
@@ -201,6 +328,8 @@ sub classdef
    my ($self, $class) = @_;
    return $self->{classes}{$class} or confess "unknown class '$class'";
 }
+
+*get_class_by_name = \&classdef;
 
 sub classes
 {
@@ -405,8 +534,6 @@ sub is_persistent
 
 #use SelfLoader;
 #sub DESTROY { }
-
-1;
 
 1;
 
