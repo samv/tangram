@@ -229,7 +229,9 @@ my $no_tx;
 sub connect
   {
 	my $schema = shift || $Springfield::schema;
-	my $storage = $dialect->connect($schema, $cs, $user, $passwd) || die;
+	my $opts = {};
+	$opts->{no_tx} = 1 if $cs =~ /^dbi:mysql:/;
+	my $storage = $dialect->connect($schema, $cs, $user, $passwd, $opts) || die;
 	$no_tx = $storage->{no_tx};
 	return $storage;
   }
