@@ -64,6 +64,7 @@ sub select
 	}
 
 	$self->{-order} = $args{order};
+	$self->{-group} = $args{group};
 	$self->{-desc} = $args{desc};
 	$self->{-distinct} = $args{distinct};
 	$self->{-limit} = $args{limit};
@@ -140,17 +141,31 @@ sub build_select
 	#}
 
 
+	if (my $group = $self->{-group})
+	{
+	   $DB::single = 1;
+           # add the fields that we're grouping by to the select part
+           # of the query
+           my @not_in_it = (grep { $select !~ m/ \Q$_\E(?:,|$)/ }
+			    map { $_->expr } @$group);
+           $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
+	       if @not_in_it;
+
+           $select .= ("\n\tGROUP BY ".
+		       join ', ', map { $_->expr } @$group);
+	}
+
 	if (my $order = $self->{-order})
 	{
            # add the fields that we're ordering by to the select part
            # of the query
            my @not_in_it = (grep { $select !~ m/ \Q$_\E(?:,|$)/ }
-			    map { $_->{expr} } @$order);
+			    map { $_->expr } @$order);
            $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
 	       if @not_in_it;
 
            $select .= ("\n\tORDER BY ".
-		       join ', ', map { $_->{expr} } @$order);
+		       join ', ', map { $_->expr } @$order);
 	}
 
 	if ($self->{-desc})
