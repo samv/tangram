@@ -146,8 +146,8 @@ sub save
 
 sub literal
 {
-    my ($self, $lit) = @_;
-    return "'$lit'";
+    my ($self, $lit, $storage) = @_;
+    return $storage->{db}->quote($lit);
 }
 
 1;

@@ -411,6 +411,7 @@ sub binop
 
 	my @objects = $self->objects;
 	my $objects = Set::Object->new(@objects);
+	my $storage = $self->{storage};
 
 	if ($arg)
 	{
@@ -428,19 +429,19 @@ sub binop
 				$arg = $arg->{id}->{expr};
 			}
    
-			elsif (exists $self->{storage}{schema}{classes}{$type})
+			elsif (exists $storage->{schema}{classes}{$type})
 			{
-				$arg = $self->{storage}->id($arg) or Carp::confess "$arg is not persistent";
+				$arg = $storage->id($arg) or Carp::confess "$arg is not persistent";
 			}
 
 			else
 			{
-			    $arg = $self->{type}->literal($arg);
+			    $arg = $self->{type}->literal($arg, $storage);
 			}
 		}
 		else
 		{
-			$arg = $self->{type}->literal($arg);
+			$arg = $self->{type}->literal($arg, $storage);
 		}
 	}
 	else
