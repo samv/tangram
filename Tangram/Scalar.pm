@@ -117,35 +117,32 @@ sub quote
 }
 
 sub save
-{
+  {
     my ($self, $cols, $vals, $obj, $members, $storage) = @_;
-
-	my $dbh = $storage->{db};
-
-	my $quote = $dbh->can('quote') ||
-		sub { my $val = $_[1]; $val =~ s/'/''/g; "'$val'" }; # 'emacs
-
+    
+    my $dbh = $storage->{db};
+    
     foreach my $member (keys %$members)
-    {
-		my $memdef = $members->{$member};
-
-		next if $memdef->{automatic};
-
-		push @$cols, $memdef->{col};
-
-		if (exists($obj->{$member}) && defined( my $val = $obj->{$member} ))
-		{
-			push @$vals, $quote->($dbh, $val);
-	    }
-		else
-		{
-			push @$vals, 'NULL';
-		}
-	}
-}
+      {
+	my $memdef = $members->{$member};
+	
+	next if $memdef->{automatic};
+	
+	push @$cols, $memdef->{col};
+	
+	if (exists $obj->{$member})
+	  {
+	    push @$vals, $dbh->quote($obj->{$member});
+	  }
+	else
+	  {
+	    push @$vals, 'NULL';
+	  }
+      }
+  }
 
 sub literal
-{
+  {
     my ($self, $lit, $storage) = @_;
     return $storage->{db}->quote($lit);
 }
