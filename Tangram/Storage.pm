@@ -776,11 +776,11 @@ use base qw( Tangram::AbstractStorage );
 
 sub connect
 {
-    my ($pkg, $schema, $cs, $user, $pw) = @_;
+    my ($pkg, $schema, $cs, $user, $pw, $db) = @_;
 
     my $self = $pkg->new;
 
-    my $db = DBI->connect($cs, $user, $pw);
+    $db ||= DBI->connect($cs, $user, $pw);
 
     eval { $db->{AutoCommit} = 0 };
 
