@@ -19,7 +19,15 @@ goto NOTESTS unless yes();
 
 my $configured;
 
-if (-e 't/CONFIG')
+if ($ENV{TANGRAM_CONFIG})
+{
+   print qq{
+You have set TANGRAM_CONFIG to $ENV{TANGRAM_CONFIG}.
+Should I use it?};
+   $configured = yes();
+}
+
+if (!$configured && -e 't/CONFIG')
 {
    print q{
 It looks like there is a 't/CONFIG' file already. It probably contains
@@ -56,6 +64,7 @@ MSG
 
    open CONFIG, '>t/CONFIG' or die "Cannot create 't/CONFIG', reason: $!";
    print CONFIG "$cs\n$user\n$passwd\n";
+   close CONFIG;
 }
 
 {
@@ -64,17 +73,14 @@ MSG
     print "\nNow I will attempt to connect and prepare the database...";
 
     local $/;
-    open CONFIG, 't/CONFIG' or die "Cannot open 't/CONFIG', reason: $!";
 
-    my ($cs, $user, $passwd) = split "\n", <CONFIG>;
-
-    if (my $dbh = DBI->connect( $cs, $user, $passwd ))
+    if (my $dbh = DBI->connect( $Springfield::cs, $Springfield::user, $Springfield::passwd ))
     {
 		print "it worked!\nSay 'make test' to run the test suite.\n\n";
 
 		my $schema = $Springfield::schema;
 
-		if ($cs =~ /dbi:Pg/i)
+		if ($Springfield::cs =~ /dbi:Pg/i)
 		{
 			$schema->{sql}{default_null} = '';
 			$schema->{sql}{id} = 'int4';
