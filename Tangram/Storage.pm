@@ -933,16 +933,41 @@ sub unload
 	my $objects = $self->{objects};
 	my $set_id = $self->{set_id};
 
-	my @objs = @_ ? map { ref || $self->id($_) } @_ : values %$objects;
-
-	for my $obj (@objs)
+	if (@_)
 	{
-		$set_id->($obj, undef);
-	}
+		my $prefetch = $self->{PREFETCH};
 
-	delete $self->{objects};
-	delete $self->{ids};
-	delete $self->{PREFETCH};
+		for my $arg (@_)
+		{
+			my $id;
+
+			if (ref $arg)
+			{
+				$id = $self->id($arg);
+				$set_id->($arg, undef);
+			}
+			else
+			{
+				$id = $arg;
+				$set_id->($objects->{$arg}, undef);
+			}
+
+			delete $objects->{$id};
+			delete $prefetch->{$id};
+		}
+	}
+	else
+	{
+		for my $obj (keys %$objects)
+		{
+			$set_id->($obj, undef);
+			delete $self->{objects}
+		}
+
+		delete $self->{objects};
+		delete $self->{ids};
+		delete $self->{PREFETCH};
+	}
 
 	undef($objects);
 }

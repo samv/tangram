@@ -69,7 +69,7 @@ t/queries.t
 t/stateless.t
 t/tx.t
 t/reload.t
-t/reset.t
+t/unload.t
 
 # mappings
 t/ref.t
