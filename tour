@@ -172,10 +172,10 @@ object-relational mapping, but in this tour we will use all the defaults.
 
 Here is the Schema for Springfield:
 {{
-   $schema = Tangram::Schema->new(
+   $schema = Tangram::Schema->new( {
 
       classes =>
-      {
+      [
         Person =>
         {
 		 	abstract => 1,
@@ -223,7 +223,7 @@ Here is the Schema for Springfield:
                ref      => [ qw( manager ) ],
             },
          },
-      } );
+      ] } );
 }}
 The Schema lists all the classes that need persistence, along with
 their attributes and the inheritance relationships.  We must provide

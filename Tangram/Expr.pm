@@ -98,7 +98,7 @@ sub root_table
 sub class_id_col
 {
 	my ($self) = @_;
-	return "t$self->{tables}[0][1].classId";
+	return "t$self->{tables}[0][1].$self->{storage}{class_col}";
 }
 
 sub leaf_table
@@ -140,7 +140,7 @@ sub cols
 	my $root = $tables->[0][1];
 	my $schema = $self->storage->{schema};
 
-	my $cols = "t$root.id, t$root.classId";
+	my $cols = "t$root.id, t$root.$self->{storage}{class_col}";
 
 	foreach my $table (@$tables)
 	{
@@ -242,7 +242,7 @@ sub where
 		$schema->for_each_spec($class,
 							   sub { my $spec = shift; push @class_ids, $storage->class_id($spec) unless $classes->{$spec}{abstract} } );
 
-		@where_class_id = "t$root.classId IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')';
+		@where_class_id = "t$root.$storage->{class_col} IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')';
 	}
 
 	return (@where_class_id, map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables]);
@@ -537,9 +537,10 @@ sub is_kind_of
 
 	my $object = $self->{object};
 	my $root = $object->{tables}[0][1];
+	my $storage = $object->{storage};
 
 	Tangram::Filter->new(
-						 expr => "t$root.classId IN (" . join(', ', $object->{storage}->_kind_class_ids($class) ) . ')',
+						 expr => "t$root.$storage->{class_col} IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')',
 						 tight => 100,
 						 objects => Set::Object->new( $object ) );
 }

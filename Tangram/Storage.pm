@@ -34,12 +34,25 @@ sub _open
   {
     my ($self, $schema) = @_;
 
+	my $dbh = $self->{db};
+
     $self->{table_top} = 0;
     $self->{free_tables} = [];
 
     $self->{tx} = [];
 
     $self->{schema} = $schema;
+
+	{
+	  local $dbh->{PrintError} = 0;
+	  my $control = $dbh->selectall_arrayref("SELECT major, minor FROM $schema->{control}");
+
+	  if ($control) {
+		$self->{class_col} = $schema->{sql}{class_col};
+	  } else {
+		$self->{class_col} = 'classId';
+	  }
+	}
 
     my $cursor = $self->sql_cursor("SELECT classId, className FROM $schema->{class_table}", $self->{db});
 
@@ -516,7 +529,7 @@ sub get_export_cache
 
 							if ($root)
 							  {
-								push @metacols, 'classId';
+								push @metacols, $self->{class_col};
 							  }
 
 							if (@cols || $root) {

@@ -16,7 +16,7 @@ use vars qw( $schema @ISA @EXPORT );
 
 require Exporter;
 @ISA = qw( Exporter );
-@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect );
+@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect );
 
 $schema = Tangram::Schema->new( {
 
@@ -31,7 +31,7 @@ $schema = Tangram::Schema->new( {
    class_table => 'Classes',
 								  
    classes =>
-   {
+   [
       Person =>
       {
          abstract => 1,
@@ -202,7 +202,7 @@ $schema = Tangram::Schema->new( {
 	 }
 	},
 
-   } } );
+   ] } );
 
 use vars qw( $cs $user $passwd $dialect );
 
@@ -227,7 +227,7 @@ my $no_tx;
 
 sub connect
   {
-	my $storage = Tangram::Relational->connect($Springfield::schema, $cs, $user, $passwd) || die;
+	my $storage = $dialect->connect($Springfield::schema, $cs, $user, $passwd) || die;
 	$no_tx = $storage->{no_tx};
 	return $storage;
   }

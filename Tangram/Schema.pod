@@ -65,22 +65,23 @@ to a system of persistent classes. It has the following aspect:
 
    {
       classes =>
-     {
+     [
         Identity =>
          {
             table => 'IdentityState',
          abstract => 1
          },
 
-      NaturalPerson =>
-      {
-         bases => [ qw( Identity ) ],
-      },
+         NaturalPerson =>
+         {
+            bases => [ qw( Identity ) ],
+         },
 
-      LegalPerson =>
-      {
-         bases => [ qw( Identity ) ],
-      },
+         LegalPerson =>
+         {
+            bases => [ qw( Identity ) ],
+         },
+      ],
 
       make_object => sub { ... },
       set_id => sub { ... }
@@ -91,7 +92,7 @@ to a system of persistent classes. It has the following aspect:
       sql => { ... },
    }
 
-C<classes> is a hash called the L<class registry>. It contains a
+C<classes> is an array called the L<class registry>. It contains a
 description of each persistent class.
 
 C<make_object> contains a reference to a closure that returns a

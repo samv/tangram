@@ -85,36 +85,15 @@ MSG
 
     if (my $dbh = DBI->connect( $Springfield::cs, $Springfield::user, $Springfield::passwd ))
     {
-		print "it worked!\nSay 'make test' to run the test suite.\n\n";
-
-		my $schema = $Springfield::schema;
-
-		if ($Springfield::cs =~ /dbi:Pg/i)
-		{
-			$schema->{sql}{default_null} = '';
-			$schema->{sql}{id} = 'int4';
-			$schema->{sql}{cid} = 'int4';
-			$schema->{sql}{oid} = 'int4';
-		}
-
-		elsif ($Springfield::cs =~ /access/i)
-		{
-			$schema->{sql}{id} = 'int';
-			$schema->{sql}{cid} = 'int';
-			$schema->{sql}{oid} = 'int';
-		}
-
-		my $rs = $schema->relational_schema();
-
 		do
 		{
-			local $dbh->{PrintError};
-			$rs->retreat($dbh);
+		  local $dbh->{PrintError};
+		  $Springfield::dialect->retreat($Springfield::schema, $dbh);
 		};
 
-		$rs->deploy($dbh);
-	
+		$Springfield::dialect->deploy($Springfield::schema, $dbh);
 		$dbh->disconnect;
+		print "it worked!\nSay 'make test' to run the test suite.\n\n";
     }
 }
 

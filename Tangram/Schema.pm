@@ -40,8 +40,12 @@ sub new
     $self->{make_object} ||= sub { shift()->new() };
     $self->{class_table} ||= 'OpalClass';
 
+	$self->{control} ||= 'tangram';
+
 	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
+	$self->{sql}{id_col} ||= 'id';
 	$self->{sql}{id} ||= 'INTEGER';
+	$self->{sql}{class_col} ||= 'class';
 	$self->{sql}{cid} ||= 'INTEGER';
 	$self->{sql}{oid} ||= 'INTEGER';
 	$self->{sql}{cid_size} ||= 4;
@@ -50,12 +54,22 @@ sub new
 
     %$types = ( %TYPES, %$types );
 
-    my $classes = $self->{'classes'};
-    bless $classes, 'Tangram::ClassHash';
+	my @class_list = ref($self->{'classes'}) eq 'HASH' ? %{ $self->{'classes'} } : @{ $self->{'classes'} };
+    my $class_hash = $self->{'classes'} = {};
 
-    while (my ($class, $def) = each %$classes)
+    bless $class_hash, 'Tangram::ClassHash';
+
+    my $autoid = 0;
+
+    while (my ($class, $def) = splice @class_list, 0, 2)
     {
-		my $classdef = $classes->{$class};
+		my $classdef = $class_hash->{$class} = $def;
+
+		if (exists $def->{id}) {
+		  $autoid = $def->{id};
+		} else {
+		  $def->{id} = ++$autoid;
+		}
 
 		bless $classdef, 'Tangram::Class';
 
@@ -96,20 +110,20 @@ sub new
 
 		foreach my $base (@{$classdef->{bases}})
 		{
-			push @{$classes->{$base}{specs}}, $class;
+			push @{$class_hash->{$base}{specs}}, $class;
 		}
     }
 
-    while (my ($class, $classdef) = each %$classes)
+    while (my ($class, $classdef) = each %$class_hash)
     {
 		my $root = $class;
 	
-		while (@{$classes->{$root}{bases}})
+		while (@{$class_hash->{$root}{bases}})
 		{
-			$root = @{$classes->{$root}{bases}}[0];
+			$root = @{$class_hash->{$root}{bases}}[0];
 		}
 
-		$classdef->{root} = $classes->{$root};
+		$classdef->{root} = $class_hash->{$root};
 		delete $classdef->{stateless} if $root eq $class;
     }
 

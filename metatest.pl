@@ -10,5 +10,4 @@ do {
 } done
 
 export TANGRAM_CONFIG=CONFIG.1.mysql;
-yes 2>/dev/null|perl Makefile.PL
 make test

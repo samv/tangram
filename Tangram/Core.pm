@@ -20,18 +20,19 @@ package Tangram::Relational;
 sub connect
   {
 	my $self = shift;
+	return Tangram::Storage->connect( @_ );
+  }
 
-	my $dialect = 'Tangram::' . (split ':', $_[1])[1]; # deduce dialect from DBI driver
+sub deploy
+  {
+	shift; # class
+	shift->deploy( @_ );
+  }
 
-	eval "use $dialect";
-
-	return Tangram::Storage->connect( @_ )
-	  if $@	|| $dialect->can('connect') == \&connect;
-
-	print $Tangram::TRACE "Using $dialect\n"
-	  if $Tangram::TRACE;
-
-	return $dialect->connect( @_ );
+sub retreat
+  {
+	shift; # class
+	shift->retreat( @_ );
   }
 
 1;

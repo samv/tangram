@@ -1,5 +1,6 @@
 use strict;
 use Carp;
+use Tangram;
 
 package Tangram::Schema;
 
@@ -21,8 +22,8 @@ sub relational_schema
 		my $tabledef = $tables->{ $classdef->{table} } ||= {};
 		my $cols = $tabledef->{COLS} ||= {};
 
-		$cols->{id} = $self->{sql}{id};
-		$cols->{classId} = $self->{sql}{cid} if $classdef->{root} == $classdef;
+		$cols->{ $self->{sql}{id_col} } = $self->{sql}{id};
+		$cols->{ $self->{sql}{class_col} } = $self->{sql}{cid} if $classdef->{root} == $classdef;
 
 		foreach my $typetag (keys %{$classdef->{members}})
 		{
@@ -189,7 +190,7 @@ sub retreat
 
     my $do = _deploy_do($output);
 
-    for my $table (sort keys %$tables, $schema->{class_table})
+    for my $table (sort keys %$tables, $schema->{class_table}, $schema->{control})
     {
 		$do->( "DROP TABLE $table" );
     }
@@ -211,16 +212,20 @@ sub deploy
 
 		my @base_cols;
 
-		push @base_cols, "id $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{id};
-		push @base_cols, "classId $schema->{sql}{cid} NOT NULL" if exists $cols->{classId};
+		my $id_col = $schema->{sql}{id_col};
+		my $class_col = $schema->{sql}{class_col};
 
-		delete @$cols{qw( id classId )};
+		push @base_cols, "$id_col $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{$id_col};
+		push @base_cols, "$class_col $schema->{sql}{cid} NOT NULL" if exists $cols->{$class_col};
+
+		delete @$cols{$id_col};
+		delete @$cols{$class_col};
 
 		$do->("CREATE TABLE $table\n(\n  ",
 			  join( ",\n  ", @base_cols, map { "$_ $cols->{$_}" } keys %$cols ),
 			  "\n)" );
     }
-
+	
     $do->( <<SQL );
 CREATE TABLE $schema->{class_table}
 (
@@ -230,6 +235,22 @@ CREATE TABLE $schema->{class_table}
  PRIMARY KEY ( classId )
 )
 SQL
+
+my $control = $schema->{control};
+	
+    $do->( <<SQL );
+CREATE TABLE $control
+(
+major INTEGER NOT NULL,
+minor INTEGER NOT NULL,
+mark INTEGER NOT NULL
+)
+SQL
+
+my ($major, $minor) = split '\.', $Tangram::VERSION;
+
+    $do->("INSERT INTO $control (major, minor, mark) VALUES ($major, $minor, 0)");
+		  
 
     my $cids = $self->classids();
     foreach (keys %$cids) {
@@ -243,27 +264,9 @@ sub classids
 {
     my ($self) = @_;
     my ($tables, $schema) = @$self;
-
-    my $classes = $schema->{classes};
-    my $classids = {};
-    my $autoid = 0;
-
-    foreach my $class (keys %$classes)
-    {
-	  next if $classes->{$class}{abstract};
-	  next unless defined $classes->{$class}{id};
-	  my $id = $classids->{$class} = $classes->{$class}{id};
-	  $autoid = $id if $id > $autoid;
-    }
-
-    foreach my $class (keys %$classes)
-    {
-	  next if $classes->{$class}{abstract};
-	  next if defined $classes->{$class}{id};
-	  $classids->{$class} = ++$autoid;
-    }
-
-    return $classids;
+	my $classes = $schema->{classes};
+	use Data::Dumper;
+	return { map { $_ => $classes->{$_}{id} } keys %$classes };
 }
 
 1;
