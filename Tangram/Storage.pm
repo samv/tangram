@@ -537,24 +537,29 @@ sub load
 
     return $self->{objects}{$id} if exists $self->{objects}{$id};
 
-    my $classId = int substr $id, -$self->{cid_size};
-    my $class = $self->{id2class}{$classId};
-    my $alias = Tangram::CursorObject->new($self, $class);
-    my $select = $alias->cols;
-    my $from = $alias->from;
-    my $where = join ' AND ', $alias->where, " t" . $alias->root_table . ".id = $id";
-    my $sql = "SELECT $select FROM $from WHERE $where";
-   
-    my $cursor = $self->sql_cursor($sql, $self->{db});
-    my @row = $cursor->fetchrow();
-    $cursor->close();
-   
-    splice @row, 0, 2; # id and classId
+    my $class = $self->{id2class}{ int(substr($id, -$self->{cid_size})) };
 
-    # in load   
-    my $obj = $self->read_object($id, $class, \@row, $alias->parts);
+	my ($row, $alias) = _fetch_object_state($self, $id, $class);
+
+    my $obj = $self->read_object($id, $class, $row, $alias->parts);
    
-    $self->{-residue} = \@row;
+    # ??? $self->{-residue} = \@row;
+   
+    return $obj;
+}
+
+sub reload
+{
+    my $self = shift;
+
+    return map { scalar $self->load( $_ ) } @_ if wantarray;
+
+	my $obj = shift;
+    my $id = $self->id($obj) or die "'$obj' is not persistent";
+    my $class = $self->{id2class}{ int(substr($id, -$self->{cid_size})) };
+
+	my ($row, $alias) = _fetch_object_state($self, $id, $class);
+    _row_to_object($self, $obj, $id, $class, $row, $alias->parts);
    
     return $obj;
 }
@@ -563,52 +568,103 @@ sub read_object
 {
     my ($self, $id, $class, $row, @parts) = @_;
 
-    #print "read_object $class: ", (join ' ', map { defined($_) ? $_ : 'undef' } @$row), "\n";
-
     my $schema = $self->{schema};
 
     my $obj = $schema->{make_object}->($class);
 
     unless (exists	$self->{objects}{$id})
     {
-	# do this only if object is not loaded yet
-	# otherwise we're just skipping columns in $row
-	$self->{set_id}->($obj, $id);
-	$self->{objects}{$id} = $obj;
-    }
-   
-    my $types = $schema->{types};
-
-    foreach my $class (@parts)
-    {
-	my $classdef = $schema->classdef($class);
-
-	foreach my $typetag (keys %{$classdef->{members}})
-	{
-	    my $members = $classdef->{members}{$typetag};
-	    $types->{$typetag}->read($row, $obj, $members, $self, $class);
-	}
+		# do this only if object is not loaded yet
+		# otherwise we're just skipping columns in $row
+		$self->{set_id}->($obj, $id);
+		$self->{objects}{$id} = $obj;
     }
 
-    $schema->visit_up($class,
-		      sub
-		      {
-			  my ($class) = @_;
-			  my $classdef = $schema->classdef($class);
-
-			  if ($classdef->{stateless})
-			  {
-			      my $types = $schema->{types};
-
-			      foreach my $typetag (keys %{$classdef->{members}})
-			      {
-				  my $members = $classdef->{members}{$typetag};
-				  $types->{$typetag}->read($row, $obj, $members, $self, $class);
-			      }
-			  }
-		      } );
+    _row_to_object($self, $obj, $id, $class, $row, @parts);
 
     return $obj;
+}
+
+sub _row_to_object
+{
+    my ($self, $obj, $id, $class, $row, @parts) = @_;
+
+    my $schema = $self->{schema};
+	my $classes = $schema->{classes};
+    my $types = $schema->{types};
+
+	my $cache = $self->{transfer_cache}{$class} ||= do
+	{
+		my @cache;
+
+		foreach my $class (@parts)
+		{
+			my $fields = $classes->{$class}{fields};
+
+			for my $typetag (keys %$fields)
+			{
+				my $type = $types->{$typetag};
+
+				push @cache,
+					[
+					 $type->can('read'), $type,
+					 $fields->{$typetag}, $class,
+					];
+			}
+		}
+
+		$schema->visit_up($class,
+		    sub
+			{
+				my $class = shift;
+				my $classdef = $classes->{$class};
+
+				if ($classdef->{stateless})
+				{
+					my $fields = $classdef->{fields};
+
+					foreach my $typetag (keys %$fields)
+					{
+						my $type = $types->{$typetag};
+
+						push @cache,
+							[
+							 $type->can('read'), $type,
+							 $fields->{$typetag}, $class,
+							];
+					}
+				}
+			} );
+
+		\@cache;
+	};
+
+	for my $transfer (@$cache)
+	{
+		my ($method, $type, $field, $class) = @$transfer;
+		$method->($type, $row, $obj, $field, $self, $class);
+	}
+
+	return $obj;
+}
+
+sub _fetch_object_state
+{
+    my ($self, $id, $class) = @_;
+
+    my $alias = Tangram::CursorObject->new($self, $class);
+    my $select = $alias->cols;
+    my $from = $alias->from;
+    my $where = join ' AND ', $alias->where, " t" . $alias->root_table . ".id = $id";
+    my $sql = "SELECT $select FROM $from WHERE $where";
+   
+    my $cursor = $self->sql_cursor($sql, $self->{db});
+    my $row = [ $cursor->fetchrow() ];
+    $cursor->close();
+   
+    splice @$row, 0, 2; # id and classId
+
+	return ($row, $alias);
 }
 
 sub select
@@ -843,12 +899,7 @@ sub new
 
 sub fetchrow
 {
-    my $self = shift;
-    return $self->{statement}->fetchrow;
-   
-    my @row = $self->{statement}->fetchrow;
-    print '*** ', join(' ', @row), "\n";
-    @row;
+    return shift->{statement}->fetchrow;
 }
 
 sub close

@@ -60,6 +60,7 @@ t/mi.t
 t/queries.t
 t/stateless.t
 t/tx.t
+t/reload.t
 
 # mappings
 t/ref.t
