@@ -27,6 +27,7 @@ Tangram/AbstractArray.pm
 Tangram/Array.pm
 Tangram/IntrArray.pm
 Tangram/FlatArray.pm
+Tangram/FlatHash.pm
 
 Tangram/AbstractSet.pm
 Tangram/Set.pm
@@ -53,9 +54,10 @@ Tangram/Ref.pod
 Tangram/Array.pod
 Tangram/IntrArray.pod
 Tangram/FlatArray.pod
+Tangram/FlatHash.pod
 Tangram/Set.pod
 Tangram/IntrSet.pod
-# Tangram/Lobs.pod
+Tangram/DateTime.pod
 
 Tangram/Type.pod
 Tangram/Dialect.pod
@@ -76,6 +78,7 @@ t/unload.t
 t/ref.t
 t/array.t
 t/flatarray.t
+t/flathash.t
 t/iarray.t
 t/set.t
 t/iset.t
