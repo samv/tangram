@@ -58,6 +58,8 @@ fields:
 
 =item * sql
 
+=item * automatic
+
 =back
 
 C<col> sets the name of the column used to store the field's
@@ -67,6 +69,9 @@ name. Override if the field name is not an acceptable SQL column name.
 C<sql> sets the SQL type of the column. Used by Schema::deploy() when
 initializing a database. Defaults to 'VARCHAR(255) NULL' for strings,
 'INT NULL' for ints and 'REAL NULL' for reals.
+
+C<automatic>, if set to true, tells Tangram not to save the field to
+storage. This is useful for auto-increment or timestamp columns.
 
 The persistent fields may also be specified as an array of strings, in
 which case the defaults are used.
