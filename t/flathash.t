@@ -15,7 +15,7 @@ sub compare_hash {
   1;
 }
 
-Springfield::begin_tests(18);
+Springfield::begin_tests(17);
 
 #$Tangram::TRACE = \*STDOUT;
 
