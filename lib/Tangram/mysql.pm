@@ -79,8 +79,11 @@ sub make_id
 sub tx_start
   {
     my $storage = shift;
-    $storage->sql_do(q/SELECT GET_LOCK("tx", 10)/)
-      unless @{ $storage->{tx} };
+    unless (@{ $storage->{tx} }) {
+	if ( $storage->{no_tx} ) {
+	    $storage->sql_do (q{SELECT GET_LOCK("tx", 10)} ); #})  #cperl-mode--
+	}
+    }
     $storage->SUPER::tx_start(@_);
   }
 
@@ -88,14 +91,19 @@ sub tx_commit
   {
     my $storage = shift;
     $storage->SUPER::tx_commit(@_);
-    $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/)
-      unless @{ $storage->{tx} };
+    unless (@{ $storage->{tx} }) {
+	if ( $storage->{no_tx} ) {
+	    $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/)
+	}
+    }
   }
 
 sub tx_rollback
   {
     my $storage = shift;
-    $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/);
+    if ( $storage->{no_tx} ) {
+	$storage->sql_do(q/SELECT RELEASE_LOCK("tx")/);
+    }
     $storage->SUPER::tx_rollback(@_);
   }
 

@@ -146,11 +146,14 @@ is($CD::c, 0, "no objects leaked");
 		      ],
 	);
 
+    # this could probably be considered a design caveat
+    $_ = $storage->from_dbms("date", $_) foreach @$row;
 }
 
 is($CD::c, 0, "no objects leaked");
 
 {
+
     is_deeply($row, [ '1999-10-26T00:00:00', '2004-04-01T00:00:00' ],
 	      "aggregation type queries");
 

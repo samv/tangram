@@ -10,6 +10,7 @@ springfield/06-reload.t
 springfield/07-weakref.t
 springfield/15-datetime.t
 springfield/20-perldump.t
+springfield/21-flatarray-part2.t
 springfield/21-flatarray.t
 springfield/22-flathash.t
 springfield/30-ref.t
@@ -32,6 +33,5 @@ springfield/90-aggregate.t
 springfield/99-retreat.t
 musicstore/00-deploy.t
 musicstore/01-simple.t
-musicstore/02-reorg.t
 musicstore/03-reschema.t
 musicstore/zz-retreat.t

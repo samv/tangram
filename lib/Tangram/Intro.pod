@@ -1,3 +1,6 @@
+
+# to be completed.
+
 =head1 NAME
 
 Tangram::Intro - an introduction to Tangram
@@ -135,4 +138,6 @@ Tangram has been transaction-savvy since version 1.  So long as you
 are careful to flush Tangram's object cache, before you start doing
 selects that lock rows for update, then you can easily write
 transaction protected programs.
+
+=cut
 
