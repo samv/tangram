@@ -149,7 +149,7 @@ sub get_importer {
 }
 
 package Tangram::Class;
-use base qw( Tangram::Node );
+our @ISA = qw( Tangram::Node );
 
 sub members
 {
@@ -184,7 +184,7 @@ sub get_export_cols {
 }
 
 package Tangram::Schema;
-#use base qw( SelfLoader );
+#our @ISA = qw( SelfLoader );
 use Carp;
 
 use vars qw( %TYPES );

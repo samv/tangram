@@ -49,7 +49,7 @@ sub exists
 
 package Tangram::FlatHash;
 
-use base qw( Tangram::AbstractHash );
+our @ISA = qw( Tangram::AbstractHash );
 use Tangram::AbstractHash;
 
 $Tangram::Schema::TYPES{flat_hash} = Tangram::FlatHash->new;

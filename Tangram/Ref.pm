@@ -40,7 +40,7 @@ use Tangram::Scalar;
 
 package Tangram::Ref;
 
-use base qw( Tangram::Scalar SelfLoader );
+our @ISA = qw( Tangram::Scalar SelfLoader );
 
 $Tangram::Schema::TYPES{ref} = Tangram::Ref->new;
 

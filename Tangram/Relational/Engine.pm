@@ -477,7 +477,7 @@ sub DESTROY {
 
 package Tangram::Relational::Engine::Class;
 
-use base qw( Tangram::Node );
+our @ISA = qw( Tangram::Node );
 
 sub new {
   bless { }, shift;

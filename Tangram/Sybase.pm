@@ -3,7 +3,7 @@
 use strict;
 
 package Tangram::Sybase;
-use base qw( Tangram::Relational );
+our @ISA = qw( Tangram::Relational );
 
 sub connect
   {
@@ -15,7 +15,7 @@ use Tangram::Storage;
 
 package Tangram::Sybase::Storage;
 
-use base qw( Tangram::Storage );
+our @ISA = qw( Tangram::Storage );
 
 sub prepare
   {
@@ -98,7 +98,7 @@ sub finish
 # derive a DateExpr class from existing Expr
 
 package Tangram::Sybase::DateExpr;
-use base qw( Tangram::Expr );
+our @ISA = qw( Tangram::Expr );
 
 ############################
 # add method datepart($part)

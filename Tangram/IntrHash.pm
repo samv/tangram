@@ -6,7 +6,7 @@ __END__
 
 package Tangram::IntrHash;
 
-use base qw( Tangram::AbstractHash );
+our @ISA = qw( Tangram::AbstractHash );
 
 use Carp;
 

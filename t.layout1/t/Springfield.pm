@@ -405,12 +405,12 @@ use vars qw( @ISA );
 @ISA = 'LegalPerson';
 
 package Opinion;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 package Credit;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 package Item;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 1;

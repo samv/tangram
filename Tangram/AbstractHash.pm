@@ -5,7 +5,7 @@ use strict;
 package Tangram::AbstractHash;
 
 use Tangram::Coll;
-use base qw( Tangram::Coll );
+our @ISA = qw( Tangram::Coll );
 
 use Carp;
 

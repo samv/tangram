@@ -6,7 +6,7 @@ use Tangram::Type;
 
 package Tangram::Scalar;
 
-use base qw( Tangram::Type );
+our @ISA = qw( Tangram::Type );
 
 sub reschema
 {
@@ -92,7 +92,7 @@ sub content
 
 package Tangram::Number;
 
-use base qw( Tangram::Scalar );
+our @ISA = qw( Tangram::Scalar );
 
 sub get_export_cols
 {
@@ -102,18 +102,18 @@ sub get_export_cols
 
 package Tangram::Integer;
 
-use base qw( Tangram::Number );
+our @ISA = qw( Tangram::Number );
 $Tangram::Schema::TYPES{int} = Tangram::Integer->new;
 
 package Tangram::Real;
 
-use base qw( Tangram::Number );
+our @ISA = qw( Tangram::Number );
 
 $Tangram::Schema::TYPES{real} = Tangram::Real->new;
 
 package Tangram::String;
 
-use base qw( Tangram::Scalar );
+our @ISA = qw( Tangram::Scalar );
 
 $Tangram::Schema::TYPES{string} = Tangram::String->new;
 

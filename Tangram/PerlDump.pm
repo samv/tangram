@@ -14,7 +14,7 @@ use Tangram::Scalar;
 
 package Tangram::PerlDump;
 
-use base qw( Tangram::String );
+our @ISA = qw( Tangram::String );
 use Data::Dumper;
 
 $Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;

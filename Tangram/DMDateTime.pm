@@ -4,7 +4,7 @@ package Tangram::DMDateTime;
 
 use strict;
 use Tangram::RawDateTime;
-use base qw( Tangram::RawDateTime );
+our @ISA = qw( Tangram::RawDateTime );
 use Date::Manip qw(ParseDate UnixDate);
 
 $Tangram::Schema::TYPES{dmdatetime} = Tangram::DMDateTime->new;

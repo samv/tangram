@@ -6,7 +6,7 @@ use Tangram::AbstractSet;
 
 package Tangram::Set;
 
-use base qw( Tangram::AbstractSet );
+our @ISA = qw( Tangram::AbstractSet );
 
 use Carp;
 

@@ -6,7 +6,7 @@ use Tangram::Scalar;
 
 package Tangram::RawDateTime;
 
-use base qw( Tangram::String );
+our @ISA = qw( Tangram::String );
 
 $Tangram::Schema::TYPES{rawdatetime} = Tangram::RawDateTime->new;
 

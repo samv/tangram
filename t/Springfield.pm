@@ -13,13 +13,12 @@ use Tangram::PerlDump;
 
 package Springfield;
 use Exporter;
-use base qw( Exporter );
+our @ISA = qw( Exporter );
 
-use vars qw( $schema @ISA @EXPORT @EXPORT_OK );
-@EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
-@EXPORT_OK = @EXPORT;
+our @EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
+our @EXPORT_OK = @EXPORT;
 
-use vars qw( $cs $user $passwd $dialect $vendor );
+our ($cs, $user, $passwd, $dialect, $vendor);
 
 {
   local $/;
@@ -45,7 +44,7 @@ sub list_if {
 
 my $no_tx;
 
-$schema = Tangram::Schema->new( {
+our $schema = Tangram::Schema->new( {
 
    #set_id => sub { my ($obj, $id) = @_; $obj->{id} = $id },
    #get_id => sub { shift()->{id} },
@@ -374,10 +373,7 @@ sub DESTROY
 }
 
 package Person;
-
-use vars qw( @ISA );
-
-@ISA = 'SpringfieldObject';
+our @ISA = qw( SpringfieldObject );
 
 sub as_string
 {
@@ -387,10 +383,7 @@ sub as_string
 #use overload '""' => sub { shift->as_string }, fallback => 1;
 
 package NaturalPerson;
-
-use vars qw( @ISA );
-
-@ISA = 'Person';
+our @ISA = qw( Person );
 
 sub defaults
 {
@@ -409,9 +402,7 @@ sub as_string
 
 package LegalPerson;
 
-use vars qw( @ISA );
-
-@ISA = 'Person';
+our @ISA = 'Person';
 
 sub as_string
 {
@@ -419,18 +410,15 @@ sub as_string
 }
 
 package NuclearPlant;
-
-use vars qw( @ISA );
-
-@ISA = 'LegalPerson';
+our @ISA = qw( LegalPerson );
 
 package Opinion;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 package Credit;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 package Item;
-use base qw( SpringfieldObject );
+our @ISA = qw( SpringfieldObject );
 
 1;
