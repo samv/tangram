@@ -35,8 +35,6 @@ sub defered_save
 {
     my ($self, $storage, $obj, $members, $coll_id) = @_;
 
-    my $old_states = $storage->{scratch}{ref($self)}{$coll_id};
-
     foreach my $member (keys %$members)
     {
 		next if tied($obj->{$member});
@@ -48,7 +46,7 @@ sub defered_save
 	
 		my $coll = $obj->{$member};
 
-		my $old_state = $old_states->{$member} || {};
+		my $old_state = $self->get_load_state($storage, $obj, $member) || {};
 
 		my %removed = %$old_state;
 		delete @removed{ keys %$coll };
@@ -102,8 +100,9 @@ sub defered_save
 			$storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
 		}
 
-		$old_states->{$member} = \%new_state;
-		$storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
+		$self->set_load_state($storage, $obj, $member, \%new_state );	
+		$storage->tx_on_rollback(
+            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
     }
 }
 
