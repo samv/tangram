@@ -20,6 +20,42 @@ sub members
    return @{$self->{$type}};
 }
 
+sub direct_bases
+  {
+	@{ shift->{BASES} }
+  }
+
+sub is_root
+  {
+	!@{ shift->{BASES} }
+  }
+
+sub direct_fields
+  {
+	map { values %$_ } values %{ shift->{fields} }
+  }
+
+sub for_conforming
+{
+   my ($class, $fun) = @_;
+   my $done = Set::Object->new;
+
+   my $traverse;
+
+   $traverse = sub {
+	 my $class = shift;
+	 return if $done->includes($class);
+	 $done->insert($class);
+	 $fun->($class);
+
+	 foreach my $derived (@{ $class->{SPECS} }) {
+	   $traverse->($derived);
+	 }
+   };
+
+   $traverse->($class);
+ }
+
 package Tangram::Schema;
 
 use Carp;
@@ -76,6 +112,7 @@ sub new
 
 		bless $classdef, 'Tangram::Class';
 
+		$classdef->{name} = $class;
 		$classdef->{table} ||= $class;
 
 		$classdef->{fields} ||= $classdef->{members};
@@ -99,6 +136,11 @@ sub new
 
 			my @members = $types->{$typetag}->reschema($memdefs, $class, $self)
 				if $memdefs;
+
+			for my $field (keys %$memdefs) {
+			  $memdefs->{$field}{name} = $field;
+			  bless $memdefs->{$field}, ref $type;
+			}
 
 			@{$classdef->{member_type}}{@members} = ($type) x @members;
 	    
@@ -128,10 +170,24 @@ sub new
 
 		$classdef->{root} = $class_hash->{$root};
 		delete $classdef->{stateless} if $root eq $class;
+
+		$classdef->{BASES} = [ map { $class_hash->{$_} } @{ $classdef->{bases} } ];
+		$classdef->{SPECS} = [ map { $class_hash->{$_} } @{ $classdef->{specs} } ];
+		
+		if (0) { # currently causes 'panic: magic_killbackrefs, <CONFIG> line 1 during global destruction.'
+		  for my $ref (@{ $classdef->{SPECS} }) {
+			Tangram::weaken $ref;
+		  }
+		}
     }
 
     return $self;
 }
+
+sub all_classes
+  {
+	return values %{ shift->{classes} };
+  }
 
 sub check_class
 {
@@ -268,6 +324,31 @@ sub _visit_down
 
    @results
 }
+
+sub for_bases
+{
+   my ($self, $class, $fun) = @_;
+   my %done;
+   my $classes = $self->{classes};
+
+   my $traverse;
+
+   $traverse = sub {
+	 my $class = shift;
+	 return if $done{$class}++;
+	 my $def = $classes->{$class};
+
+	 foreach my $base (@{ $def->{bases} }) {
+	   $traverse->($base);
+	 }
+
+	 $fun->($def);
+   };
+
+   foreach my $base (@{ $classes->{$class}{bases} }) {
+	 $traverse->($base);
+   }
+ }
 
 sub for_each_spec
 {

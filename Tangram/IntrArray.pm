@@ -32,11 +32,12 @@ sub reschema
 		{
 			my $back = $def->{back} ||= $def->{item};
 			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
-			{
-			 col => $def->{coll},
-			 class => $class,
-			 field => $member
-			};
+			  bless {
+					 name => $back,
+					 col => $def->{coll},
+					 class => $class,
+					 field => $member
+					}, 'Tangram::BackRef';
 		}
 	}
 
@@ -138,8 +139,8 @@ sub cursor
 	my $slot_col = $def->{slot};
 
 	my $coll_id = $storage->export_object($obj);
-	my $tid = $cursor->{-stored}->leaf_table;
-	$cursor->{-coll_cols} = ", t$tid.$slot_col";
+	my $tid = $cursor->{TARGET}->object->leaf_table;
+	$cursor->{-coll_cols} = "t$tid.$slot_col";
 	$cursor->{-coll_where} = "t$tid.$item_col = $coll_id";
 
 	return $cursor;

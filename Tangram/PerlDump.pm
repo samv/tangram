@@ -60,27 +60,20 @@ sub reschema {
   return keys %$members;
 }
 
-sub read
+sub get_importer
 {
-    my ($self, $row, $obj, $members) = @_;
-    @$obj{keys %$members} =
-      map
-	{
-	  my $v = eval($_);
-	  die "Error in undumping perl object \'$v\': $@" if ($@);
-	  $_ = $v;
-	}
-        splice @$row, 0, keys %$members;
-}
+	my ($self, $context) = @_;
+	return "\$obj->{$self->{name}} = eval shift \@\$row";
+  }
 
 sub get_exporter
   {
-	my ($self, $field, $def, $context) = @_;
+	my ($self, $context) = @_;
+	my $field = $self->{name};
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  $def->{dumper}->(
-					   $obj->{$field});
+	  $self->{dumper}->($obj->{$field});
 	};
   }
 

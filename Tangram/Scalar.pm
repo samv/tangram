@@ -43,9 +43,16 @@ sub field_reschema
 
 sub get_exporter
   {
-	my ($self, $field, $def) = @_;
-	return if $def->{automatic};
+	my ($self) = @_;
+	return if $self->{automatic};
+	my $field = $self->{name};
 	return "exists \$obj->{$field} ? \$obj->{$field} : undef";
+  }
+
+sub get_importer
+  {
+	my ($self) = @_;
+	return "\$obj->{$self->{name}} = shift \@\$row";
   }
 
 sub query_expr
@@ -62,8 +69,13 @@ sub cols
 
 sub get_export_cols
 {
-    my ($self, $members) = @_;
-    map { $_->{col } } values %$members;
+  return shift->{col};
+}
+
+sub get_import_cols
+{
+    my ($self, $context) = @_;
+	return $self->{col};
 }
 
 sub read
@@ -106,8 +118,8 @@ sub save
 
 sub get_export_cols
 {
-    my ($self, $members) = @_;
-    map { $_->{col} } grep { !exists $_->{automatic} } values %$members;
+    my ($self) = @_;
+    return exists $self->{automatic} ? () : ($self->{col});
 }
 
 package Tangram::Integer;

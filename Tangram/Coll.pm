@@ -15,9 +15,26 @@ sub members
 	keys %$members;
 }
 
+sub get_import_cols
+  {
+	()
+  }
+
 sub cols
 {
 	()
+}
+
+sub get_importer
+{
+  my ($self, $context) = @_;
+  my $class = $context->{class}{name};
+  my $field = $self->{name};
+  
+  return sub {
+	my ($obj, $row, $context) = @_;
+	tie $obj->{$field}, 'Tangram::CollOnDemand', $self, $self, $context->{storage}, $context->{id}, $self->{name}, $class;
+	}
 }
 
 sub read
@@ -243,25 +260,22 @@ package Tangram::CollCursor;
 
 sub build_select
 {
-	my ($self, $cols, $from, $where) = @_;
+	my ($self, $template, $cols, $from, $where) = @_;
 
-	if ($self->{-coll_where})
-	{
-		$where .= ' AND ' if $where;
-		$where .= "$self->{-coll_where}" if $self->{-coll_where};
-	}
+	push @$where, $self->{-coll_where}
+	if $self->{-coll_where};
 
-	$where = $where && "WHERE $where";
-	$cols .= $self->{-coll_cols} if exists $self->{-coll_cols};
-	$from .= $self->{-coll_from} if exists $self->{-coll_from};
-	"SELECT $cols\n\tFROM $from\n\t$where";
+	push @$cols, $self->{-coll_cols} if exists $self->{-coll_cols};
+	push @$from, $self->{-coll_from} if exists $self->{-coll_from};
+	
+	$self->SUPER::build_select($template, $cols, $from, $where);
 }
 
 sub DESTROY
 {
 	my ($self) = @_;
 	#print "@{[ keys %$self ]}\n";
-	$self->{-storage}->free_table($self->{-coll_tid});
+	# $self->{-storage}->free_table($self->{-coll_tid});
 }
 
 package Tangram::BackRefOnDemand;
@@ -302,33 +316,24 @@ sub cols
 
 sub get_exporter
   {
-	()
   }
 
-sub save
+sub get_importer
 {
-	() # do nothing; save is done by the collection
-}
+  my ($self, $context) = @_;
+  my $field = $self->{name};
 
-sub read
-{
-	my ($self, $row, $obj, $members, $storage) = @_;
-   
-	my $id = $storage->id($obj);
+  return sub {
+	my ($obj, $row, $context) = @_;
 
-	foreach my $r (keys %$members)
-	{
-		my $rid = shift @$row;
+	my $rid = shift @$row;
 
-		if ($rid)
-		{
-		  tie $obj->{$r}, 'Tangram::BackRefOnDemand', $storage, $id, $r, $rid, $members->{$r}{class}, $members->{$r}{field};
-		}
-		else
-		{
-			$obj->{$r} = undef;
-		}
+	if ($rid) {
+	  tie $obj->{$field}, 'Tangram::BackRefOnDemand', $context->{storage}, $context->{id}, $self->{name}, $rid, $self->{class}, $self->{field};
+	} else {
+	  $obj->{$field} = undef;
 	}
+  }
 }
 
 package Tangram::Alias;

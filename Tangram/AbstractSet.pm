@@ -40,9 +40,10 @@ sub save
 
 sub get_exporter
   {
-	my ($self, $field, $def, $context) = @_;
+	my ($self, $context) = @_;
+	my $field = $self->{name};
 	
-	return $def->{deep_update} ?
+	return $self->{deep_update} ?
 	  sub {
 		my ($obj, $context) = @_;
 		
@@ -55,7 +56,7 @@ sub get_exporter
 		  $storage->_save($item);
 		}
 		
-		$storage->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+		$storage->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );
 		
 		return ();
 	  }
@@ -72,7 +73,7 @@ sub get_exporter
 		  unless $storage->id($item);
 	  }
 	  
-	  $storage->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+	  $storage->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );
 	  
 	  return ();
 	}

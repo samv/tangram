@@ -188,10 +188,13 @@ sub my_select_data
     Tangram::Select->new(@_)->execute($self, $self->{db});
 }
 
+my $psi = 1;
+
 sub prepare
   {
 	my ($self, $sql) = @_;
-	print $Tangram::TRACE "preparing $sql\n" if $Tangram::TRACE;
+	
+	print $Tangram::TRACE "preparing [@{[ $psi++ ]}] $sql\n" if $Tangram::TRACE;
 	$self->{db}->prepare($sql);
   }
 
@@ -445,8 +448,9 @@ sub _insert
 
     $done{$obj} = 1;
 
-    my $class = ref $obj;
-    my $classId = $self->{class2id}{$class} or unknown_classid $class;
+    my $class_name = ref $obj;
+    my $classId = $self->{class2id}{$class_name} or unknown_classid $class_name;
+	my $class = $self->{schema}->classdef($class_name);
 
     my $id = $self->make_id($classId);
 
@@ -454,34 +458,34 @@ sub _insert
     $self->tx_on_rollback( sub { $self->goodbye($obj, $id) } );
 
 	my $dbh = $self->{db};
-	my $cache = $self->get_export_cache($class);
+	my $engine = $self->{engine};
+	my $cache = $engine->get_save_cache($class);
+
+	my $sths = $self->{INSERT_STHS}{$class_name} ||=
+	  [ map { $self->prepare($_) } @{ $cache->{INSERTS} } ];
 
 	my $context = { storage => $self, dbh => $dbh, id => $id };
+	my @state = ( $self->{export_id}->($id), $classId, $cache->{EXPORTER}->($obj, $context) );
 
-	my @fields = $cache->{exporter}->($obj, $context);
-	# print "*** @fields\n";
+	my $fields = $cache->{INSERT_FIELDS};
 
-	for my $insert (@{ $cache->{insert} })
-	  {
-		my ($sth, $src, $cols, $root) = @$insert;
+	use integer;
 
-		$sth = $insert->[0] = $self->prepare($src)
-		  unless $sth;
+	for my $i (0..$#$sths) {
 
-		my @meta = $self->{export_id}->($id);
-		push @meta, $classId if $root;
-
-		print $Tangram::TRACE "executing $src with (",
-		join(', ', @meta, map { $_ || 'NULL' } @fields[0..$cols-1]), ")\n"
-		  if $Tangram::TRACE;
-
-		$sth->execute(@meta, splice(@fields, 0, $cols));
-
-		$sth->finish();
+	  if ($Tangram::TRACE) {
+		printf $Tangram::TRACE "executing %s with (%s)\n",
+		$cache->{INSERTS}[$i],
+		join(', ', map { $_ || 'NULL' } @state[ @{ $fields->[$i] } ] )
 	  }
 
+	  my $sth = $sths->[$i];
+	  $sth->execute(@state[ @{ $fields->[$i] } ]);
+	  $sth->finish();
+	}
+
     return $id;
-}
+  }
 
 sub is_being_saved
   {
@@ -535,10 +539,13 @@ sub get_export_cache
 							my $fields = $classdef->{fields};
 							my @cols;
 							
-							$context->{class} = $class;
+							$context->{class} = $classdef;
 
 							foreach my $typetag (keys %$fields) {
-							  push @cols, $types->{$typetag}->get_export_cols($fields->{$typetag}, $context);
+
+							  for my $field (values %{ $fields->{$typetag} }) {
+								push @cols, $field->get_export_cols($context);
+							  }
 
 							  for my $exporter ($types->{$typetag}->get_exporters($fields->{$typetag}, $context)) {
 								if (ref $exporter) {
@@ -600,23 +607,35 @@ sub _update
 
     $done{$obj} = 1;
 
-    my $class = ref $obj;
+    my $class = $self->{schema}->classdef(ref $obj);
 	my $dbh = $self->{db};
-	my $cache = $self->get_export_cache($class);
-
 	my $context = { storage => $self, dbh => $dbh, id => $id };
 
-	my @fields = $cache->{exporter}->($obj, $context);
-	#print "@fields\n";
+	my $cache = $self->{engine}->get_save_cache($class);
+	my @state = ( $self->split_id($id), $cache->{EXPORTER}->($obj, $context) );
 
-	for my $update (@{ $cache->{update} })
-	  {
-		my ($sth, $src, $cols) = @$update;
-		$sth = $update->[0] = $self->prepare($src)
-		  unless $sth;
-		$sth->execute(splice(@fields, 0, $cols),  $self->{export_id}->($id));
-		$sth->finish();
+	my $fields = $cache->{UPDATE_FIELDS};
+
+	my $sths = $self->{UPDATE_STHS}{$class->{name}} ||=
+	  [ map {
+		print $Tangram::TRACE "preparing $_\n" if $Tangram::TRACE;
+		$self->prepare($_)
+	  } @{ $cache->{UPDATES} } ];
+
+	use integer;
+
+	for my $i (0..$#$sths) {
+
+	  if ($Tangram::TRACE) {
+		printf $Tangram::TRACE "executing %s with (%s)\n",
+		$cache->{UPDATES}[$i],
+		join(', ', map { $_ || 'NULL' } @state[ @{ $fields->[$i] } ] )
 	  }
+
+	  my $sth = $sths->[$i];
+	  $sth->execute(@state[ @{ $fields->[$i] } ]);
+	  $sth->finish();
+	}
   }
 
 #############################################################################
@@ -738,11 +757,11 @@ sub load
     return $self->{objects}{$id}
       if exists $self->{objects}{$id} && defined $self->{objects}{$id};
 
-    my $class = $self->{id2class}{ int(substr($id, -$self->{cid_size})) };
+    my $class = $self->{schema}->classdef( $self->{id2class}{ int(substr($id, -$self->{cid_size})) } );
 
-	my ($row, $alias) = _fetch_object_state($self, $id, $class);
+	my $row = _fetch_object_state($self, $id, $class);
 
-    my $obj = $self->read_object($id, $class, $row, $alias->parts);
+    my $obj = $self->read_object($id, $class->{name}, $row);
 
     # ??? $self->{-residue} = \@row;
 
@@ -757,10 +776,10 @@ sub reload
 
 	my $obj = shift;
     my $id = $self->id($obj) or die "'$obj' is not persistent";
-    my $class = $self->{id2class}{ int(substr($id, -$self->{cid_size})) };
+    my $class = $self->{schema}->classdef( $self->{id2class}{ int(substr($id, -$self->{cid_size})) } );
 
-	my ($row, $alias) = _fetch_object_state($self, $id, $class);
-    _row_to_object($self, $obj, $id, $class, $row, $alias->parts);
+	my $row = _fetch_object_state($self, $id, $class);
+    _row_to_object($self, $obj, $id, $class->{name}, $row);
 
     return $obj;
 }
@@ -815,65 +834,9 @@ sub read_object
   }
 
 sub _row_to_object
-{
-    my ($self, $obj, $id, $class, $row, @parts) = @_;
-
-    my $schema = $self->{schema};
-	my $classes = $schema->{classes};
-    my $types = $schema->{types};
-
-	my $cache = $self->{transfer_cache}{$class} ||= do
-	{
-		my @cache;
-
-		foreach my $class (@parts)
-		{
-			my $fields = $classes->{$class}{fields};
-
-			for my $typetag (keys %$fields)
-			{
-				my $type = $types->{$typetag};
-
-				push @cache,
-					[
-					 $type->can('read'), $type,
-					 $fields->{$typetag}, $class,
-					];
-			}
-		}
-
-		$schema->visit_up($class,
-		    sub
-			{
-				my $class = shift;
-				my $classdef = $classes->{$class};
-
-				if ($classdef->{stateless})
-				{
-					my $fields = $classdef->{fields};
-
-					foreach my $typetag (keys %$fields)
-					{
-						my $type = $types->{$typetag};
-
-						push @cache,
-							[
-							 $type->can('read'), $type,
-							 $fields->{$typetag}, $class,
-							];
-					}
-				}
-			} );
-
-		\@cache;
-	};
-
-	for my $transfer (@$cache)
-	{
-		my ($method, $type, $field, $class) = @$transfer;
-		$method->($type, $row, $obj, $field, $self, $class);
-	}
-
+  {
+    my ($self, $obj, $id, $class, $row) = @_;
+	$self->{engine}->get_import_cache($self->{schema}->classdef($class))->($obj, $row, { storage => $self, id => $id });
 	return $obj;
 }
 
@@ -881,23 +844,21 @@ sub _fetch_object_state
 {
     my ($self, $id, $class) = @_;
 
-    my $alias = Tangram::CursorObject->new($self, $class);
-    my $select = $alias->cols;
-    my $from = $alias->from;
-	my $eid =  $self->{export_id}->($id);
-    my $where = join ' AND ', $alias->where, " t" . $alias->root_table . ".id = $eid";
-    my $sql = "SELECT $select FROM $from WHERE $where";
-   
-    my $cursor = $self->sql_cursor($sql, $self->{db});
-    my $row = [ $cursor->fetchrow() ];
-    $cursor->close();
+	my $sth = $self->{LOAD_STH}{$class->{name}} ||=
+	  $self->prepare($self->{engine}->get_instance_select($class));
 
-	die "no object with id '$id'" unless @$row;
-   
-    splice @$row, 0, 2; # id and classId
+	$sth->execute($self->{export_id}->($id));
+	my $state = [ $sth->fetchrow_array() ];
+	$sth->finish();
 
-	return ($row, $alias);
+	return $state;
 }
+
+sub get_polymorphic_select
+  {
+	my ($self, $class) = @_;
+	return $self->{engine}->get_polymorphic_select($self->{schema}->classdef($class), $self);
+  }
 
 sub select
 {
@@ -1125,6 +1086,8 @@ sub connect
 	
     $self->_open($schema);
 
+	$self->{engine} = Tangram::Relational::Engine->new($schema, layout1 => $self->{layout1});
+
     return $self;
 }
 
@@ -1219,5 +1182,434 @@ sub close
 	%$self = ();
     }
 }
+
+package Tangram::Relational::TableSet;
+
+use constant TABLES => 0;
+use constant SORTED_TABLES => 1;
+use constant KEY => 2;
+
+sub new
+  {
+	my $class = shift;
+	my %seen;
+	my @tables = grep { !$seen{$_}++ } @_;
+	my @sorted_tables = sort @tables;
+
+	return bless [ \@tables, \@sorted_tables, "@sorted_tables" ], $class;
+  }
+
+sub key
+  {
+	return shift->[KEY];
+  }
+
+sub tables
+  {
+	@{ shift->[TABLES] }
+  }
+
+sub is_improper_superset
+  {
+	my ($self, $other) = @_;
+	my %other_tables = map { $_ => 1 } $other->tables();
+	
+	for my $table ($self->tables()) {
+	  delete $other_tables{$table};
+	  return 1 if keys(%other_tables) == 0;
+	}
+
+	return 0;
+  }
+
+package Tangram::Relational::Engine;
+
+sub new
+  {
+	my ($class, $schema, %opts) = @_;
+
+	my $heterogeneity = { };
+	my $engine = bless { SCHEMA => $schema,	HETEROGENEITY => $heterogeneity }, $class;
+	$engine->{layout1} = 1 if $opts{layout1};
+
+	for my $class ($schema->all_classes) {
+	  $engine->{ROOT_TABLES}{$class->{table}} = 1
+		if $class->is_root();
+	}
+
+	for my $class ($schema->all_classes) {
+
+	  $engine->{ROOT_TABLES}{$class->{table}} = 1
+		if $class->is_root();
+
+	  next if $class->{abstract};
+
+	  my $table_set = $engine->get_table_set($class);
+	  my $key = $table_set->key();
+
+	  for my $other ($schema->all_classes) {
+		++$heterogeneity->{$key} if my $ss = $engine->get_table_set($other)->is_improper_superset($table_set);
+		my $other_key = $engine->get_table_set($other)->key;
+	  }
+	}
+
+	# use Data::Dumper; print Dumper $heterogeneity;
+
+	return $engine;
+  }
+
+sub get_table_set
+  {
+	my ($self, $class) = @_;
+
+	return $self->{CLASSES}{$class->{name}}{table_set} ||= do {
+
+	  my @table;
+
+	  if ($self->{ROOT_TABLES}{$class->{table}}) {
+		push @table, $class->{table};
+	  } else {
+		my $context = { layout1 => $self->{layout1} };
+		
+		for my $field ($class->direct_fields()) {
+		  if ($field->get_export_cols($context)) {
+			push @table, $class->{table};
+			last;
+		  }
+		}
+	  }
+
+	  Tangram::Relational::TableSet
+		->new((map { $self->get_table_set($_)->tables } $class->direct_bases()), @table );
+	};
+  }
+
+sub get_grouped_fields
+  {
+	my ($self, $class) = @_;
+
+	my $cache = $self->{CLASSES}{$class->{name}};
+
+	@{ $self->{CLASSES}{$class->{name}}{grouped_fields} ||= do {
+	  my %seen;
+	  [ grep { !$seen{$_->[0]{name}}++ }
+		(map { $self->get_grouped_fields($_) } $class->direct_bases()),
+		[ $class, [ $class->direct_fields() ] ]
+
+	  ]
+	} }
+  }
+
+sub get_save_cache
+  {
+	my ($self, $class) = @_;
+
+	return $self->{CLASSES}{$class}{SAVE} ||= do {
+	  
+	  my $schema = $self->{SCHEMA};
+	  my $id_col = $schema->{sql}{id_col};
+	  my $type_col = $schema->{sql}{class_col};
+
+	  my (%tables, @tables);
+	  my (@export_sources, @export_closures);
+	  
+	  my $context = { layout1 => $self->{layout1} };
+
+	  my $field_index = 2;
+
+	  for my $group ($self->get_grouped_fields($class)) {
+		my ($part, $fields) = @$group;
+		my $table_name = $part->{table};
+
+		$context->{class} = $part;
+
+		my $table = $tables{$table_name} ||= do { push @tables, my $table = [ $table_name, [], [] ]; $table };
+		
+		for my $field (@$fields) {
+		  
+		  my $exporter = $field->get_exporter($context)
+			or next;
+		  
+		  if (ref $exporter) {
+			push @export_closures, $exporter;
+			push @export_sources, 'shift(@closures)->($obj, $context)';
+		  } else {
+			push @export_sources, $exporter;
+		  }
+
+		  my @export_cols = $field->get_export_cols($field, $context);
+		  push @{ $table->[1] }, @export_cols;
+		  push @{ $table->[2] }, $field_index..($field_index + $#export_cols);
+		  $field_index += @export_cols;
+		}
+	  }
+
+	  my $export_source = join ",\n", @export_sources;
+	  my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
+
+	  # $Tangram::TRACE = \*STDOUT;
+
+	  $export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
+
+	  print $Tangram::TRACE "Compiling exporter for $class->{name}...\n$export_source\n"
+		if $Tangram::TRACE;
+
+	  # use Data::Dumper; print Dumper \@cols;
+	  my $exporter = eval $export_source or die;
+
+	  my (@inserts, @updates, @insert_fields, @update_fields);
+
+	  for my $table (@tables) {
+		my ($table_name, $cols, $fields) = @$table;
+		my @meta = ( $id_col );
+		my @meta_fields = ( 0 );
+
+		if ($self->{ROOT_TABLES}{$table_name}) {
+		  push @meta, $type_col;
+		  push @meta_fields, 1;
+		}
+
+		next unless @meta > 1 || @$cols;
+		
+		push @inserts, sprintf('INSERT INTO %s (%s) VALUES (%s)',
+								$table_name,
+								join(', ', @meta, @$cols),
+								join(', ', ('?') x (@meta + @$cols)));
+		push @insert_fields, [ @meta_fields, @$fields ];
+
+		if (@$cols) {
+		  push @updates, sprintf('UPDATE %s SET %s WHERE %s = %s',
+								 $table_name,
+								 join(', ', map { "$_ = ?" } @$cols),
+								 $id_col, '?');
+		  push @update_fields, [ @$fields, 0 ];
+		}
+	  }
+
+	  {
+		EXPORTER => $exporter,
+		INSERT_FIELDS => \@insert_fields, INSERTS => \@inserts,
+		UPDATE_FIELDS => \@update_fields, UPDATES => \@updates,
+	  }
+	};
+  }
+
+sub get_instance_select
+  {
+	my ($self, $class) = @_;
+	
+	return $self->{CLASSES}{$class}{INSTANCE_SELECT} ||= do {
+	  my $schema = $self->{SCHEMA};
+	  my $id_col = $schema->{sql}{id_col};
+	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
+	  my @cols;
+	  
+	  for my $group ($self->get_grouped_fields($class)) {
+		my ($part, $fields) = @$group;
+		my $table = $part->{table};
+		$context->{class} = $part;
+		push @cols, map { "$table.$_" } map { $_->get_import_cols($context) } @$fields;
+	  }
+
+	  my ($first_table, @other_tables) = $self->get_table_set($class)->tables();
+
+	  sprintf("SELECT %s FROM %s WHERE %s",
+			  join(', ', @cols),
+			  join(', ', $first_table, @other_tables),
+			  join(' AND ', "$first_table.$id_col = ?", map { "$first_table.$id_col = $_.$id_col" } @other_tables));
+	};
+  }
+
+sub get_polymorphic_select
+  {
+	my ($self, $class, $storage) = @_;
+	
+	my $selects = $self->{CLASSES}{$class}{POLYMORPHIC_SELECT} ||= do {
+	  my $schema = $self->{SCHEMA};
+	  my $id_col = $schema->{sql}{id_col};
+	  my $class_col = $schema->{sql}{class_col};
+	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
+	  
+	  my $table_set = $self->get_table_set($class);
+	  my %base_tables = do { my $ph = 0; map { $_ => $ph++ } $table_set->tables() };
+	  
+	  my %partition;
+	  
+	  $class->for_conforming(sub {
+							   my $class = shift;
+							   push @{ $partition{ $self->get_table_set($class)->key } }, $class
+								 unless $class->{abstract};
+							 } );
+	  
+	  my @selects;
+	  
+	  for my $table_set_key (keys %partition) {
+
+		my $mates = $partition{$table_set_key};
+		
+		my %slice;
+		my %col_index;
+		my $col_mark = 0;
+		my (@cols, @expand);
+		
+		my @tables = $self->get_table_set($mates->[0])->tables();
+		
+		my $root_table = $tables[0];
+		push @cols, qualify($id_col, $root_table, \%base_tables, \@expand);
+		push @cols, qualify($class_col, $root_table, \%base_tables, \@expand);
+		
+		my %used;
+		$used{$root_table} += 2;
+
+		for my $class (@$mates) {
+		  my @slice;
+		  
+		  for my $group ($self->get_grouped_fields($class)) {
+			my ($part, $fields) = @$group;
+			my $table = $part->{table};
+			$context->{class} = $part;
+			
+			for my $field (@$fields) {
+			  my @import_cols = $field->get_import_cols($context);
+			  $used{$table} += @import_cols;
+
+			  for my $col (@import_cols) {
+				push @slice, $col_index{$col} ||= $col_mark++;
+				push @cols, qualify($col, $table, \%base_tables, \@expand);
+			  }
+			}
+		  }
+		  
+		  $slice{$class->{id}} = \@slice;
+		}
+		
+		my @from;
+		
+		for my $table (@tables) {
+		  next unless $used{$table};
+		  if (exists $base_tables{$table}) {
+			push @expand, $base_tables{$table};
+			push @from, "$table t%d";
+		  } else {
+			push @from, $table;
+		  }
+		}
+		
+		my @where = map {
+		  qualify($id_col, $root_table, \%base_tables, \@expand) . ' = ' . qualify($id_col, $_, \%base_tables, \@expand)
+		} grep { $used{$_} } @tables[1..$#tables];
+
+		unless (@$mates == $self->{HETEROGENEITY}{$table_set_key}) {
+		  push @where, sprintf "%s IN (%s)", qualify($class_col, $root_table, \%base_tables, \@expand),
+		  join ', ', map {
+			$storage->{class2id}{$_->{name}} or $_->{id} # try $storage first for compatibility with layout1
+		  } @$mates
+		}
+		
+		push @selects, Tangram::Relational::PolySelectTemplate->new(\@expand, \@cols, \@from, \@where, \%slice);
+	  }
+
+	  \@selects;
+	};
+
+	return @$selects;
+  }
+
+sub qualify
+  {
+	my ($col, $table, $ph, $expand) = @_;
+	
+	if (exists $ph->{$table}) {
+	  push @$expand, $ph->{$table};
+	  return "t%d.$col";
+	} else {
+	  return "$table.$col";
+	}
+  }
+
+sub get_import_cache
+  {
+    my ($self, $class) = @_;
+
+	return $self->{CLASSES}{$class}{IMPORTER} ||=
+	  do {
+		my $schema = $self->{SCHEMA};
+		
+		my $context = { schema => $schema, layout1 => $self->{layout1} };
+		
+		my (@import_sources, @import_closures);
+		
+		for my $group ($self->get_grouped_fields($class)) {
+		  my ($part, $fields) = @$group;
+		  my $table_name = $part->{table};
+		  
+		  $context->{class} = $part;
+		  
+		  for my $field (@$fields) {
+			
+			my $importer = $field->get_importer($context)
+			  or next;
+			
+			if (ref $importer) {
+			  push @import_closures, $importer;
+			  push @import_sources, 'shift(@closures)->($obj, $row, $context)';
+			} else {
+			  push @import_sources, $importer;
+			}
+		  }
+		}
+		
+		my $import_source = join ",\n", @import_sources;
+		my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
+		
+		# $Tangram::TRACE = \*STDOUT;
+		
+		$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
+		
+		print $Tangram::TRACE "Compiling importer for $class->{name}...\n$import_source\n"
+		  if $Tangram::TRACE;
+		
+		# use Data::Dumper; print Dumper \@cols;
+		eval $import_source or die;
+	  };
+  }
+
+package Tangram::Relational::PolySelectTemplate;
+
+sub new
+  {
+	my $class = shift;
+	bless [ @_ ], $class;
+  }
+
+sub instantiate
+  {
+	my ($self, $remote, $xcols, $xfrom, $xwhere) = @_;
+	my ($expand, $cols, $from, $where) = @$self;
+
+	$xcols ||= [];
+	$xfrom ||= [];
+	$xwhere ||= [];
+
+	my @tables = $remote->table_ids();
+
+	my $select = sprintf "SELECT %s\n  FROM %s", join(', ', @$cols, @$xcols), join(', ', @$from, @$xfrom);
+
+	$select = sprintf "%s\n  WHERE %s", $select, join(' AND ', @$where, @$xwhere)
+	  if @$where || @$xwhere;
+
+	sprintf $select, map { $tables[$_] } @$expand;
+  }
+
+sub extract
+{
+  my ($self, $row) = @_;
+  my $id = shift @$row;
+  my $class_id = shift @$row;
+  my $slice = $self->[-1]{$class_id} or Carp::croak "unexpected class id '$class_id'";
+  my $state = [ @$row[ @$slice ] ];
+  splice @$row, 0, @{ $self->[1] } - 2;
+  return ($id, $class_id, $state);
+}	
 
 1;

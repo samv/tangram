@@ -18,7 +18,7 @@ use vars qw( $schema @ISA @EXPORT );
 
 require Exporter;
 @ISA = qw( Exporter );
-@EXPORT = qw( optional_tests $schema testcase leaktest );
+@EXPORT = qw( &optional_tests $schema &testcase &leaktest &connect &connect_empty );
 
 $schema = Tangram::Schema->new( {
 

@@ -32,11 +32,12 @@ sub reschema
 		{
 			my $back = $def->{back} ||= $def->{coll};
 			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
-			{
-			 col => $def->{coll},
-			 class => $class,
-			 field => $member
-			};
+			  bless {
+					 name => $back,
+					 col => $def->{coll},
+					 class => $class,
+					 field => $member
+					}, 'Tangram::BackRef';
 		}
 	}
    
@@ -86,7 +87,7 @@ sub demand
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
-		my $tid = $cursor->{-stored}->leaf_table;
+		my $tid = $cursor->{TARGET}->object->leaf_table;
 		$cursor->{-coll_where} = "t$tid.$def->{coll} = $coll_id";
    
 		$set->insert($cursor->select);

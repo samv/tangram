@@ -86,6 +86,11 @@ sub class
 		#return $tables->[$#$tables][0];
 }
 
+sub table_ids
+{
+	return map { $_->[1] } @{ shift->{tables} };
+}
+
 sub parts
 {
 	return map { $_->[0] } @{ shift->{tables} };
@@ -508,6 +513,11 @@ sub new
 sub object
 {
 	shift->{object}
+}
+
+sub table_ids
+{
+	shift->{object}->table_ids()
 }
 
 sub class

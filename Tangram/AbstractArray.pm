@@ -84,13 +84,14 @@ sub check_content
 
 sub get_exporter
   {
-	my ($self, $field, $def, $context) = @_;
-	my $save_content = $def->{deep_update} ? \&deep_save_content : \&save_content;
+	my ($self, $context) = @_;
+	my $save_content = $self->{deep_update} ? \&deep_save_content : \&save_content;
+	my $field = $self->{name};
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  $save_content->($obj, $field, $context);
-	  $context->{storage}->defer(sub { $self->defered_save(shift, $obj, $field, $def) } );
+	  $save_content->($obj, $self->{name}, $context);
+	  $context->{storage}->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );
 	  ();
 	}
   }

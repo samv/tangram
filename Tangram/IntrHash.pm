@@ -121,7 +121,7 @@ sub cursor
 
    my $coll_id = $storage->id($obj);
    my $tid = $cursor->{-stored}->leaf_table;
-   $cursor->{-coll_cols} = ", t$tid.$slot_col";
+   $cursor->{-coll_cols} = "t$tid.$slot_col";
    $cursor->{-coll_where} = "t$tid.$item_col = $coll_id";
 
    return $cursor;

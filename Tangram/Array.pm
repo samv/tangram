@@ -107,13 +107,13 @@ sub cursor
 	my $coll_id = $storage->export_object($obj);
 	my $coll_tid = $storage->alloc_table;
 	my $table = $def->{table};
-	my $item_tid = $cursor->{-stored}->root_table;
+	my $item_tid = $cursor->{TARGET}->object->root_table;
 	my $coll_col = $def->{coll};
 	my $item_col = $def->{item};
 	my $slot_col = $def->{slot};
 	$cursor->{-coll_tid} = $coll_tid;
-	$cursor->{-coll_cols} = ", t$coll_tid.$slot_col";
-	$cursor->{-coll_from} = ", $table t$coll_tid";
+	$cursor->{-coll_cols} = "t$coll_tid.$slot_col";
+	$cursor->{-coll_from} = "$table t$coll_tid";
 	$cursor->{-coll_where} = "t$coll_tid.$coll_col = $coll_id AND t$coll_tid.$item_col = t$item_tid.id";
    
 	return $cursor;

@@ -67,24 +67,25 @@ sub save
 
 sub get_export_cols
 {
-    my ($self, $members, $context) = @_;
-	return $context->{storage}{layout1} ? map { $_->{col} } values %$members : map { $_->{col}, $_->{type_col} } values %$members;
+    my ($self, $context) = @_;
+	return $context->{layout1} ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
 }
 
-sub cols
+sub get_import_cols
 {
-    my ($self, $members, $context) = @_;
-	return $context->{storage}{layout1} ? map { $_->{col} } values %$members : map { $_->{col}, $_->{type_col} } values %$members;
+    my ($self, $context) = @_;
+	return $context->{layout1} ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
 }
 
 sub get_exporter
   {
-	my ($self, $field, $def, $context) = @_;
-	my $table = $context->{schema}{classes}{ $context->{class} }{table};
-	my $deep_update = exists $def->{deep_update};
+	my ($self, $context) = @_;
 
+	my $field = $self->{name};
+	my $table = $context->{class}{table};
+	my $deep_update = exists $self->{deep_update};
 	
-	if ($context->{storage}{layout1}) {
+	if ($context->{layout1}) {
 	  return sub {
 		my ($obj, $context) = @_;
 		
@@ -108,7 +109,7 @@ sub get_exporter
 							 # now that the object has been saved, we have an id for it
 							 my $refid = $storage->id($ref);
 							 # patch the column in the referant
-							 $storage->sql_do( "UPDATE $table SET $def->{col} = $refid WHERE id = $id" );
+							 $storage->sql_do( "UPDATE $table SET $self->{col} = $refid WHERE id = $id" );
 						   } );
 		  
 		  return undef;
@@ -147,7 +148,7 @@ sub get_exporter
 						   my $type_id = $storage->class_id(ref($ref));
 						   
 						   # patch the column in the referant
-						   $storage->sql_do( "UPDATE $table SET $def->{col} = $ref_id, $def->{type_col} = $type_id WHERE id = $exp_id" );
+						   $storage->sql_do( "UPDATE $table SET $self->{col} = $ref_id, $self->{type_col} = $type_id WHERE id = $exp_id" );
 						 } );
 		
 		return (undef, undef);
@@ -159,6 +160,26 @@ sub get_exporter
 	  return $storage->split_id($storage->id($ref) || $storage->_insert($ref));
 	}
   }
+
+sub get_importer
+{
+  my ($self, $context) = @_;
+  my $field = $self->{name};
+
+  return sub {
+	my ($obj, $row, $context) = @_;
+	
+	my $storage = $context->{storage};
+	my $rid = shift @$row;
+	my $cid = shift @$row unless $context->{layout1};
+
+	if ($rid) {
+	  tie $obj->{$field}, 'Tangram::RefOnDemand', $storage, $context->{id}, $field, $storage->combine_ids($rid, $cid);
+	} else {
+	  $obj->{$field} = undef;
+	}
+  }
+}
 
 sub read
 {

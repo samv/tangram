@@ -112,11 +112,11 @@ sub demand
 
 sub get_exporter
   {
-	my ($self, $field, $def, $context) = @_;
+	my ($self, $context) = @_;
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  $self->defered_save($context->{storage}, $obj, $field, $def);
+	  $self->defered_save($context->{storage}, $obj, $self->{name}, $self);
 	  ();
 	}
   }

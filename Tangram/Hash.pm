@@ -138,8 +138,8 @@ sub cursor						# ?? factorize ??
     my $item_col = $def->{item};
     my $slot_col = $def->{slot};
     $cursor->{-coll_tid} = $coll_tid;
-    $cursor->{-coll_cols} = ", t$coll_tid.$slot_col";
-    $cursor->{-coll_from} = ", $table t$coll_tid";
+    $cursor->{-coll_cols} = "t$coll_tid.$slot_col";
+    $cursor->{-coll_from} = "$table t$coll_tid";
     $cursor->{-coll_where} = "t$coll_tid.$coll_col = $coll_id AND t$coll_tid.$item_col = t$item_tid.id";
     
     return $cursor;

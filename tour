@@ -171,6 +171,7 @@ object-relational mapping, but in this tour we will use all the defaults.
 
 Here is the Schema for Springfield:
 {{
+
    $schema = Tangram::Relational->schema( {
 
       classes =>
