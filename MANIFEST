@@ -25,7 +25,9 @@ Tangram/Storage.pm
 Tangram/Type.pm
 Tangram/Core.pod
 Tangram/Schema.pod
+Tangram/Deploy.pod
 Tangram/Storage.pod
+Tangram/Cursor.pod
 Tangram/Remote.pod
 Tangram/Expr.pod
 Tangram/Scalar.pod
