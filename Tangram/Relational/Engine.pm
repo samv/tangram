@@ -471,6 +471,10 @@ SQL
     my $info = $engine->get_deploy_info();
     my ($l) = split '\.', $Tangram::VERSION;
 
+    # Prevent additional records on redeploy.
+    #  -- ks.perl@kurtstephens.com 2004/04/29
+    $do->("CREATE UNIQUE INDEX ${control}_Guard ON $control (layout, engine, engine_layout)");
+
     $do->("INSERT INTO $control (layout, engine, engine_layout, mark)"
 	  ." VALUES ($info->{LAYOUT}, '$info->{ENGINE}', "
 	  ."$info->{ENGINE_LAYOUT}, 0)");
