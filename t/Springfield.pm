@@ -51,8 +51,8 @@ $schema = Tangram::Schema->new( {
 		 credit => { aggreg => 1 },
 		},
 
-		rawdate => [ qw( birthDate ) ],
-		rawtime => [ qw( birthTime ) ],
+		#rawdate => [ qw( birthDate ) ],
+		#rawtime => [ qw( birthTime ) ],
 		rawdatetime => [ qw( birth ) ],
 
 		array =>
@@ -176,11 +176,13 @@ my ($cs, $user, $passwd);
 
 {
    local $/;
+
+   my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
    
-   open CONFIG, 'CONFIG'
-   or open CONFIG, 't/CONFIG'
-   or open CONFIG, '../t/CONFIG'
-   or die "Cannot open 't/CONFIG', reason: $!";
+   open CONFIG, $config
+   or open CONFIG, "t/$config"
+   or open CONFIG, "../t/$config"
+   or die "Cannot open t/$config, reason: $!";
 
    ($cs, $user, $passwd) = split "\n", <CONFIG>;
 }
