@@ -465,6 +465,19 @@ sub as_string
 	return ref($self) . "($self->{expr})";
 }
 
+sub DESTROY { }
+
+use vars qw( $AUTOLOAD );
+
+sub AUTOLOAD {
+  my $fun = $AUTOLOAD;
+  $fun =~ s/.*:://;
+  
+  my $self = shift;
+  my $expr = $self->expr(); # the SQL string for this Expr
+  $self->{type}->expr("$fun($expr)", $self->objects);
+}
+
 use overload
 	"==" => \&eq,
 	"eq" => \&eq,

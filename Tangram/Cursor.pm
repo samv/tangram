@@ -241,6 +241,7 @@ sub open
 	bless
 	{
 	 select => $select,
+	 storage => $storage,
 	 cursor => $storage->sql_cursor(substr($select->{expr}, 1, -1), $conn),
 	}, $type;
 }
@@ -271,5 +272,18 @@ sub new
 	my $pkg = shift;
 	return bless [ @_ ] , $pkg;
 }
+
+sub DESTROY
+  {
+	my $self = shift;
+	$self->close();
+  }
+
+sub close
+  {
+	my $self = shift;
+	$self->{cursor}{connection}->disconnect()
+	  unless $self->{cursor}{connection} == $self->{storage}{db};
+  }
 
 1;
