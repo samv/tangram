@@ -255,9 +255,9 @@ sub tx_rollback
 
 sub tx_do
 {
-    # public - execute closure inside tx
+    # public - execute subroutine inside tx
 
-    my ($self, $sub) = @_;
+    my ($self, $sub, @params) = @_;
 
     $self->tx_start();
 
@@ -268,11 +268,11 @@ sub tx_do
     {
 		if ($wantarray)
 		{
-			@results = $sub->();
+			@results = $sub->(@params);
 		}
 		else
 		{
-			$results = $sub->();
+			$results = $sub->(@params);
 		}
     };
 
@@ -310,6 +310,7 @@ sub insert
     my @ids = $self->tx_do(
 	   sub
 	   {
+		   my ($self, @objs) = @_;
 		   map
 		   {
 			   local %done = ();
@@ -318,7 +319,7 @@ sub insert
 			   $self->do_defered;
 			   $id;
 		   } @objs;
-	   } );
+	   }, $self, @objs );
 
     return wantarray ? @ids : shift @ids;
 }
@@ -417,6 +418,7 @@ sub update
     $self->tx_do(
 		 sub
 		 {
+		     my ($self, @objs) = @_;
 		     foreach my $obj (@objs)
 		     {
 			 my $id = $self->id($obj) or confess "$obj must be persistent";
@@ -455,10 +457,8 @@ sub update
 					   } );
 
 			 $self->do_defered;
-		     }
-		 } );
-
-    @objs = ();			# MM
+		       }
+		   }, $self, @objs);
 }
 
 #############################################################################
@@ -488,14 +488,14 @@ sub erase
 {
     my ($self, @objs) = @_;
 
-    my $schema = $self->{schema};
-    my $classes = $self->{schema}{classes};
-
 	$self->tx_do(
         sub
 		{
-			#foreach my $obj (@objs) # causes memory leak??
-			while (my $obj = shift @objs)
+			my ($self, @objs) = @_;
+			my $schema = $self->{schema};
+			my $classes = $self->{schema}{classes};
+
+			foreach my $obj (@objs) # causes memory leak??
 			{
 				my $id = $self->id($obj) or confess "object $obj is not persistent";
 
@@ -536,7 +536,7 @@ sub erase
 						$self->{set_id}->($obj, $id);
 					} );
 			}
-		} );
+		}, $self, @objs );
 }
 
 sub do_defered

@@ -268,12 +268,16 @@ Rolls back the current Tangram transaction for this storage.
 If the transaction being rolled back is the outermost transaction for this storage, the DBI
 transaction is also rolled back.
 
-=head2 tx_do( CODEREF )
+=head2 tx_do( CODEREF, @args )
 
-Executes CODEREF under the protection of a Tangram transaction.
-Rolls back the transaction if CODEREF dies; in which case the exception is re-thrown.
-Returns the results of CODEREF, either as a scalar or as a list depending on the
-context in which tx_do was called.
+Executes CODEREF under the protection of a Tangram transaction and
+pass it @args in the argument list.
+
+Rolls back the transaction if CODEREF dies; in which case the
+exception is re-thrown.
+
+Returns the results of CODEREF, either as a scalar or as a list
+depending on the context in which tx_do was called.
 
 Example:
 
