@@ -14,25 +14,3 @@ also need to prepare an empty database before starting the installation
 procedure.
 
 For more information, see the included POD files.
-
-RELEASE NOTES
-
-0.09
-
-   - split Tangram.pm into several modules
-   
-   - replaced @ISA with 'use base'
-
-   - replaced default typetags with automounting
-   
-   - prefetch now takes either class or remote
-   
-   - implemented prefetch for IntrArray and IntrSet
-      *::prefetch still need real-life testing,
-      especially when class(coll) <> class(item)
-
-0.08 - second public alpha release
-
-0.03 - first public alpha release
-
-Jean-Louis Leroy - jll@skynet.be
