@@ -853,6 +853,29 @@ sub count
     return ($self->{db}->selectrow_array($sql))[0];
 }
 
+sub sum
+{
+    my ($self, $expr, $filter) = @_;
+
+    my $objects = Set::Object->new($expr->objects);
+
+    my @filter_expr;
+
+    if ($filter)
+    {
+	$objects->insert($filter->objects);
+	@filter_expr = ( "($filter->{expr})" );
+    }
+
+    my $sql = "SELECT SUM($expr->{expr}) FROM " . join(', ', map { $_->from } $objects->members);
+
+    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
+
+    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+
+    return ($self->{db}->selectrow_array($sql))[0];
+}
+
 sub id
 {
     my ($self, $obj) = @_;
