@@ -1,13 +1,15 @@
-#!/bin/bash
+#!/usr/bin/perl -w
 
-export LANG=''
+use strict;
 
-for CFG in mysql sybase pg;
-do {
-	export TANGRAM_CONFIG=CONFIG.$CFG ;
-	yes 2>/dev/null|perl Makefile.PL ;
-	make test ;
-} done
+delete $ENV{LANG};
 
-#export TANGRAM_CONFIG=CONFIG.1.mysql;
-#make test
+my %target;
+@target{@ARGV} = ();
+
+for my $CFG (qw( mysql sybase pg )) {
+  next if @ARGV && !exists $target{$CFG};
+  $ENV{TANGRAM_CONFIG} = "CONFIG.$CFG";
+  system 'yes 2>/dev/null|perl Makefile.PL';
+  system 'make test';
+}
