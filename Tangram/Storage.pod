@@ -210,6 +210,8 @@ recognizes the following directives:
 
 =item * desc
 
+=item * distinct
+
 =back
 
 C<filter> specifies a Filter that can be used to restrict the result
@@ -222,6 +224,9 @@ C<order> is an array of Expr; order result set by increasing value of Exprs.
 
 C<desc> is a boolean; a true value reverses the order specified by the
 C<order> option.
+
+C<distinct> is a boolean; a true value specifies that the same object
+should ocur only once in the result set.
 
 Valid only in list context.
 
@@ -249,11 +254,13 @@ pairs. Currently Tangram recognizes the following directives:
 
 =item * desc
 
+=item * distinct
+
 =item * retrieve
 
 =back
 
-For options C<filter>, C<order> and C<desc>, see C<select> above.
+For options C<filter>, C<order>, C<desc> and C<distinct>, see C<select>.
 
 Option C<retrieve> is an array of Expr, to be retrieved in addition to
 the object itself.
