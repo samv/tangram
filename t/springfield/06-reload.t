@@ -1,5 +1,7 @@
 # (c) Sound Object Logic 2000-2001
 
+# I'm not sure exactly what aspect of `reload' this is testing...
+
 use strict;
 use lib 't/springfield';
 use Springfield;

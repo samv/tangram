@@ -1,5 +1,8 @@
 # (c) Sound Object Logic 2000-2001
 
+# the functionality this test tests can probably be moved into type
+# specific tests
+
 use lib 't/springfield';
 use Springfield;
 

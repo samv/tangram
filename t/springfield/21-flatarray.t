@@ -5,9 +5,7 @@ use strict;
 use lib 't/springfield';
 use Springfield;
 
-use Test::More tests => 23;
-
-# $Tangram::TRACE = \*STDOUT;
+use Test::More tests => 24;
 
 {
 	my $storage = Springfield::connect_empty();
@@ -127,12 +125,13 @@ is(leaked, 0, "Nothing leaked");
 }
 
 is(leaked, 0, "Nothing leaked");
+
 {
     SKIP: {
 
 	my $storage = Springfield::connect();
 
-	    skip "Sub-select tests disabled", 2,
+	    $storage->disconnect, skip "Sub-select tests disabled", 2,
 		if $storage->{no_subselects};
 
 	    my ($remote) = $storage->remote('NaturalPerson');
@@ -164,7 +163,7 @@ is(leaked, 0, "Nothing leaked");
 	$storage->disconnect();
 }
 
-is(leaked, 0, "Nothing leaked");
+is(leaked, 0, "Nothing leaked - here 1");
 
 {
 	my $storage = Springfield::connect();
@@ -184,11 +183,19 @@ is(leaked, 0, "Nothing leaked");
 	$storage->disconnect();
 }
 
-is(leaked, 0, "Nothing leaked");
+THEEND:
+
+is(leaked, 0, "Nothing leaked - here 2");
+
 
 {
 	my $storage = Springfield::connect();
 	$storage->erase( $storage->select('NaturalPerson'));
+	$storage->disconnect();
+	$storage = Springfield::connect();
 	is( $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM NaturalPerson_interests")->[0][0], 0, "All interests cleaned up correctly" );
 	$storage->disconnect();
 }
+
+is(leaked, 0, "Nothing leaked");
+

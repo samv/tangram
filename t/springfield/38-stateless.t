@@ -1,5 +1,7 @@
 # (c) Sound Object Logic 2000-2001
 
+# wtf is this testing anyway?
+
 use strict;
 use lib 't/springfield';
 use Springfield;

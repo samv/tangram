@@ -239,7 +239,7 @@ my $pops = $intrusive ? 'Abraham Homer' : 'Abraham Homer Marge';
     my ($parent, $child)
 	= $storage->remote(qw( NaturalPerson NaturalPerson ));
 
-    #local($Tangram::TRACE) = \*STDERR;
+    ##local($Tangram::TRACE) = \*STDERR;
 
     my @results = $storage->select
 	(
@@ -256,7 +256,11 @@ my $pops = $intrusive ? 'Abraham Homer' : 'Abraham Homer Marge';
 
 is(leaked, 0, "leaktest");
 
+SKIP:
 {
+    skip "SQLite doesn't like IN having a non hard-coded list", 1
+	if DBConfig->dialect =~ /sqlite/i;
+
     my $storage = Springfield::connect;
     my ($parent, $child1, $child2)
 	= $storage->remote(qw( NaturalPerson NaturalPerson NaturalPerson ));
@@ -314,7 +318,9 @@ is(leaked, 0, "leaktest");
 is(leaked, 0, "leaktest");
 #diag("-"x69);
 
-{
+SKIP:{
+    skip "SQLite doesn't like IN having a non hard-coded list", 1
+	if DBConfig->dialect =~ /sqlite/i;
     my $storage = Springfield::connect;
     my ($parent, $child )
 	= $storage->remote(qw( NaturalPerson NaturalPerson ));

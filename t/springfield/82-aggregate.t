@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 7;
 use lib "t/springfield";
 use Springfield;
+use Test::More tests => 7;
 
 =head1 NAME
 
@@ -11,7 +11,8 @@ t/aggregate.t - test aggregate tangram functions
 
 =head1 SYNOPSIS
 
- perl -Mlib=. t/aggregate.t
+ perl -Mlib=lib t/springfield/00-deploy.t
+ perl -Mlib=lib t/springfield/aggregate.t
 
 =head1 DESCRIPTION
 

@@ -5,6 +5,7 @@
 
 use lib "t/musicstore";
 use Prerequisites;
+use TestNeeds qw(Heritable::Types);
 
 use Test::More tests => 15;
 
@@ -35,8 +36,9 @@ my @classes = qw(CD CD::Artist CD::Song);
 # if a given node that is being inserted isn't already a sub-part of
 # another stored node.
 
-# Fortunately Tangram::Storage->insert() takes care of this for you.
-
+# My intention is to make Tangram::Storage->insert() take care of this
+# for you.  I can see this working within the next two Tangram
+# releases:
 my @objects = map { $storage->select($_) } @classes;
 
 $storage2->insert(grep { $_->isa("CD") } @objects);
