@@ -43,27 +43,28 @@ weak reference that was introduced in Perl 5.6. Whether that support
 is found or not has a major impact on how Storage influences object
 lifetime.
 
-If weakref support I<is> available, Storage uses weak references
-to keep track of objects that have already been loaded. This does
-I<not> prevent the objects from being reclaimed by Perl. IOW, the
-I<client> code decides how long an object remains in memory.
+If weakref support I<is> available, Storage uses weak references to
+keep track of objects that have already been loaded. This does I<not>
+prevent the objects from being reclaimed by Perl. IOW, the I<client>
+code decides how long an object remains in memory.
 
 If weakref support I<is not> available, Storage uses normal, 'strong'
-references. Storage will pin in memory all the objects that have been loaded
-I<and> inserted through it, until you call L<"disconnect"> or
+references. Storage will pin in memory all the objects that have been
+loaded I<and> inserted through it, until you call L<"disconnect"> or
 L<"unload">.
 
 In either case, Tangram will I<not> break circular structures for you.
 
 =head1 INTERNAL CONNECTION
 
-Except in the implementation of cursor(), Tangram uses a single DBI connection in its operations.
-That connection is called the 'internal' connection. Since, in general, database managers
-do not allow multiple result sets on the same connection, the internal connection can be used
-only to carray a single task at a time.
+Except in the implementation of cursor(), Tangram uses a single DBI
+connection in its operations.  That connection is called the
+'internal' connection. Since, in general, database managers do not
+allow multiple result sets on the same connection, the internal
+connection can be used only to carray a single task at a time.
 
-L<Tangram::Cursor>s returned by cursor() do not suffer from this limitation
-because they use a separate DBI connection.
+L<Tangram::Cursor>s returned by cursor() do not suffer from this
+limitation because they use a separate DBI connection.
 
 =head1 CLASS METHODS
 
@@ -100,15 +101,17 @@ Tangram may need to open extra connections (see below).
 
    $storage->insert( @objs );
 
-Inserts objects in storage. Returns the ID(s) assigned to the object(s).
-This method is valid in both L<scalar and list contexts>.
+Inserts objects in storage. Returns the ID(s) assigned to the
+object(s).  This method is valid in both L<scalar and list contexts>.
 
-The inserted objects must be of a class described in the schema associated to the storage.
+The inserted objects must be of a class described in the schema
+associated to the storage.
 
-Attempting to insert an object that is already persistent in the storage is an error.
+Attempting to insert an object that is already persistent in the
+storage is an error.
 
-Tangram will automatically insert any object that is refered by $obj if it is not
-already present in storage. In the following example:
+Tangram will automatically insert any object that is refered by $obj
+if it is not already present in storage. In the following example:
 
    my $homer = NaturalPerson->new(
       firstName => 'Homer', name => 'Simpson',
@@ -129,16 +132,19 @@ already present in storage. In the following example:
 
    $storage->update( @objs );
 
-Save objects to storage.
-This method is valid in both L<scalar and list contexts>.
+Save objects to storage.  This method is valid in both L<scalar and
+list contexts>.
 
-The objects must be of a class described in the schema associated to the storage.
+The objects must be of a class described in the schema associated to
+the storage.
 
-Attempting to update an object that is not already present in the storage is an error.
+Attempting to update an object that is not already present in the
+storage is an error.
 
-Tangram will automatically insert any object that is refered by an inserted object if it is not
-already present in storage. It will not automatically update the refered objects that are already
-stored. In the following example:
+Tangram will automatically insert any object that is refered by an
+inserted object if it is not already present in storage. It will not
+automatically update the refered objects that are already stored. In
+the following example:
 
    my $homer = NaturalPerson->new(
       firstName => 'Homer', name => 'Simpson' );
@@ -163,16 +169,17 @@ stored. In the following example:
 
    $storage->update( $homer );
 
-...Tangram automatically inserts the kids when their father is updated. OTOH, $marge will not be
-automatically inserted nor updated; her age will remain '34' in persistent storage.
+...Tangram automatically inserts the kids when their father is
+updated. OTOH, $marge will not be automatically inserted nor updated;
+her age will remain '34' in persistent storage.
 
 =head2 id
 
    $id = $storage->id( $obj );
    @id = $storage->id( @obj );
 
-Returns the IDs of the given objects. If an object is not persistent in storage yet, its
-corresponding ID is undef().
+Returns the IDs of the given objects. If an object is not persistent
+in storage yet, its corresponding ID is undef().
 
 This method is valid in both L<scalar and list contexts>.
 
@@ -258,16 +265,23 @@ filter.
 C<desc> specifies that the order should be descending.  Order of which
 of the columns in the C<order> category, you might ask?  The last one
 for now :-}.  This syntax is therefore deprecated, to be replaced with
-a unary C<-> operator in some future Tangram release.
+a unary C<-> operator to order columns in some future Tangram release.
 
 C<distinct> is a boolean; a true value specifies that the same object
-should ocur only once in the result set.
+should ocur only once in the result set.  In general, this is a good
+idea; 
 
 C<limit> is a maximum number of rows to retrieve; in fact, with some
 databases you can give two numbers to this to get the rows between N
-and M of a select.  See your RDBMS manual for more.
+and M of a select.  See your RDBMS manual for more.  If you want to
+specify more than one number, you may use the following syntax:
 
-Valid only in list context.
+   $storage->select( $object, filter => (...),
+                     limit => [ 5, 10 ] );
+
+The above example would return rows 6 through 15 on a MySQL database.
+
+The select method is valid only in list context.
 
 =head2 cursor
 

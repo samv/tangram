@@ -152,7 +152,13 @@ sub build_select
 		$select .= ' DESC';
 	}
 
-	$select .= " LIMIT $self->{-limit}" if defined $self->{-limit};
+	if (defined $self->{-limit}) {
+	    if (ref $self->{-limit}) {
+		$select .= " LIMIT ".join(",",@{ $self->{-limit} });
+	    } else {
+		$select .= " LIMIT $self->{-limit}";
+	    }
+	}
 
 	return $select;
 }

@@ -405,7 +405,7 @@ sub extract
   my ($self, $row) = @_;
   my $id = shift @$row;
   my $class_id = shift @$row;
-  my $slice = $self->[-1]{$class_id} or Carp::croak "unexpected class id '$class_id'";
+  my $slice = $self->[-1]{$class_id} or Carp::croak "unexpected class id '$class_id' (OK: ".(join(",",keys %{$self->[-1]})).")";
   my $state = [ @$row[ @$slice ] ];
   splice @$row, 0, @{ $self->[1] } - 2;
   return ($id, $class_id, $state);

@@ -121,35 +121,88 @@ sub includes
 	my $coll_col = $memdef->{coll};
 	my $item_col = $memdef->{item};
 
-	my $objects = Set::Object->new($coll, Tangram::LinkTable->new($memdef->{table}, $link_tid) ),
-		my $target;
+	my $objects = Set::Object->new
+	    (
+	     $coll,
+	     Tangram::LinkTable->new($memdef->{table}, $link_tid)
+	    );
+	my $target;
 
-	if (ref $item)
-	{
-		if ($item->isa('Tangram::QueryObject'))
+	if (ref $item) {
+	    if ($item->isa('Tangram::QueryObject'))
 		{
-			$target = 't' . $item->object->root_table . '.id';
-			$objects->insert( $item->object );
+		    $target = 't' . $item->object->root_table . '.id';
+		    $objects->insert( $item->object );
 		}
-		else
+	    else
 		{
-			$target = $coll->{storage}->export_object($item)
-				or die "'$item' is not a persistent object";
+		    $target = $coll->{storage}->export_object($item)
+			or die "'$item' is not a persistent object";
 		}
 	}
 	else
-	{
+	    {
 		$target = $item;
-	}
+	    }
 
 	Tangram::Filter->new
-			(
-			 expr => "t$link_tid.$coll_col = t$coll_tid.id AND t$link_tid.$item_col = $target",
-			 tight => 100,      
-			 objects => $objects,
-			 link_tid => $link_tid # for Sequence prefetch
-			);
+		(
+		 expr => "t$link_tid.$coll_col = t$coll_tid.id AND t$link_tid.$item_col = $target",
+		 tight => 100,      
+		 objects => $objects,
+		 link_tid => $link_tid # for Sequence prefetch
+		);
 }
+
+sub includes_or {
+    my ($self, @items) = @_;
+    my ($coll, $memdef) = @$self;
+
+    my $coll_tid = $coll->root_table;
+
+    my $link_tid = Tangram::Alias->new;
+    my $coll_col = $memdef->{coll};
+    my $item_col = $memdef->{item};
+
+    my $objects = Set::Object->new
+	($coll,
+	 Tangram::LinkTable->new($memdef->{table}, $link_tid)
+	);
+    my @targets;
+
+    foreach my $item (@items) {
+        if (ref $item) {
+            if ($item->isa('Tangram::QueryObject'))
+              {
+                  push @targets, ('t' . $item->object->root_table .
+'.id');
+                  $objects->insert( $item->object );
+              }
+            else
+              {
+                  push @targets, ($coll->{storage}->export_object($item)
+                                  or die "'$item' is not a persistent
+object"
+                                 );
+              }
+        }
+        else {
+            push @targets, $item;
+        }
+    }
+
+    my $joined_targets = join(',', @targets);
+    
+        Tangram::Filter->new
+        (
+         expr => "t$link_tid.$coll_col = t$coll_tid.id AND
+t$link_tid.$item_col IN ($joined_targets)",
+         tight => 100,      
+         objects => $objects,
+         link_tid => $link_tid # for Sequence prefetch
+        );
+}
+
 
 use overload '<' => \&includes;
 
@@ -192,6 +245,78 @@ sub includes
 
 	my $remote = $storage->remote($item_class);
 	return ($self->includes($remote) & ($remote->{id} == $item_id));
+}
+
+sub includes_or
+{
+	my ($self, @items) = @_;
+	my ($coll, $memdef) = @$self;
+	my $coll_tid = $coll->root_table;
+	my $item_class = $memdef->{class};
+	my $item_tid;
+	my $storage = $coll->{storage};
+
+	my (@targets_fwd, @targets_rev);
+	my $objects = Set::Object->new
+	    ($coll,
+	    );
+
+	foreach my $item (@items) {
+	    if (ref($item))
+		{
+		    if ($item->isa('Tangram::QueryObject'))
+			{
+			    $item_tid = $item->object->table($item_class);
+			    push @targets_fwd, ("t".$item_tid.".$memdef->{coll}");
+			    $objects->insert($item->object);
+			}
+		    else
+			{
+			    # 
+			    #push @targets, ($storage->export_object($item));
+			    push @targets_rev, ($storage->export_object($item));
+			}
+		}
+	    else
+		{
+		    push @targets_rev, $storage->{export_id}->($item);
+		}
+	}
+
+	my $expr;
+	if (@targets_fwd) {
+	    my  $joined_targets = join(',', @targets_fwd);
+	    $expr =
+	    Tangram::Filter->new
+		    (
+		     expr => "(t$coll_tid.id IN ($joined_targets))",
+		     tight => 120,
+		     objects => $objects,
+		    );
+	}
+	if (@targets_rev) {
+
+	    my $remote = $storage->remote($item_class);
+	    #$objects->insert($remote);
+	    my $item_tid = $remote->object->table($item_class);
+
+	    my $joined_targets = join(',', @targets_rev);
+	    my $new_expr = 
+		Tangram::Filter->new
+			(
+			 expr => "(t$item_tid.id in ($joined_targets))",
+			 tight => 100,
+			 objects => $objects,
+			);
+
+	    if ($expr) {
+		return ( ( $self->includes($remote) & $new_expr ) | $expr );
+	    }
+
+	    return ( $self->includes($remote) & $new_expr );
+	}
+	return $expr;
+
 }
 
 package Tangram::LinkTable;

@@ -1,3 +1,5 @@
+# -*- perl -*-
+
 =head1 NAME
 
 Tangram::Expr - manipulate expressions on database server side
@@ -11,6 +13,8 @@ Tangram::Expr - manipulate expressions on database server side
    
       $r1->{collection}->includes( $obj )
       $r1->{collection}->exists( $obj, $filter )
+
+      $r1->{collection}->includes_or( $obj1, $obj2, ... )
 
 =head1 DESCRIPTION
 
@@ -56,17 +60,23 @@ object. It supports the includes() and exists() methods, which returns
 a Tangram::Filter stating that the collection must contain the
 operand. exists() uses a subselect.
 
+It also supports the includes_or() methods, which accepts a list and
+is performs a logical OR - using the IN (x,y,z) SQL construct.
+
 The operand may be a Tangram::Remote, a persistent object,
 or an object ID.
 
 operator < is provided as a synonym for includes().
 
+The includes() method can be used for all collection types (Set,
+Array, Hash, and the Intr* versions).
+
 =head1 PREDICATES
 
 Predicate objects represent logical expressions, or
 conditions. Predicates support logical operators &, | and !. Note that
-a I<single> ampersand or vertical bar must be used.  The result is
-another predicate.
+a I<single> ampersand or vertical bar must be used (this is a Perl
+limitation).  The result is another predicate.
 
 =head1 CLASS METHODS
 

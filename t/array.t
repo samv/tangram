@@ -2,7 +2,7 @@
 # (c) Sound Object Logic 2000-2001
 
 use strict;
-use Test::More tests => 50;
+use Test::More tests => 56;
 # for emacs debugger
 #use lib "../blib/lib";
 #use lib ".";
@@ -57,6 +57,10 @@ sub stdpop
     $marge->{$children} = [ @children ] unless $intrusive;
     $id{Marge} = $storage->insert($marge);
     isnt($id{Marge}, 0, "Marge inserted OK");
+
+    my $abraham = NaturalPerson->new( firstName => 'Abraham',
+				      $children => [ $homer ] );
+    $id{Abraham} = $storage->insert($abraham);
 
     $storage->disconnect;
 }
@@ -253,12 +257,14 @@ is(leaked, 0, "leaktest");
 # queries
 
 my $parents = $intrusive ? 'Homer' : 'Homer Marge';
-    #'Homer Marge';
+my $pops = $intrusive ? 'Abraham Homer' : 'Abraham Homer Marge';
 
 {
     my $storage = Springfield::connect;
     my ($parent, $child)
 	= $storage->remote(qw( NaturalPerson NaturalPerson ));
+
+    #local($Tangram::TRACE) = \*STDERR;
 
     my @results = $storage->select
 	(
@@ -269,6 +275,93 @@ my $parents = $intrusive ? 'Homer' : 'Homer Marge';
 
     is(join( ' ', sort map { $_->{firstName} } @results ),
        $parents, "Query (array->includes(t2) & t2->{foo} eq Bar)" );
+
+    $storage->disconnect();
+}
+
+is(leaked, 0, "leaktest");
+
+{
+    my $storage = Springfield::connect;
+    my ($parent, $child1, $child2)
+	= $storage->remote(qw( NaturalPerson NaturalPerson NaturalPerson ));
+
+    #local($Tangram::TRACE) = \*STDERR;
+
+    my @results = $storage->select
+	(
+	 $parent,
+	 $parent->{$children}->includes_or( $child1, $child2
+					  )
+	 # note the caveat - both these conditions must hold for one
+	 # row, although this may not be the one selected; ie, if I
+	 # replace "Homer" with "Montgomery", I get *NO* results -
+	 # RDBMSes suck :-)
+	 & $child1->{firstName} eq 'Bart'
+	 & $child2->{firstName} eq 'Homer'
+	);
+
+    is(join( ' ', sort map { $_->{firstName} } @results ),
+       $pops, "Query (includes_or with two remotes)" );
+
+    $storage->disconnect();
+}
+
+is(leaked, 0, "leaktest");
+#diag("-"x69);
+
+{
+    my $storage = Springfield::connect;
+    my ($parent, $child)
+	= $storage->remote(qw( NaturalPerson NaturalPerson ));
+
+    my @males = $storage->select
+	(
+	 $child,
+	 $child->{firstName} eq 'Bart'
+	 | $child->{firstName} eq 'Homer'
+	);
+
+    #local($Tangram::TRACE) = \*STDERR;
+
+    my @results = $storage->select
+	(
+	 $parent,
+	 $parent->{$children}->includes_or( @males )
+	);
+
+    is(join( ' ', sort map { $_->{firstName} } @results ),
+       $pops, "Query (includes_or with two objects)" );
+
+    $storage->disconnect();
+}
+
+is(leaked, 0, "leaktest");
+#diag("-"x69);
+
+{
+    my $storage = Springfield::connect;
+    my ($parent, $child )
+	= $storage->remote(qw( NaturalPerson NaturalPerson ));
+
+    my @male = $storage->select
+	(
+	 $parent,
+	 $parent->{firstName} eq 'Bart'
+	);
+
+    #local($Tangram::TRACE) = \*STDERR;
+
+    my @results = $storage->select
+	(
+	 $parent,
+	 filter => ($parent->{$children}->includes_or( @male, $child ) &
+		    ($child->{firstName} eq "Homer")),
+	 distinct => 1,
+	);
+
+    is(join( ' ', sort map { $_->{firstName} } @results ),
+       $pops, "Query (includes_or with one objects & one remote)" );
 
     $storage->disconnect();
 }
