@@ -12,13 +12,18 @@ use vars qw( $schema @ISA @EXPORT );
 
 require Exporter;
 @ISA = qw( Exporter );
-@EXPORT = qw( optional_tests );
+@EXPORT = qw( optional_tests $schema );
 
 $schema = Tangram::Schema->new( {
 
    #set_id => sub { my ($obj, $id) = @_; $obj->{id} = $id },
    #get_id => sub { shift()->{id} },
 
+   sql =>
+   {
+	   cid_size => 2
+   },
+								  
    classes =>
    {
       Person =>

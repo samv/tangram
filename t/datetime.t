@@ -24,7 +24,7 @@ my %ids;
 	my $chloe = NaturalPerson->new
 		(
 		 firstName => 'Chloé',
-		 birth => '1993-7-28 13h',
+		 birth => '1993-7-28 13:10:00',
   		);
 								   
    $ids{chloe} = $storage->insert($chloe);

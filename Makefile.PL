@@ -70,12 +70,30 @@ MSG
 
     if (my $dbh = DBI->connect( $cs, $user, $passwd ))
     {
-	print "it worked!\nSay 'make test' to run the test suite.\n\n";
-	my $rs = $Springfield::schema->relational_schema();
-	do { local $dbh->{PrintError}; $rs->retreat($dbh); };
-	$rs->deploy($dbh);
+		print "it worked!\nSay 'make test' to run the test suite.\n\n";
+
+		my $schema = $Springfield::schema;
+
+		if ($cs =~ /dbi:Pg/i)
+		{
+			$schema->{sql}{default_null} = '';
+			$schema->{sql}{id} = 'int4';
+			$schema->{sql}{cid} = 'int4';
+			$schema->{sql}{oid} = 'int4';
+			$schema->{sql}{cid_size} = 3;
+		}
+
+		my $rs = $schema->relational_schema();
+
+		do
+		{
+			local $dbh->{PrintError};
+			$rs->retreat($dbh);
+		};
+
+		$rs->deploy($dbh);
 	
-	$dbh->disconnect;
+		$dbh->disconnect;
     }
 }
 

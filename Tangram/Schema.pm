@@ -40,6 +40,12 @@ sub new
     $self->{make_object} ||= sub { shift()->new() };
     $self->{class_table} ||= 'OpalClass';
 
+	$self->{sql}{default_null} ||= 'NULL';
+	$self->{sql}{id} ||= 'NUMERIC(15,0)';
+	$self->{sql}{cid} ||= 'NUMERIC(5,0)';
+	$self->{sql}{oid} ||= 'NUMERIC(10,0)';
+	$self->{sql}{cid_size} ||= 4;
+
     my $types = $self->{types} ||= {};
 
     %$types = ( %TYPES, %$types );

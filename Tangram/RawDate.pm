@@ -10,8 +10,8 @@ $Tangram::Schema::TYPES{rawdate} = Tangram::RawDate->new;
 
 sub Tangram::RawDate::coldefs
 {
-    my ($self, $cols, $members) = @_;
-    $self->_coldefs($cols, $members, 'DATE NULL');
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, "DATE $schema->{sql}{default_null}");
 }
 
 1;

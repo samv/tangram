@@ -3,35 +3,34 @@ use Carp;
 
 package Tangram::Schema;
 
-my $id_type = 'numeric(15, 0)';
-my $oid_type = 'numeric(10, 0)';
-my $cid_type = 'numeric(5,0)';
+#my $id_type = 'numeric(15, 0)';
+#my $oid_type = 'numeric(10, 0)';
+#my $cid_type = 'numeric(5,0)';
 my $classname_type = 'varchar(128)';
 
 sub relational_schema
 {
-    my ($self, $file) = @_;
+    my ($self) = @_;
 
     my $classes = $self->{classes};
     my $tables = {};
 
     foreach my $class (keys %{$self->{classes}})
     {
-	my $classdef = $classes->{$class};
-	my $tabledef = $tables->{$class} ||= {};
-	my $cols = $tabledef->{COLS} ||= {};
+		my $classdef = $classes->{$class};
+		my $tabledef = $tables->{$class} ||= {};
+		my $cols = $tabledef->{COLS} ||= {};
 
-	$cols->{id} = $id_type;
-	$cols->{classId} = $cid_type if $classdef->{root} == $classdef;
+		$cols->{id} = $self->{sql}{id};
+		$cols->{classId} = $self->{sql}{cid} if $classdef->{root} == $classdef;
 
-	foreach my $typetag (keys %{$classdef->{members}})
-	{
-	    my $members = $classdef->{members}{$typetag};
-	    my $type = $self->{types}{$typetag};
+		foreach my $typetag (keys %{$classdef->{members}})
+		{
+			my $members = $classdef->{members}{$typetag};
+			my $type = $self->{types}{$typetag};
 
-	    $type->coldefs($tabledef->{COLS}, $members, $self, $class, $tables);
-	    # @{$tabledef->{COLS}}{ $type->cols($members) } = $type->coldefs($members, $self, $class, $tables);
-	}
+			$type->coldefs($tabledef->{COLS}, $members, $self, $class, $tables);
+		}
     }
 
     delete @$tables{ grep { 1 == keys %{ $tables->{$_}{COLS} } } keys %$tables };
@@ -41,39 +40,41 @@ sub relational_schema
 
 sub Tangram::Scalar::_coldefs
 {
-    my ($self, $cols, $members, $sql) = @_;
+    my ($self, $cols, $members, $sql, $schema) = @_;
 
     for my $def (values %$members)
     {
-		$cols->{ $def->{col} } = $def->{sql} || $sql;
+		$cols->{ $def->{col} } = $def->{sql} || "$sql $schema->{sql}{default_null}";
     }
 }
 sub Tangram::Integer::coldefs
 {
-    my ($self, $cols, $members) = @_;
-    $self->_coldefs($cols, $members, 'INT NULL');
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, 'INT', $schema);
 }
 
 sub Tangram::Real::coldefs
 {
-    my ($self, $cols, $members) = @_;
-    $self->_coldefs($cols, $members, 'REAL NULL');
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, 'REAL', $schema);
 }
 
 sub Tangram::Ref::coldefs
 {
-    my ($self, $cols, $members) = @_;
+    my ($self, $cols, $members, $schema) = @_;
 
     for my $def (values %$members)
     {
-	$cols->{ $def->{col} } = !exists($def->{null}) || $def->{null} ? "$id_type NULL" : $id_type;
+		$cols->{ $def->{col} } = !exists($def->{null}) || $def->{null}
+			? "$schema->{sql}{id} $schema->{sql}{default_null}"
+			: $schema->{sql}{id};
     }
 }
 
 sub Tangram::String::coldefs
 {
-    my ($self, $cols, $members) = @_;
-    $self->_coldefs($cols, $members, 'VARCHAR(255) NULL');
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, 'VARCHAR(255)', $schema);
 }
 
 sub Tangram::Set::coldefs
@@ -82,8 +83,11 @@ sub Tangram::Set::coldefs
 
     foreach my $member (keys %$members)
     {
-	$tables->{ $members->{$member}{table} }{COLS} =
-	{ coll => $id_type, item => $id_type };
+		$tables->{ $members->{$member}{table} }{COLS} =
+		{
+		 coll => $schema->{sql}{id},
+		 item => $schema->{sql}{id},
+		};
     }
 }
 
@@ -93,8 +97,8 @@ sub Tangram::IntrSet::coldefs
 
     foreach my $member (values %$members)
     {
-	my $table = $tables->{ $schema->{classes}{$member->{class}}{table} } ||= {};
-	$table->{COLS}{$member->{coll}} = "$id_type NULL";
+		my $table = $tables->{ $schema->{classes}{$member->{class}}{table} } ||= {};
+		$table->{COLS}{$member->{coll}} = "$schema->{sql}{id} $schema->{sql}{default_null}";
     }
 }
 
@@ -104,8 +108,11 @@ sub Tangram::Array::coldefs
 
     foreach my $member (keys %$members)
     {
-	$tables->{ $members->{$member}{table} }{COLS} =
-	{ coll => $id_type, item => $id_type, slot => 'INT NULL' };
+		$tables->{ $members->{$member}{table} }{COLS} =
+		{
+		 coll => $schema->{sql}{id}, item => $schema->{sql}{id},
+		 slot => "INT $schema->{sql}{default_null}"
+		};
     }
 }
 
@@ -115,8 +122,12 @@ sub Tangram::Hash::coldefs
 
     foreach my $member (keys %$members)
     {
-	$tables->{ $members->{$member}{table} }{COLS} =
-	{ coll => $id_type, item => $id_type, slot => 'VARCHAR(128)' };
+		$tables->{ $members->{$member}{table} }{COLS} =
+		{
+		 coll => $schema->{sql}{id},
+		 item => $schema->{sql}{id},
+		 slot => "VARCHAR(255) $schema->{sql}{default_null}"
+		};
     }
 }
 
@@ -126,9 +137,9 @@ sub Tangram::IntrArray::coldefs
 
     foreach my $member (values %$members)
     {
-	my $table = $tables->{ $schema->{classes}{$member->{class}}{table} } ||= {};
-	$table->{COLS}{$member->{coll}} = "$id_type NULL";
-	$table->{COLS}{$member->{slot}} = 'INT NULL';
+		my $table = $tables->{ $schema->{classes}{$member->{class}}{table} } ||= {};
+		$table->{COLS}{$member->{coll}} = "$schema->{sql}{id} $schema->{sql}{default_null}";
+		$table->{COLS}{$member->{slot}} = "INT $schema->{sql}{default_null}";
     }
 }
 
@@ -146,12 +157,14 @@ package Tangram::Schema;
 
 sub deploy
 {
-    shift->relational_schema()->deploy(@_);
+	my ($self, $out) = @_;
+    $self->relational_schema()->deploy($out);
 }
 
 sub retreat
 {
-    shift->relational_schema()->retreat(@_);
+	my ($self, $out) = @_;
+    $self->relational_schema()->retreat($out);
 }
 
 package Tangram::RelationalSchema;
@@ -161,8 +174,8 @@ sub _deploy_do
     my $output = shift;
 
     return ref($output) && eval { $output->isa('DBI::db') }
-    ? sub { $output->do( join '', @_ ) }
-    : sub { print $output @_, ";\n\n" };
+		? sub { $output->do( join '', @_ ) }
+		: sub { print $output @_, ";\n\n" };
 }
 
 
@@ -175,7 +188,7 @@ sub retreat
 
     for my $table (sort keys %$tables, $schema->{class_table})
     {
-	$do->( "DROP TABLE $table" );
+		$do->( "DROP TABLE $table" );
     }
 }
 
@@ -190,27 +203,27 @@ sub deploy
 
     foreach my $table (sort keys %$tables)
     {
-	my $def = $tables->{$table};
-	my $cols = $def->{COLS};
+		my $def = $tables->{$table};
+		my $cols = $def->{COLS};
 
-	my @base_cols;
+		my @base_cols;
 
-	push @base_cols, "id $id_type NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{id};
-	push @base_cols, "classId $cid_type NOT NULL" if exists $cols->{classId};
+		push @base_cols, "id $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{id};
+		push @base_cols, "classId $schema->{sql}{cid} NOT NULL" if exists $cols->{classId};
 
-	delete @$cols{qw( id classId )};
+		delete @$cols{qw( id classId )};
 
-	$do->("CREATE TABLE $table\n(\n  ",
-	      join( ",\n  ", @base_cols, map { "$_ $cols->{$_}" } keys %$cols ),
-	      "\n)" );
+		$do->("CREATE TABLE $table\n(\n  ",
+			  join( ",\n  ", @base_cols, map { "$_ $cols->{$_}" } keys %$cols ),
+			  "\n)" );
     }
 
     $do->( <<SQL );
 CREATE TABLE $schema->{class_table}
 (
- classId $cid_type NOT NULL,
+ classId $schema->{sql}{cid} NOT NULL,
  className $classname_type,
- lastObjectId $oid_type,
+ lastObjectId $schema->{sql}{oid},
  PRIMARY KEY ( classId )
 )
 SQL
@@ -228,7 +241,7 @@ sub retreat
 
     for my $table (sort keys %$self, 'OpalClass')
     {
-	$do->( "DROP TABLE $table" );
+		$do->( "DROP TABLE $table" );
     }
 }
 
@@ -243,7 +256,7 @@ sub classids
 
     foreach my $class (keys %$classes)
     {
-	$classids->{$class} = $classid++ unless $classes->{$class}{abstract};
+		$classids->{$class} = $classid++ unless $classes->{$class}{abstract};
     }
 
     return $classids;

@@ -155,12 +155,13 @@ sub make_id
 {
     my ($self, $class_id) = @_;
 
-    my $class_table = $self->{schema}{class_table};
+	my $schema = $self->{schema};
+    my $class_table = $schema->{class_table};
 
     my $sql = "UPDATE $class_table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id";
     $self->sql_do($sql);
     my $cursor = $self->sql_cursor("SELECT lastObjectId from $class_table WHERE classId = $class_id", $self->{db});
-    sprintf '%d%04d', $cursor->fetchrow(), $class_id;
+    sprintf "%d%0$self->{cid_size}d", $cursor->fetchrow(), $class_id;
 }
 
 sub unknown_classid
@@ -541,7 +542,7 @@ sub load
 
     return $self->{objects}{$id} if exists $self->{objects}{$id};
 
-    my $classId = int substr $id, -4;
+    my $classId = int substr $id, -$self->{cid_size};
     my $class = $self->{id2class}{$classId};
     my $alias = Tangram::CursorObject->new($self, $class);
     my $select = $alias->cols;
@@ -775,7 +776,9 @@ use base qw( Tangram::AbstractStorage );
 sub connect
 {
     my ($pkg, $schema, $cs, $user, $pw) = @_;
+
     my $self = $pkg->new;
+
     my $db = DBI->connect($cs, $user, $pw);
 
     eval { $db->{AutoCommit} = 0 };
@@ -785,7 +788,11 @@ sub connect
     $self->{db} = $db;
 
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
+
+	$self->{cid_size} = $schema->{sql}{cid_size};
+
     $self->_open($schema);
+
     return $self;
 }
 

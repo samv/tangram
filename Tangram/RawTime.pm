@@ -10,8 +10,8 @@ $Tangram::Schema::TYPES{rawtime} = Tangram::RawTime->new;
 
 sub Tangram::RawTime::coldefs
 {
-    my ($self, $cols, $members) = @_;
-    $self->_coldefs($cols, $members, 'TIME NULL');
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, "TIME $schema->{sql}{default_null}");
 }
 
 1;
