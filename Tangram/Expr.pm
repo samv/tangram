@@ -290,6 +290,20 @@ sub as_string
 }
 
 
+sub sum
+{
+  my ($self, $val) = @_;
+
+  # $DB::single = 1;
+
+  Tangram::Expr->new(Tangram::Number->instance,
+		     "SUM(" . $self->{expr} . ")",
+		     $self->objects,
+		     );
+
+}
+
+
 # BEGIN ks.perl@kurtstephens.com 2002/06/25
 sub unaop
 {
@@ -715,6 +729,27 @@ sub is_kind_of
 						 tight => 100,
 						 objects => Set::Object->new( $object ) );
 }
+
+
+sub expr
+{
+  shift->{id}{expr}
+}
+
+
+sub count
+{
+  my ($self, $val) = @_;
+
+  # $DB::single = 1;
+
+  Tangram::Expr->new(Tangram::Integer->instance,
+		     "COUNT(" . $self->{id}{expr} . ")",
+		     $self->{id}->objects,
+		     );
+
+}
+
 
 use overload "==" => \&eq, "!=" => \&ne, fallback => 1;
 
