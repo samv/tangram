@@ -284,13 +284,29 @@ Example:
          $storage->update( $marge );
       } );
 
-Both $homer and $marge will be updated, or none will, depending on whether the anonymous
-subroutine passed to tx_do() dies.
+Both $homer and $marge will be updated, or none will, depending on
+whether the anonymous subroutine passed to tx_do() dies.
+
+=head2 reset
+
+Drops references to persistent objects present in memory.
+
+Storage keeps track of all the persistent objects that are present in
+memory, in order to make sure that loading the same object twice
+results in a single copy of the object.
+
+As a consequence, these objects will not be reclaimed by Perl's
+automatic memory management mechanism until either disconnect() or
+reset() is called.
+
+reset() should be called only when no other references exist to
+persistent objects, otherwise the same object (in the database) may
+end up having two copies in transient storage.
 
 =head2 disconnect
 
-Disconnects from the database.
-Storages I<must> be explicitly disconnected or objects will be leaked.
+Disconnects from the database. Drops references to persistent
+objects present in memory (see L<reset>).
 
 =head1 INTERNAL CONNECTION
 
