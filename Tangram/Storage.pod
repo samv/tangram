@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Storage
+Tangram::Storage - persistent object database
 
 L<Tangram::Schema>
 
@@ -18,9 +18,12 @@ L<Tangram::Schema>
    $storage->update( @objs );
 
    $obj = $storage->load( $oid );
-   @objs = $storage->load( $oids );
+   @objs = $storage->load( @oids );
+
    @objs = $storage->select( $class );
-   $cursor = $storage->select( $query_obj, $filter );
+   @objs = $storage->select( $remote, $filter );
+
+   $cursor = $storage->cursor( $remote, $filter );
 
    $storage->disconnect();
 

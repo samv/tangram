@@ -1,39 +1,39 @@
 =head1 NAME
 
-Tangram::Schema - defines the persistent aspects of a system
+Tangram::Schema - describe a system of persistent classes
 
 =head1 SYNOPSIS
 
-	use Tangram;
+	use Tangram::Core; 	# or: use Tangram;
 
 	$schema = Tangram::Schema->new( $hashref );
 
 	$schema = Tangram::Schema->new( %hash ); # only for compatibility
 
 	$storage->connect( $schema, ... );
-
-	use Tangram::Deploy;
-	$schema->deploy( \*FILE );
    
+
 =head1 DESCRIPTION
 
 A Schema contains all the information about the persistent aspects of
 a system of classes. That information is used to perform the mapping
-between OO constructs and a reational database.
+between OO constructs and a relational database.
 
 Schema objects are initialized from a nested data structure called a
 schema hash. The general structure of the schema hash is described
-below.
+here.
 
-The resulting Schema object becomes the owner of the schema hash that
-was passed to new(). The hash may not be modified afterwards, and no
+The resulting Schema object becomes the owner of the schema hash
+passed to new(). The hash may not be modified afterwards, and no
 assumptions can be made regarding its content.
 
 =head1 CLASS METHODS
 
-=head2 new( \%schema_hash )
+=head2 new( $hash )
 
 Returns a new Schema object.
+
+$hash is a reference to a L<"SCHEMA HASH">.
 
 The newly created Schema object becomes the owner of the hash,
 which can no longer be modified nor reused by client code.
@@ -42,25 +42,11 @@ which can no longer be modified nor reused by client code.
 
 =head2 deploy( HANDLE )
 
-Writes SQL statements to HANDLE. The SQL code prepares a database for
-use with this Schema, and consists mostly in a series of CREATE TABLE
-instructions.
-
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
-
-The SQL code is only guaranteed to work against an empty database.
+See L<Tangram::Deploy>.
 
 =head2 retreat( HANDLE )
 
-Writes SQL statements to HANDLE. The SQL code removes whatever was set
-up by deploy().
-
-HANDLE may be a DBI connection handle, a file handle or undef (in
-which case the SQL code is sent to STDOUT).
-
-The SQL code is only guaranteed to work against a database that was
-deployed using exactly the same schema.
+See L<Tangram::Deploy>.
 
 =head1 SCHEMA HASH
 
@@ -130,11 +116,11 @@ Tangram calls class method new().
 
 C<set_id> and C<get_id> are used together to associate an object ID
 with a persistent object. By default, Tangram converts a reference to
-an object into a unique integer value by evaluating the expression C<0
+an object to a unique integer value by evaluating the expression C<0
 + $obj>. The result is used as a key in a hash contained in the
 Storage object. The values in that hash are the object IDs.
 
-If any of your classes uses overloading, this approach will not work
+If any of your classes use overloading, this approach will not work
 and you will need to supply your own get/set_id methods.
 
 C<class_table> contains the name of a database table that

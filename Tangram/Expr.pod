@@ -1,15 +1,15 @@
 =head1 NAME
 
-Tangram::Expr
+Tangram::Expr - manipulate expressions on database server side
 
 =head1 SYNOPSIS
 
-   $expr = $remote->{$field}
+   	$expr = $remote->{$field}
    
-   $expr1 op $expr2
+   	$expr1 op $expr2
    
-   $expr->includes( $obj )
-   $expr->includes( $remote )
+   	$expr->includes( $obj )
+   	$expr->includes( $remote )
 
 =head1 DESCRIPTION
 
@@ -39,71 +39,71 @@ They are further classified into numeric, string and reference subtypes.
 
 =head1 NumericExpr
 
-NumericExpr objects can be compared using the usual operators ==, !=, <, >, <= and >=.
-The other operand must be either another NumericExpr, or a normal Perl numeric value.
-The result of the comparison is a L<Filter>.
+NumericExpr objects can be compared using the usual operators ==, !=,
+<, >, <= and >=.  The other operand must be either another
+NumericExpr, or a normal Perl numeric value.  The result of the
+comparison is a L<Filter>.
 
 =head1 StringExpr
 
-StringExpr objects can be compared using the usual operators eq, ne, lt, gt, le, and ge.
-The other operand must be either a NumericExpr, a StringExpr, or any Perl scalar value.
-Tangram will automatically quote the operand as required by the SQL syntax.
-The result of the comparison is a L<Filter>.
+StringExpr objects can be compared using the usual operators eq, ne,
+lt, gt, le, and ge.  The other operand must be either a StringExpr or
+any Perl scalar value.  Tangram will automatically quote the operand
+as required by the SQL syntax.  The result of the comparison is a
+Tangram::Filter.
 
 =head1 RefExpr
 
-RefExpr objects can be compared for equality using the usual operators == and !=. The other
-operand must be either another RefExpr, or a persistent object. In either case, both operands
-must refer to entities belonging to the same storage.
-The result of the comparison is a L<Filter>.
+RefExpr objects can be compared for equality using the usual operators
+== and !=. The other operand must be another RefExpr, a persistent
+object or undef(). The result of the comparison is a Filter.
 
 =head1 CollExpr
 
-A CollExpr objects represents a collection inside an object. It supports the C<includes>
-methods, which returns a L<Filter> stating that the collection must contain the operand.
-The operand may be a Tangram::Remote, a persistent object, or an object ID. In either case,
-both operands must refer to entities belonging to the same storage.
+A CollExpr objects represents a collection inside an object. It
+supports the includes methods, which returns a Tangram::Filter stating
+that the collection must contain the operand.  The operand may be a
+Tangram::Remote, a persistent object, or an object ID.
 
 operator < is provided as a synonym for includes().
 
 =head1 Filter
 
-Filter objects represent logical expressions, or conditions. Filters support logical operators
-&, | and !. Note that a I<single> ampersand or vertical bar must be used.
-The result is a L<Filter>.
-
+Filter objects represent logical expressions, or conditions. Filters
+support logical operators &, | and !. Note that a I<single> ampersand
+or vertical bar must be used.  The result is a L<Filter>.
 
 =head1 EXAMPLES
 
 $person is called 'Homer'
 
-   $person->{name} eq 'Homer'
+   	$person->{name} eq 'Homer'
 
 $person is older than 35
 
-   $person->{age} > 35
+   	$person->{age} > 35
 
 $person is married to $homer
 
-   $person->{partner} == $homer
+   	$person->{partner} == $homer
 
 $person is not $homer
 
-   $person != $homer
+   	$person != $homer
 
 $person is not $homer and is older than 65
 
-   $person != $homer & $person->{age} > 65
+   	$person != $homer & $person->{age} > 65
 
 $person is $bart's parent
 
-   $person->{children}->includes( $bart )
-   $person->{children} < $bart
+   	$person->{children}->includes( $bart )
+   	$person->{children} < $bart
 
-$person is I<not> $bart's parent
+$person is not $bart's parent
 
-   !$person->{children}->includes( $bart )
-   !($person->{children} < $bart)
+   	!$person->{children}->includes( $bart )
+   	!($person->{children} < $bart)
 
 =head1 SEE ALSO
 

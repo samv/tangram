@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::IntrArray - map Set::Object without link table
+Tangram::IntrArray - map Perl arrays using a foreign key
 
 =head1 SYNOPSIS
 
@@ -29,7 +29,9 @@ Tangram::IntrArray - map Set::Object without link table
 
 =head1 DESCRIPTION
 
-This class maps references to a Perl array in an intrusive fashion.
+This class maps references to a Perl array in an intrusive
+fashion. The persistent fields are grouped in a hash under the
+C<iarray> key in the field hash.
 
 The array may contain only objects of persistent classes. These classes
 must have a common persistent base class.
@@ -60,6 +62,8 @@ string. The hash uses the following fields:
 
 =item * slot
 
+=item * back
+
 =back
 
 Mandatory field C<class> specifies the class of the elements.
@@ -72,6 +76,13 @@ Optional field C<slot> sets the name the column containing the id of
 the containing object. This defaults to 'C_m_slot', where 'C' is the
 class of the containing object, and 'm' is the field name.
 
+Optional field C<back> sets the name of a field that is inserted in
+the elements. That field acts as a demand-loaded, read-only reference
+to the object containing the collection.
+
 If the descriptor is a string, it is interpreted as the name of the
 element's class. This is equivalent to specifying only the C<class>
 field in the hash variant.
+
+
+

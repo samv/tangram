@@ -1,0 +1,43 @@
+=head1 NAME
+
+Tangram::Cursor - traverse a result set
+
+=head1 SYNOPSIS
+
+	use Tangram;
+   
+	$cursor = $storage->cursor( $query_obj, $filter );
+
+	while (my $obj = $cursor->current())
+	{
+		# process $obj
+		$cursor->next();
+	}
+
+
+=head1 DESCRIPTION
+
+A Cursor makes it possible to iterate over a result set without
+loading all the objects in memory.
+
+=head1 INSTANCE METHODS
+
+=head2 current
+
+Returns the current object, or undef() if the result set is exhausted.
+
+=head2 current
+
+Moves to the next object in the result set, if any. Returns the new
+current object, or undef() if the result set is exhausted.
+
+=head1 MULTIPLE CURSORS
+
+Each Cursor has its own connection to the database, thus making it
+possible to have multiple active cursors.
+
+=head1 SEE ALSO
+
+L<Tangram::Storage>
+
+

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Core
+Tangram::Core - import core Tangram modules
 
 =head1 SYNOPSIS
 
@@ -18,7 +18,7 @@ Scalar and Ref. None of the modules that map collections (Array, Hash,
 Set and their intrusive variants) are imported. Neither is Deploy.
 
 Tangram::Core allows you to reduce script startup time (and executable
-size when perlcc can grok Tangram) by importing only what you
+size when perlcc can handle Tangram) by importing only what you
 really need. It also makes it possible to add new mappings to Tangram
 without penalizing apps that don't need them.
 

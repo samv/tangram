@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Ref
+Tangram::Ref - map references to persistent objects
 
 =head1 SYNOPSIS
 
@@ -31,10 +31,14 @@ Tangram::Ref
 					...
 				}
 		
+
 =head1 DESCRIPTION
 
 This class is responsible for mapping fields that contain a reference
-to a Perl object. The target object must belong to a persistent class.
+to a Perl object. The persistent fields are grouped in a hash under the C<ref>
+key in the field hash.
+
+The target object must belong to a persistent class.
 
 Tangram uses a column on the source object to store the id of the
 target object.

@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Array - map a Perl array
+Tangram::Array - map Perl arrays using a link table
 
 =head1 SYNOPSIS
 
@@ -32,7 +32,8 @@ Tangram::Array - map a Perl array
 
 =head1 DESCRIPTION
 
-Maps a reference to a Perl array.
+Maps references to a Perl array. The persistent fields are grouped in
+a hash under the C<array> key in the field hash.
 
 The array may contain only objects of persistent classes. These classes
 must have a common persistent base class.

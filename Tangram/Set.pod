@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Set - map Set::Object
+Tangram::Set - maps Set::Object using a link table
 
 =head1 SYNOPSIS
 
@@ -31,7 +31,8 @@ Tangram::Set - map Set::Object
 
 =head1 DESCRIPTION
 
-Maps a reference to a Set::Object.
+Maps a reference to a Set::Object. The persistent fields are grouped in
+a hash under the C<set> key in the field hash.
 
 The set may contain only objects of persistent classes. These classes
 must have a common persistent base class.

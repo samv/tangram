@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Ref
+Tangram::Scalar - map scalar fields
 
 =head1 SYNOPSIS
 
@@ -27,6 +27,7 @@ Tangram::Ref
 
 			# etc etc etc
 		
+
 =head1 DESCRIPTION
 
 Classes Tangram::String, ::Int and ::Real and ::Ref are responsible
