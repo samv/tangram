@@ -467,43 +467,41 @@ sub update
 }
 
 sub _update
-{
+  {
     my ($self, $obj) = @_;
 
     my $id = $self->id($obj) or confess "$obj must be persistent";
-   
+
     $done{$obj} = 1;
-    
+
     my $class = ref $obj;
     my $schema = $self->{schema};
     my $types = $schema->{types};
 
     $schema->visit_up($class,
-		      sub
-		      {
-			my ($class) = @_;
+					  sub
+					  {
+						my ($class) = @_;
 			
-			my $classdef = $schema->classdef($class);
+						my $classdef = $schema->classdef($class);
 			
-			my $table = $classdef->{table};
-			my @cols = ();
-			my @vals = ();
+						my $table = $classdef->{table};
+						my @cols = ();
+						my @vals = ();
 			
-			foreach my $typetag (keys %{$classdef->{members}})
-			  {
-			    $types->{$typetag}->save(\@cols, \@vals, $obj,
-						     $classdef->{members}{$typetag},
-						     $self, $table, $id);
-			  }
+						foreach my $typetag (keys %{$classdef->{members}}) {
+						  $types->{$typetag}->save(\@cols, \@vals, $obj,
+												   $classdef->{members}{$typetag},
+												   $self, $table, $id);
+						}
 			
-			if (@cols)
-			  {
-			    my $assigns = join ', ', map { "$_ = " . shift @vals } @cols;
-			    my $update = "UPDATE $table SET $assigns WHERE id = $id";
-			    $self->sql_do($update);
-			  }
-		      } );
-}
+						if (@cols) {
+						  my $assigns = join ', ', map { "$_ = " . shift @vals } @cols;
+						  my $update = "UPDATE $table SET $assigns WHERE id = $id";
+						  $self->sql_do($update);
+						}
+					  } );
+  }
 
 #############################################################################
 # save
@@ -1030,7 +1028,9 @@ sub sql_do
 {
     my ($self, $sql) = @_;
     print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
-    $self->{db}->do($sql) or croak $DBI::errstr;
+	my $rows_affected = $self->{db}->do($sql);
+    return defined($rows_affected) ? $rows_affected
+	  : croak $DBI::errstr;
 }
 
 sub sql_selectall_arrayref
