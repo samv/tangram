@@ -81,7 +81,11 @@ sub save
 
     foreach my $member (keys %$members)
     {
-		push @$cols, $members->{$member}{col};
+		my $memdef = $members->{$member};
+
+		next if $memdef->{automatic};
+
+		push @$cols, $memdef->{col};
 		push @$vals, exists($obj->{$member}) && defined ($obj->{$member})
 			? $obj->{$member} : 'NULL';
     }
@@ -114,12 +118,29 @@ sub quote
 
 sub save
 {
-    my ($self, $cols, $vals, $obj, $members) = @_;
+    my ($self, $cols, $vals, $obj, $members, $storage) = @_;
+
+	my $dbh = $storage->{db};
+
+	my $quote = $dbh->can('quote') ||
+		sub { my $val = $_[1]; $val =~ s/'/''/g; "'$val'" }; # 'emacs
 
     foreach my $member (keys %$members)
     {
-		push @$cols, $members->{$member}{col};
-		push @$vals, quote(exists($obj->{$member}) && $obj->{$member});
+		my $memdef = $members->{$member};
+
+		next if $memdef->{automatic};
+
+		push @$cols, $memdef->{col};
+
+		if (exists($obj->{$member}) && defined( my $val = $obj->{$member} ))
+		{
+			push @$vals, $quote->($dbh, $val);
+	    }
+		else
+		{
+			push @$vals, 'NULL';
+		}
 	}
 }
 
