@@ -85,3 +85,10 @@ Revision history for Perl extension Tangram.
 	- ordering result set by descending order is now supported
 	- die() on attempt to load from an invalid id
 	- removed silly table id allocation limit (t1000) in Coll.pm
+
+1.13  Jul 11 2000 - interim version
+	- new FlatHash and DMDateTime mappings contributed by Gabor Herr
+          <herr@iti.informatik.tu-darmstadt.de>
+	- some more doc in Type.pod
+	- date & time doc moved to DateTime.pod
+	- deploy() puts \n between instructions in trace
