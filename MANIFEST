@@ -17,6 +17,7 @@ Tangram/Deploy.pm
 
 Tangram/Dialect.pm
 Tangram/Dialect/Sybase.pm
+Tangram/Dialect/Mysql.pm
 
 Tangram/Ref.pm
 
@@ -78,4 +79,4 @@ t/flatarray.t
 t/iarray.t
 t/set.t
 t/iset.t
-t/datetime.t
+# t/datetime.t
