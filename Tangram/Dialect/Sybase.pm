@@ -33,28 +33,38 @@ use base qw( Tangram::Dialect );
 # DateExpr - the improved Expr class
 
 my %improved =
-	(
-    'Tangram::RawDateTime' => 'Tangram::Dialect::Sybase::DateExpr',
-	'Tangram::RawDate' => 'Tangram::Dialect::Sybase::DateExpr',
-	);
+  (
+   'Tangram::RawDateTime' => 'Tangram::Dialect::Sybase::DateExpr',
+   'Tangram::RawDate' => 'Tangram::Dialect::Sybase::DateExpr',
+  );
 
 ######################################################
 # Tangram calls this method to obtain new Expr objects
 
 sub expr
-{
-	my ($self, $type, $expr, @remotes) = @_;
-
-	###################################################
-	# is $type related to dates? if not, return default
-
-	my $improved = $improved{ref($type)} or return $type->expr(@_);
-	
-	####################################
-	# $type is a Date; return a DateExpr
-
-	return $improved->new($type, $expr, @remotes);
+  {
+    my $self = shift;
+    my $type = shift;
+    my ($expr, @remotes) = @_;
+    
+    ###################################################
+    # is $type related to dates? if not, return default
+    
+    my $improved = $improved{ref($type)} or return $type->expr(@_);
+    
+    ####################################
+    # $type is a Date; return a DateExpr
+    
+    return $improved->new($type, $expr, @remotes);
 }
+
+sub rate_connect_string
+  {
+    my ($self, $cs) = @_;
+    return +($cs =~ m/^dbi:Sybase:/i);
+  }
+
+Tangram::Dialect::Sybase->register();
 
 1;
 
