@@ -269,5 +269,5 @@ Revision history for Perl extension Tangram.
         - Added IntrRef.pm ("Intrusive Ref") for 1-to-1 bi-directional 
           Association navigation using only one column in one table.
           Derived from IntrSet.  I need help with this one. :)
-
+	- Added @sums = $storage->sum([ $expr1, $expr2 ], ...) support.
 

@@ -935,7 +935,13 @@ sub sum
 {
     my ($self, $expr, $filter) = @_;
 
-    my $objects = Set::Object->new($expr->objects);
+    my $expr_is_array = ref($expr) eq 'ARRAY';
+
+    my $objects = Set::Object->new(
+				   $expr_is_array ? 
+				   map($_->objects, @$expr) :
+				   $expr->objects,
+				  );
 
     my @filter_expr;
 
@@ -945,13 +951,24 @@ sub sum
 	@filter_expr = ( "($filter->{expr})" );
     }
 
-    my $sql = "SELECT SUM($expr->{expr}) FROM " . join(', ', map { $_->from } $objects->members);
+    my $sql = "SELECT " .
+      join(', ',
+	   map("SUM($_->{expr})",
+	       $expr_is_array ? @$expr : ($expr),
+	      ),
+	  ) . " FROM " . join(', ', map { $_->from } $objects->members);
 
     $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
 
     print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
 
-    return ($self->{db}->selectrow_array($sql))[0];
+    my @result = $self->{db}->selectrow_array($sql);
+
+    if ( $expr_is_array ) {
+      return wantarray ? @result : \@result;
+    } else {
+      return $result[0];
+    }
 }
 
 sub id

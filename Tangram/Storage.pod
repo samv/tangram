@@ -309,6 +309,14 @@ The above example would return rows 6 through 15 on a MySQL database.
 
 The select method is valid only in list context.
 
+=head2 sum
+
+   $sum = sum( $expr, $filter );
+
+   ($sum_expr1, $sum_expr2) = sum( [ $expr1, $expr2] );
+
+Gets the sum of the expression.  $filter is optional.
+
 =head2 cursor
 
    $cursor = $storage->cursor( $remote );
