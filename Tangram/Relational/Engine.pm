@@ -640,7 +640,7 @@ sub get_deletes
 
 							  for my $qcol ($mapping->get_export_cols($context)) {
 								my ($table) = @$qcol;
-								push @tables, $table unless $seen{$table};
+								push @tables, $table unless $seen{$table}++;
 							  }
 							} );
 	  
