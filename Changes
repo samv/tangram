@@ -138,3 +138,4 @@ Revision history for Perl extension Tangram.
 	- dialect are now done via derivation
 	- stored object id no longer contains type id
 	- introduced Relational::Engine
+	- flexible mapping
