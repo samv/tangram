@@ -25,7 +25,7 @@ sub reschema
 			$members->{$member} = $def;
 		}
 
-		$def->{coll} ||= $class . "_$member";
+		$def->{coll} ||= $schema->{normalize}->($class) . "_$member";
 
 		$schema->{classes}{$def->{class}}{stateless} = 0;
 

@@ -88,6 +88,9 @@ Optional field C<slot> sets the name the column containing the id of
 the containing object. This defaults to 'C_m_slot', where 'C' is the
 class of the containing object, and 'm' is the field name.
 
+The "C" in C_m and C_m_slot are passed through the schema
+normalisation function before being combined into a column name.
+
 Optional field C<deep_update> specificies that all elements have to be
 updated automatically when C<update> is called on the collection
 object. Automatic update ensures consisitency between the Perl

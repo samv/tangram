@@ -73,7 +73,8 @@ to the object containing the collection.
 
 Optional field C<coll> sets the name the column containing the id of
 the containing object. This defaults to 'C_m', where 'C' is the class
-of the containing object, and 'm' is the field name.
+of the containing object (after passing through the normalisation
+function), and 'm' is the field name.
 
 Optional field C<deep_update> specificies that all elements have to be
 updated automatically when C<update> is called on the collection
