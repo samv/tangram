@@ -383,6 +383,11 @@ sub STORE
 	$obj->{$member} = $coll;
 }
 
+sub storage {
+    my ($self) = (@_);
+    return $self->[2];
+}
+
 package Tangram::CollCursor;
 
 @Tangram::CollCursor::ISA = 'Tangram::Cursor';

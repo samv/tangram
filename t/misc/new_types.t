@@ -2,6 +2,9 @@
 
 # For bug: http://hottub.perlfect.com/pipermail/tangram-t2-maintainers/2003-November/000108.html
 
+use lib "t";
+use TestNeeds qw(Set::Object);
+
 require "t/Capture.pm";
 require "t/misc/RefImage.pm";
 use strict;

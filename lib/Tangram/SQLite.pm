@@ -39,13 +39,18 @@ sub to_date {
     $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
 	{$1-$2-$3T$4:$5:$6};
 
+    #print STDERR "Sending date: $date\n";
+
     return $date;
 }
 
 sub from_date {
     my $self = shift;
 
-    my $date = $self->SUPER::from_date(shift);
+    my $date = shift;
+    #print STDERR "Got date: $date\n";
+
+    $date = $self->SUPER::from_date($date);
 
     $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
 	{$1-$2-$3T$4:$5:$6};
@@ -83,7 +88,15 @@ sub connect
 {
     my $class = shift;
 
-    my $self = $class->SUPER::connect(@_);
+    my ($schema, $dsn, $u, $p, $attr) = @_;
+    $attr ||= {};
+    my $self;
+
+    {
+	local($attr->{no_tx}) = 1;  # *cough cough HACK cough*
+	$self = $class->SUPER::connect($schema, $dsn, $u, $p, $attr);
+    }
+    $self->{no_tx} = $attr->{no_tx} || 0;
 
     $self->{db}->{RaiseError} = 1;
     #$self->{db}->{sqlite_handle_binary_nulls} = 1;
@@ -92,7 +105,7 @@ sub connect
 
 
 sub has_tx()         { 1 }
-sub has_subselects() { 1 }
-sub from_dual()      { " FROM DUAL" }
+sub has_subselects() { 0 }
+#sub from_dual()      { " FROM DUAL" }
 
 1;

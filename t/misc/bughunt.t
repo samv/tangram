@@ -2,6 +2,9 @@
 
 # For bug: https://rt.cpan.org/NoAuth/Bug.html?id=2637
 
+use lib "t";
+use TestNeeds qw(Test::More Set::Object);
+
 require "t/Capture.pm";
 use strict;
 use Test::More tests => 4;

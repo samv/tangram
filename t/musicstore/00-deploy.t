@@ -25,13 +25,12 @@ SKIP:
 	local $dbh->{PrintError};
 	local $dbh->{RaiseError};
 	$DBConfig::dialect->retreat(MusicStore->schema, $dbh);
-	$DBConfig::dialect->retreat(MusicStore->pixie_like_schema, $dbh);
+	$DBConfig::dialect->retreat(MusicStore->new_schema, $dbh);
     };
 
     $dbh->{RaiseError} = 1;
 
     $DBConfig::dialect->deploy(MusicStore->schema, $dbh);
-    $DBConfig::dialect->retreat(MusicStore->pixie_like_schema, $dbh);
 
     pass("deploy completed without raising errors");
 

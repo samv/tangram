@@ -1,4 +1,3 @@
-# -*- perl -*-
 
 =head1 NAME
 
@@ -198,6 +197,9 @@ the following example:
 ...Tangram automatically inserts the kids when their father is
 updated. OTOH, $marge will not be automatically inserted nor updated;
 her age will remain '34' in persistent storage.
+
+Tangram does not perform any deadlock detection on updates.  You have
+to rely on your database back-end for that.
 
 =head2 id
 
@@ -439,13 +441,14 @@ Removes objects from persistent storage. The objects remain present in transient
 
    $storage->tx_start();
 
-Starts a new Tangram transaction.
+Starts a new Tangram transaction.  Tangram transactions can be nested,
+but currently this does not actually make SQL C<SAVEPOINT>'s (for
+partial transaction rollback).
 
-Tangram transactions can be nested.
-
-Tangram maintains a transaction nesting count for each storage and commits the operations only
-when that count reaches zero. This scheme makes it easy for a function to collaborate with its caller
-in the management of the L<internal connection>.
+Instead, tangram maintains a transaction nesting count for each
+storage object and commits the operations only when that count reaches
+zero. This scheme makes it easy for a function to collaborate with its
+caller in the management of the L<internal connection>.
 
 Example:
 
@@ -470,16 +473,33 @@ Example:
 
 In (1), f() commits the changes to $homer directly to the database.
 
-In (2), f() transparently reuses the transaction opened by g().\
-Changes to both $homer and $marge are commited to the database when g() calls tx_commit().
+In (2), f() transparently reuses the transaction opened by g().
+Changes to both $homer and $marge are commited to the database when
+g() calls tx_commit().
+
+By default with ACID compliant database back-ends (such as Pg,
+MySQL/InnoDB, Oracle and pretty much any commercial RDBMS), the first
+time you open a database connection, you are beginning a transaction.
+However, this is not the case with the L<Tangram::SQLite> or
+L<Tangram::mysql> back-ends, both of which do not implement
+transaction isolation; therefore it is not good to assume that the
+database can handle concurrent writing efficiently.
+
+To be run safely on these non-compliant back-ends, you should
+explicitly C<tx_start()> at the beginning of transaction blocks rather
+than relying on the default behaviour.
 
 =head2 tx_commit
 
    $storage->tx_commit();
 
-Commits the current Tangram transaction for this storage.
-If the transaction being commited is the outermost transaction for this storage, the DBI
-transaction is also commited.
+Commits the current Tangram transaction for this storage.  If the
+transaction being commited is the outermost transaction for this
+storage, the DBI transaction is also commited.
+
+When using the L<SQLite> back-end, when the DBI transaction is
+committed, the connection is also marked read-only (ie, AutoCommit is
+enabled).
 
 =head2 tx_rollback
 
@@ -570,3 +590,5 @@ TRANSACTION ISOLATION LEVEL>.
 
 Disconnects from the database. Drops references to persistent
 objects present in memory (see C<unload>).
+
+=cut

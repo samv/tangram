@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
 use strict;
+use lib "t";
+use TestNeeds qw(Test::More Set::Object);
 
 use Test::More tests => 2;
 use lib "t/springfield";

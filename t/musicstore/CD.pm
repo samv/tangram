@@ -8,6 +8,9 @@ __PACKAGE__->mk_accessors(qw(
    artist=CD::Artist title publishdate=Time::Piece songs=ARRAY
 ));
 
+package CD::Compilation;
+use base 'CD';
+
 
 package CD::Song;
 use base 'Class::Accessor';

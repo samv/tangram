@@ -1,5 +1,7 @@
 use strict;
 
+use lib "t";
+
 use Tangram;
 
 use Tangram::RawDate;
@@ -165,7 +167,7 @@ $schema =
 		 s_children =>
 		 {
 		  class => 'NaturalPerson',
-		  table => 's_children',
+		  table => "s_children",  #__
 		  aggreg => 1,
 		 },
 		 #s_parents =>
@@ -178,7 +180,7 @@ $schema =
 		 s_opinions =>
 		 {
 		  class => 'Opinion',
-		  table => 's_opinions',
+		  table => 's_opinions', #__
 		 }
 		},
 

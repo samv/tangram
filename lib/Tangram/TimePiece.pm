@@ -19,7 +19,10 @@ sub get_importer
 {
   my $self = shift;
   my $context = shift;
-  $self->SUPER::get_importer($context, sub { new Time::Piece(shift) });
+  $self->SUPER::get_importer
+      ($context, sub {
+	   Time::Piece->strptime(shift, "%Y-%m-%dT%H:%M:%S" );
+	   });
 }
 
 #

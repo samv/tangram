@@ -321,7 +321,8 @@ Revision history for Perl extension Tangram.
 	- New method Tangram::Storage::unload_all
 
 2.07_05, 2.07_06
-	- lots of changes.  full list to follow in next release.
+	- lots of changes.  full list to follow once I get the time to
+	  look at the revision history :-}
 
 2.07_06
 	- Support for SQL sequences.  See the Tangram::Schema man
@@ -334,3 +335,8 @@ Revision history for Perl extension Tangram.
 	- reworked the way the DBMS date formatting worked again,
 	  adding Tangram::CookedDateTime
 	- added support for Time::Piece and DateTime.
+	- much work on database portability.  The Pg back-end now
+	  works very well, and I have also ported to SQLite.
+	- much more documentation, including Tangram::Intro
+	- reworked the test suite to have multiple sections
+	- new test section for Object Persistathon (musicstore schema)

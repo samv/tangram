@@ -66,9 +66,14 @@ sub save_content
 	my ($obj, $field, $context) = @_;
 
 	# has collection been loaded? if not, then it hasn't been modified
-	return if tied $obj->{$field};
+	my $tied = tied $obj->{$field};
 
 	my $storage = $context->{storage};
+      	  if ($tied and $tied->can("storage")
+	      and $tied->storage == $storage ) {
+	      #print STDERR "not saving $obj -> {$field} (tied = $tied)\n";
+	      return;
+	  }
 
 	foreach my $item (@{ $obj->{$field} }) {
 	  $storage->insert($item)

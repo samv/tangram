@@ -210,12 +210,15 @@ sub open_connection
     # private - open a new connection to DB for read
 
     my $self = shift;
-    my $db = DBI->connect($self->{-cs}, $self->{-user}, $self->{-pw})
-	or die;
-
+    my $attr = {};
     if (defined $self->{no_tx}) {
-	$db->{AutoCommit} = ($self->{no_tx} ? 1 : 0);
+	$attr->{AutoCommit} = ($self->{no_tx} ? 1 : 0);
+	print $Tangram::TRACE __PACKAGE__.": setting AutoCommit to $attr->{AutoCommit}\n"
+	    if $Tangram::TRACE;
     }
+    my $db = DBI->connect($self->{-cs}, $self->{-user}, $self->{-pw},
+			  $attr)
+	or die;
 
     return $db;
 }
@@ -665,10 +668,10 @@ sub _insert
 
 	  my $sth = $sths->[$i];
 
-	  #kill 2, $$;
 
 	  my @args = (map {( ref $_ ? "$_" : $_ )} @state[ @{ $fields[$i] } ]);
 	  #print STDERR "args are: ".Data::Dumper::Dumper(\@args);
+	  #kill 2, $$;
 	  $sth->execute(@args)
 	      or die $dbh->errstr;
 
@@ -1183,12 +1186,19 @@ sub disconnect
 
     $self->{db}->{RaiseError} = 0;
 
-    unless ($self->{no_tx})
+    unless ($self->{no_tx} or $self->{db}->{AutoCommit})
     {
 	$self->{db}->rollback;
     }
 
-    $self->{db}->disconnect if $self->{db_owned};
+    if ($self->{db_owned}) {
+	print $Tangram::TRACE __PACKAGE__.": disconnecting\n"
+	    if $Tangram::TRACE;
+	$self->{db}->disconnect;
+    } else {
+	print $Tangram::TRACE __PACKAGE__.": disconnecting (no handle)\n"
+	    if $Tangram::TRACE;
+    }
 
     %$self = ();
 }
@@ -1253,6 +1263,12 @@ sub connect
 
 	$opts ||= {};
 
+    if (exists $opts->{no_tx}) {
+	$self->{no_tx} = $opts->{no_tx};
+    } elsif ( $self->can("has_tx") ) {
+	$self->{no_tx} = !($self->has_tx);
+    }
+
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
     $self->{driver} = $opts->{driver} || Tangram::Relational->new;
@@ -1263,11 +1279,7 @@ sub connect
 	$self->{db_owned} = 1;
     }
 
-    if (exists $opts->{no_tx}) {
-	$self->{no_tx} = $opts->{no_tx};
-    } elsif ( $self->can("has_tx") ) {
-	$db->{AutoCommit} = ($self->{no_tx} = ! $self->has_tx);
-    } else {
+    unless ( exists $self->{no_tx} ) {
 	eval { $db->{AutoCommit} = 0 };
 	$self->{no_tx} = $db->{AutoCommit};
     }
@@ -1486,7 +1498,19 @@ sub oid_isa
 sub DESTROY
 {
     my $self = shift;
-    $self->{db}->disconnect if $self->{db} && $self->{db_owned};
+    if ($self->{db}) {
+	if ( $self->{db_owned} ) {
+	    print $Tangram::TRACE __PACKAGE__.": destroyed; disconnecting\n"
+		if $Tangram::TRACE;
+	    $self->{db}->disconnect;
+	} else {
+	    print $Tangram::TRACE __PACKAGE__.": destroyed; leaving handle open\n"
+		if $Tangram::TRACE;
+	}
+    } else {
+	print $Tangram::TRACE __PACKAGE__.": destroyed; no active handle\n"
+	    if $Tangram::TRACE;
+    }
 }
 
 package Tangram::Storage::Statement;

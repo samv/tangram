@@ -29,3 +29,7 @@ This module performs the following
 
 This backend does not add any methods; for a description of
 available methods, see L<Tangram::Relational>.
+
+=head1 ERRATA
+
+=cut

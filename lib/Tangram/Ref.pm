@@ -101,6 +101,11 @@ sub get_exporter
 		my $schema = $storage->{schema};
 		
 		my $tied = tied($obj->{$field});
+		if ( $tied and $tied->can("storage")
+		     and $tied->storage != $storage ) {
+		    $tied = undef;
+		}
+
 		return $tied->id if $tied;
 		
 		my $ref = $obj->{$field};
@@ -138,6 +143,10 @@ sub get_exporter
 	  my $storage = $context->{storage};
 	  
 	  my $tied = tied($obj->{$field});
+	  if ( $tied and $tied->can("storage")
+	       and $tied->storage != $storage ) {
+	      $tied = undef;
+	  }
 	  return $storage->split_id($tied->id) if $tied;
 	  
 	  my $ref = $obj->{$field};
@@ -211,6 +220,11 @@ sub refid
       && !ref($member);
 
    my $tied = tied($obj->{$member});
+
+   if ( $tied and $tied->can("storage")
+	and $tied->storage != $storage ) {
+       $tied = undef;
+   }
    
    return $storage->id( $obj->{$member} ) unless $tied;
 

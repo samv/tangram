@@ -5,16 +5,16 @@
 {
 my ($members, $syd, $bob, $gilmour, @junk);
 
-$storage->insert
+my @bands =
     (
      CD::Band->new
-     (name => "The English Beat",
+     ({ name => "The English Beat",
       popularity => "one hit wonder",
       cds => Set::Object->new
       (
-       CD->new( title => "Beat This: The Best of the English Beat",
-		publishdate => Time::Piece->new("20010911"), # (!)
-		songs => [ map { CD::Song->new(name => $_) }
+       CD->new({  title => "Beat This: The Best of the English Beat",
+		publishdate => iso("2001-09-11"), # (!)
+		songs => [ map { CD::Song->new({ name => $_}) }
 "Mirror In The Bathroom",
 "Best Friend",
 "Hands Off She's Mine",
@@ -31,26 +31,26 @@ $storage->insert
 "Can't Get Used To Losing You",
 "Stand Down Margaret",
 			 ]
-	      ),
-       CD->new( title => "Special Beat Service",
-		publishdate => Time::Piece->new("19991026"),
-		songs => [ map { CD::Song->new(name => $_) }
-			   "I Confess"
-			   "Jeannette"
-			   "Sorry"
-			   "Sole Salvation"
-			   "Spar Wid Me"
-			   "Rotating Heads"
-			   "Save It For Later"
-			   "She's Going"
-			   "Pato and Roger A Go Talk"
-			   "Sugar and Stress"
-			   "End of the Party"
+	      }),
+       CD->new({ title => "Special Beat Service",
+		publishdate => iso("1999-10-26"),
+		songs => [ map { CD::Song->new({name => $_}) }
+			   "I Confess",
+			   "Jeannette",
+			   "Sorry",
+			   "Sole Salvation",
+			   "Spar Wid Me",
+			   "Rotating Heads",
+			   "Save It For Later",
+			   "She's Going",
+			   "Pato and Roger A Go Talk",
+			   "Sugar and Stress",
+			   "End of the Party",
 			 ],
-	      )
+	      })
       ),
       members => Set::Object->new
-      ( map { CD::Person->new( name => $_ ) }
+      ( map { CD::Person->new({ name => $_ }) }
 	"David Steele",
 	"Saxa",
 	"Everett Morton",
@@ -59,17 +59,17 @@ $storage->insert
 	"Ranking Roger",
 	"Dave Wakeling",
       ),
-     ),
+     }),
      CD::Band->new
-     ( name => "The Pink Floyd",
+     ({ name => "The Pink Floyd",
        popularity => "fledgling",
-       creationdate => Time::Piece->new("1964"),
-       enddate => Time::Piece->new("1968"),
+       creationdate => iso("1964"),
+       enddate => iso("1968"),
        cds => Set::Object->new
        (
-	CD->new( title => "The Piper At the Gates of Dawn",
-		 publishdate => Time::Piece->new("1967"),
-		 songs => [ map { CD::Song->new(name => $_) }
+	CD->new({ title => "The Piper At the Gates of Dawn",
+		 publishdate => iso("1967"),
+		 songs => [ map { CD::Song->new({name => $_}) }
 "Astronomy Domine",
 "Lucifer Sam",
 "Matilda Mother",
@@ -82,28 +82,28 @@ $storage->insert
 "Scarecrow",
 "Bike",
 			 ]
-	      ),
+	      }),
        ),
       members => $members=Set::Object->new
-      ( ($syd, $bob, @junk) = map { CD::Person->new( name => $_ ) }
+      ( ($syd, $bob, @junk) = map { CD::Person->new({ name => $_ }) }
 	"Syd Barrett",
 	"Bob Klose",
 	"Richard Wright",
 	"Roger Waters",
 	"Nick Mason (drums)",
       ),
-     ),
+     }),
 
      CD::Band->new
-     ( name => "The Pink Floyd",
+     ({ name => "The Pink Floyd",
        popularity => "increasing",
-       creationdate => Time::Piece->new("1968"),
-       enddate => Time::Piece->new("1969"),
+       creationdate => iso("1968"),
+       enddate => iso("1969"),
        cds => Set::Object->new
        (
-	CD->new( title => "A Saucerful of Secrets",
-		 publishdate => Time::Piece->new("1968"),
-		 songs => [ map { CD::Song->new(name => $_) }
+	CD->new({ title => "A Saucerful of Secrets",
+		 publishdate => iso("1968"),
+		 songs => [ map { CD::Song->new({name => $_}) }
 "Let There Be More Light",
 "Remember A Day",
 "Set The Controls For The Heart Of The Sun",
@@ -112,32 +112,32 @@ $storage->insert
 "See-Saw",
 "Jugband Blues",
 			  ]
-	       ),
+	       }),
        ),
       members => Set::Object->new
        ( $members->members,
-	 ($gilmour = CD::Person->new( name => "David Gilmour" ))
+	 ($gilmour = CD::Person->new({ name => "David Gilmour" }))
        ),
-     ),
+     }),
 
      CD::Band->new
-     ( name => "Pink Floyd",
+     ({ name => "Pink Floyd",
        popularity => "great",
-       creationdate => Time::Piece->new("1969"),
+       creationdate => iso("1969"),
        cds => Set::Object->new
        (
-	CD->new( title => "Ummagumma (disc 1 - live disc)",
-		 publishdate => Time::Piece->new("19691025"),
-		 songs => [ map { CD::Song->new(name => $_) }
+	CD->new({ title => "Ummagumma (disc 1 - live disc)",
+		 publishdate => iso("1969-10-25"),
+		 songs => [ map { CD::Song->new({name => $_}) }
 "Astronomy Domine",
 "Careful With That Axe, Eugene",
 "Set The Controls For The Heart of The Sun",
 "A Saucerful of Secrets",
 			  ]
-	       ),
-	CD->new( title => "Ummagumma (disc 2 - studio disc)",
-		 publishdate => Time::Piece->new("19691025"),
-		 songs => [ map { CD::Song->new(name => $_) }
+	       }),
+	CD->new({ title => "Ummagumma (disc 2 - studio disc)",
+		 publishdate => iso("1969-10-25"),
+		 songs => [ map { CD::Song->new({name => $_}) }
 "Sysyphus Part 1",
 "Sysyphus Part 2",
 "Sysyphus Part 3",
@@ -151,23 +151,23 @@ $storage->insert
 "The Grand Vizier's Garden Party Part 2\u2014Entertainment",
 "The Grand Vizier's Garden Party Part 3\u2014Exit",
 			  ]
-	       ),
+	       }),
        ),
        members => Set::Object->new
-       ( ($members - Set::Object->new($syd, $bob),
+       ( ( ($members - Set::Object->new($syd, $bob))->members,
 	  $gilmour,
 	 ),
        )
-     ),
+      }),
 
      CD::Band->new
-     ( name => "Damnwells",
+     ({ name => "Damnwells",
        popularity => "fringe",
        cds => Set::Object->new
        (
-	CD->new( title => "Bastards of the Beat",
-		 publishdate => Time::Piece->new("20040406"),
-		 songs => [ map { CD::Song->new(name => $_) }
+	CD->new({ title => "Bastards of the Beat",
+		 publishdate => iso("2004-04-06"),
+		 songs => [ map { CD::Song->new({name => $_}) }
 "A******s",
 "What You Get",
 "Kiss Catastrophe",
@@ -181,15 +181,20 @@ $storage->insert
 "New Delhi",
 "Star / Fool",
 			  ],
-	       ),
+	       }),
+       ),
 	members => Set::Object->new
-	( map { CD::Person->new( name => $_ ) }
-"Alex Dezen",
-"David Chernis",
-"Ted Hudson",
-"Steven Terry"
+	( map { CD::Person->new({ name => $_ }) }
+	  "Alex Dezen",
+	  "David Chernis",
+	  "Ted Hudson",
+	  "Steven Terry"
 	)
-       )
-     )
+      })
     );
+
+$storage->insert(@bands);
+
 }
+
+1;

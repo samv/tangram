@@ -2,27 +2,29 @@
 
 use strict;
 
+use lib "t";
+use lib "t/musicstore";
+use Prerequisites;
+
 use Test::More tests => 2;
-use lib "t/springfield";
 
 BEGIN {
-    use_ok "Springfield";
+    use_ok "MusicStore";
 };
 
 local $/;
 
 SKIP:
 {
-    my $dbh = DBI->connect( $Springfield::cs,
-			    $Springfield::user,
-			    $Springfield::passwd )
+    my $dbh = DBI->connect( $DBConfig::cs,
+			    $DBConfig::user,
+			    $DBConfig::passwd )
 	or skip "could not connect to database", 1;
 
-    $dbh->{RaiseError} = 1;
+    $DBConfig::dialect->retreat(MusicStore->schema, $dbh);
+    $DBConfig::dialect->retreat(MusicStore->new_schema, $dbh);
 
-    $Springfield::dialect->retreat($Springfield::schema, $dbh);
-
-    pass("retreat completed without raising errors");
+    pass("deploy completed without raising errors");
 
     $dbh->disconnect;
 }

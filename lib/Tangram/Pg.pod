@@ -10,7 +10,7 @@ Tangram::Pg - Orthogonal Object Persistence in PostgreSQL databases
    $schema = Tangram::Pg->schema( $hashref );
 
    Tangram::Pg->deploy($schema, $dbh);
-      
+
    $storage = Tangram::Pg->connect( $schema,
       $data_source, $username, $password );
 
@@ -32,7 +32,19 @@ available methods, see L<Tangram::Relational>.
 
 =head1 ERRATA
 
-I haven't got binary storage into VARCHAR or BLOB columns working with
-Pg, so the L<Tangram::Storable> module will not work with this
-back-end.
+L<Tangram::Storable> objects are first encoded with L<MIME::Base64>,
+because Tangram does not currently have an easy mechanism for calling
+C<DBI-E<gt>bind_param()> at the appropriate time to flag the column as
+binary.
+
+L<Tangram::PerlDump> objects are stored as C<BYTEA> columns, which as
+of L<DBD::Pg> 1.31, also do not get correctly escaped by the DBD
+driver.  This also affects the (as-yet not fully functional)
+L<Tangram::YAML> back-end, which might put C<\> characters into a YAML
+document.
+
+It is recommended to use the C<storable> type with L<Tangram::IDBIF>
+for this reason.
+
+=cut
 
