@@ -297,7 +297,7 @@ sub _insert
     my ($self, $obj) = @_;
     my $schema = $self->{schema};
 
-    confess "$obj is already persistent, id = ", $self->id($obj) if $self->id($obj);
+    return $self->id($obj) if $self->id($obj);
 
     $done{$obj} = 1;
 
