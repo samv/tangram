@@ -153,8 +153,9 @@ sub where
    
 	my $tables = $self->{tables};
 	my $root = $tables->{root};
+	my $id = $self->storage->{schema}{sql}{id_col};
 
-	map { "t$_->[1].id = t$root.id" } @$tables[1..$#$tables];
+	map { "t$_->[1].$id = t$root.$id" } @$tables[1..$#$tables];
 }
 
 # sub mark
@@ -240,7 +241,8 @@ sub where
 		@where_class_id = "t$root.$storage->{class_col} IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')';
 	}
 
-	return (@where_class_id, map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables]);
+	my $id = $schema->{sql}{id_col};
+	return (@where_class_id, map { "t@{$_}[1].$id = t$root.$id" } @$tables[1..$#$tables]);
 }
 
 package Tangram::Filter;
@@ -730,6 +732,51 @@ sub is_kind_of
 						 objects => Set::Object->new( $object ) );
 }
 
+
+sub in
+{
+	my $self = shift;
+
+	my $object = $self->{object};
+	my $root = $object->{tables}[0][1];
+	my $storage = $object->{storage};
+
+	my $objs = Set::Object->new();
+
+	while ( my $item = shift ) {
+	    if ( ref $item eq "ARRAY" ) {
+		$objs->insert(@$item);
+	    } elsif ( UNIVERSAL::isa($item, "Set::Object") ) {
+		if ( $objs->size ) {
+		    $objs->insert($item->members);
+		} else {
+		    $objs = $item;
+		}
+	    } else {
+		$objs->insert($item);
+	    }
+	}
+
+	my $expr;
+	if ( $objs->size ) {
+	    $expr = ("t$root.$storage->{id_col} IN ("
+		     . join(', ',
+			    # FIXME - what about table aliases?  Hmm...
+			    map { $storage->export_object($_) }
+			    $objs->members )
+		     . ')');
+	} else {
+	    # hey, you never know :)
+	    $expr = ("t$root.$storage->{id_col} IS NULL");
+	}
+
+	Tangram::Filter->new(
+			     expr => $expr,
+			     tight => 100,
+			     objects => Set::Object->new( $object )
+			    );
+
+}
 
 sub expr
 {

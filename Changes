@@ -260,9 +260,7 @@ Revision history for Perl extension Tangram.
 	- and a Tangram::YAML (not working, waiting for a CPAN bug to
 	  be fixed)
 
-2.07_03, 04-May-2004 - SamV
-	- Some documentation additions and pretty printing in the
-          internals
+2.07_03, 17-May-2004 - SamV
 	- Added Tangram::IDBIF to combine multiple object fields into
 	  one perl_dump style field (including a "catch-all" facility)
 	  Test suite for this isn't complete yet.
@@ -294,4 +292,31 @@ Revision history for Perl extension Tangram.
 	- [SamV] Started using _NN version style, so CPAN marks it as
 	  a development release
 	- added brief test suite for aggregate functions
+
+2.07_04, 20-May-2004
+
+	- Various POD modifications, including the main Tangram page,
+	  the addition of Tangram::Complicity and the removal of
+	  bogus Tangram::Dialect
+	- Enhanced TRACE messages
+	- Added support for Oracle via Tangram::Oracle
+	- Added support for cursors that select no objects (just
+	  retrieve extra columns, eg for aggregate selects)
+	- `Fixed' t/datetime.t so that it doesn't do PostgreSQL/MySQL
+	  specific tests unless it is running on those databases
+	- Storage and Engine now holds a handle to the
+	  Tangram::Relational object that created them, allowing for
+	  various DBMS dependant hooks (used to rewrite column types,
+	  format dates, etc)
+	- Extra sanity checking in the core
+	- The id_col feature in Tangram::Schema now actually works
+          :-).  Previously, there were many places where .id was
+          hard-coded.
+	- Added ->in() method, an expr that allows direct use of the
+          SQL IN () construct, rather than just via includes_or(), or
+          with Collections.
+	- DMDateTime module now expects database to understand the
+          ISO-8601 date format, but the MySQL driver has been enhanced
+          to convert ISO-8601 to MySQL format.
+	- New method Tangram::Storage::unload_all
 

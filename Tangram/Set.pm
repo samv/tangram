@@ -90,16 +90,18 @@ sub demand
 {
 	my ($self, $def, $storage, $obj, $member, $class) = @_;
 
-	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
-
 	my $set = Set::Object->new;
 
 	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
 	{
+	    print $Tangram::TRACE "getting ".$storage->id($obj)
+		.".$member from prefetch\n" if $Tangram::TRACE;
 		$set->insert(@$prefetch);
 	}
 	else
 	{
+	    print $Tangram::TRACE "demanding ".$storage->id($obj)
+		.".$member from storage\n" if $Tangram::TRACE;
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
@@ -110,7 +112,7 @@ sub demand
 		my $item_col = $def->{item} || 'item';
 		$cursor->{-coll_tid} = $coll_tid;
 		$cursor->{-coll_from} = "$table t$coll_tid";
-		$cursor->{-coll_where} = "t$coll_tid.$coll_col = $coll_id AND t$coll_tid.$item_col = t$item_tid.id";
+		$cursor->{-coll_where} = "t$coll_tid.$coll_col = $coll_id AND t$coll_tid.$item_col = t$item_tid.$storage->{schema}{sql}{id_col}";
 
 		$set->insert($cursor->select);
 	}

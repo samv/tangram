@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram - storing objects in standard relational databases
+Tangram - Store pure objects in standard relational databases
 
 =head1 DESCRIPTION
 
@@ -9,13 +9,19 @@ Tangram is an I<object-relational mapper>.
 It consists of an I<schema language> that can be built around an
 object structure, or around an existing SQL schema (with some
 limitations).  This schema language is rich enough to express such
-common RDBMS features as links, foreign keys, and mapping tables.
+common RDBMS features as links, foreign keys, and link tables.
 
 It also consists of a I<relational database storage> engine, which
 based on the schema structure, will make Perl structures persist in a
-relational (SQL compliant) database.
+relational (SQL compliant) database.  References to other objects (or
+collections, as represented with foreign keys and link tables) may be
+loaded using I<on demand references> that `lazily' load data when it
+is needed.
 
-In short, it implements one type of B<object persistence>.
+Tangram has soundly engineered transaction support, without
+sacrificing excellent data caching abilities.
+
+In short, it implements B<orthogonal object persistence>.
 
 Once your object are persistent, you can build query expressions to
 find them in terms of the schema language that you used to put them
@@ -25,7 +31,13 @@ describes a I<data access pattern>.
 If you are looking for a tool that implements I<SQL abstraction> only,
 you have probably missed the point (of this module, anyway), and a
 well-supported module like L<Class::DBI> will likely suit your needs
-more.
+better.
+
+Tangram is beginning to include preliminary support for aggregation
+functions, and currently supports grouping, summing and counting.
+
+Tangram currently contains no support for database-side updates, but
+support is planned.
 
 =head1 DOCUMENTATION INDEX
 

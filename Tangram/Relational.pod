@@ -21,11 +21,12 @@ Tangram::Relational - Orthogonal Object Persistence in Relational Databases
 
 This is the entry point in the vanilla object-relational persistence
 backend. Vendor-specific backends should be used when they
-exist. Currently Mysql and Sybase have such backends; see
-L<Tangram::mysql> and L<Tangram::Sybase>.
+exist. Currently Mysql, Sybase and Oracle have such backends; see
+L<Tangram::mysql>, L<Tangram::Sybase> and L<Tangram::Oracle>.
 
-More backends will be added in the future; they will
-implement persistence in XML documents, pure object databases etc.
+More backends could be added in the future; they might implement
+persistence in XML documents, pure object databases, using C database
+libraries to bypass the need for an RDBMS, etc.
 
 =head1 CLASS METHODS
 
@@ -82,5 +83,23 @@ Remove the tables created by deploy(). Only guaranteed to work against
 a database that was deployed using exactly the same schema.
 
 For an explanation of the possible argument lists, see L<deploy>.
+
+=head1 WRITING A VENDOR DRIVER
+
+Like Charles Moore (inventor of Forth) used to say, "standards are
+great, everybody should have one!".
+
+Tangram can take advantage of extensions available in some SQL
+dialects.
+
+To create a vendor-specific driver, call it C<Tangram::Foo> (where
+C<Foo> is the name of the DBI driver, as would be selected with the
+DBI connection string C<dbi:Foo:>), and derive C<Tangram::Relational>.
+
+For now, the existing back-ends should be used as examples of how to
+extend Tangram to support different databases, or utilise some of
+their more exotic features.
+
+=cut
 
 

@@ -232,6 +232,7 @@ sub new
     $self->{sql}{cid_size} ||= 4;
 
     $self->{sql}{dumper} ||= "Storable";
+    $self->{sql}{dumper_type} ||= "BLOB";
 
     my $types = $self->{types} ||= {};
 

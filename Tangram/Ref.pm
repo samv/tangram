@@ -15,12 +15,17 @@ sub FETCH
    my $self = shift;
    my ($storage, $id, $member, $refid) = @$self;
    my $refobj;
+
    if ($id) {
+       print $Tangram::TRACE "demanding $id.$member\n"
+	   if $Tangram::TRACE;
        my $obj = $storage->{objects}{$id};
        $refobj = $storage->load($refid);
        untie $obj->{$member};
        $obj->{$member} = $refobj;
    } else {
+       print $Tangram::TRACE "demanding obj $refid\n"
+	   if $Tangram::TRACE;
        untie $$member;
        $refobj = $$member = $storage->load($refid);
    }
@@ -91,6 +96,7 @@ sub get_exporter
 		return undef unless exists $obj->{$field};
 		
 		my $storage = $context->{storage};
+		my $schema = $storage->{schema};
 		
 		my $tied = tied($obj->{$field});
 		return $tied->id if $tied;
@@ -108,7 +114,7 @@ sub get_exporter
 							 # now that the object has been saved, we have an id for it
 							 my $refid = $storage->id($ref);
 							 # patch the column in the referant
-							 $storage->sql_do( "UPDATE $table SET $self->{col} = $refid WHERE id = $id" );
+							 $storage->sql_do( "UPDATE $table SET $self->{col} = $refid WHERE $schema->{sql}{id_col} = $id" );
 						   } );
 		  
 		  return undef;
@@ -141,13 +147,14 @@ sub get_exporter
 		$storage->defer( sub
 						 {
 						   my $storage = shift;
-						   
+						   my $schema = $storage->{schema};
+
 						   # now that the object has been saved, we have an id for it
 						   my $ref_id = $storage->export_object($ref);
 						   my $type_id = $storage->class_id(ref($ref));
 						   
 						   # patch the column in the referant
-						   $storage->sql_do( "UPDATE $table SET $self->{col} = $ref_id, $self->{type_col} = $type_id WHERE id = $exp_id" );
+						   $storage->sql_do( "UPDATE $table SET $self->{col} = $ref_id, $self->{type_col} = $type_id WHERE $schema->{sql}{id_col} = $exp_id" );
 						 } );
 		
 		return (undef, undef);

@@ -1,0 +1,31 @@
+=head1 NAME
+
+Tangram::Oracle - Orthogonal Object Persistence in Oracle databases
+
+=head1 SYNOPSIS
+
+   use Tangram;
+   use Tangram::Oracle;
+
+   $schema = Tangram::Oracle->schema( $hashref );
+
+   Tangram::Oracle->deploy($schema, $dbh);
+      
+   $storage = Tangram::Oracle->connect( $schema,
+      $data_source, $username, $password );
+
+   $storage->disconnect();
+
+   Tangram::Oracle->retreat($schema, $dbh);
+
+=head1 DESCRIPTION
+
+This is the entry point in the Oracle-specific object-relational
+persistence backend.
+
+This module performs the following
+
+=head1 METHODS
+
+This backend does not add any methods; for a description of
+available methods, see L<Tangram::Relational>.

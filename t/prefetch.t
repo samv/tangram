@@ -119,7 +119,7 @@ sub test_prefetch {
 		    #"\nGot: ", @new_children, "\n";
 		is_deeply(\@new_children, \@children, "$test_name - got back what we put in");
 	    } else {
-		like($@, qr/Execute failed/,
+		like($@, qr/Execute failed|prepare failed/,
 		     "$test_name - Raises correct exception w/o prefetch");
 		isnt(@new_children, @children,
 		     "$test_name - didn't get back what we put in");

@@ -75,7 +75,7 @@ sub defered_save
 
        my $item_id = $storage->export_object( $coll->{$slot} ) || die;
 
-       $storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = ? WHERE id = ?", $slot, $item_id)
+       $storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = ? WHERE $storage->{schema}{sql}{id_col} = ?", $slot, $item_id)
 	   unless (exists $old_state->{$slot} and
 		   $item_id eq $old_state->{$slot});
 
@@ -86,7 +86,7 @@ sub defered_save
    if (keys %removed)
        {
 	   my $removed = join(' ', values %removed);
-	   $storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE id IN ($removed)");
+	   $storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $storage->{schema}{sql}{id_col} IN ($removed)");
        }
 
    $old_states->{$field} = \%new_state;

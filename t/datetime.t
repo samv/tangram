@@ -12,7 +12,9 @@ BEGIN {
     }
 }
 
-tests_for_dialect(qw( mysql Pg ));
+my $do_rawtests = ($dialect =~ m/^Tangram::(mysql|Pg)$/);
+
+#tests_for_dialect(qw( mysql Pg ));
 
 #$Tangram::TRACE = \*STDOUT;
 
@@ -24,9 +26,10 @@ my %ids;
 	my $jll = NaturalPerson->new
 		(
 		 firstName => 'Jean-Louis',
-		 birthDate => '1963-8-13',
-		 birthTime => '11:34:17',
-		 birth => '1963-8-13 11:34:17',
+		 ($do_rawtests
+		  ?( birthDate => '1963-8-13',
+		     birthTime => '11:34:17',
+		     birth => '1963-8-13 11:34:17', ) : ()),
 		 incarnation => ParseDate('1963-8-13 11:34:17'),
   		);
 
@@ -35,7 +38,8 @@ my %ids;
 	my $chloe = NaturalPerson->new
 		(
 		 firstName => 'Chloé',
-		 birth => '1993-7-28 13:10:00',
+		 ($do_rawtests ? (birth => '1993-7-28 13:10:00')
+		  : () ),
 		 incarnation => ParseDate('1993-7-28 13:10:00'),
   		);
 
@@ -51,16 +55,26 @@ is(leaked, 0, "leaktest");
 
     my $jll = $storage->load( $ids{jll} );
 
-    like($jll->{birthTime}, qr/11/, "load of Date::Manip object [1]");
-    like($jll->{birthTime}, qr/34/, "load of Date::Manip object [2]");
-    like($jll->{birthTime}, qr/17/, "load of Date::Manip object [3]");
+ SKIP:{
+	skip "RAW date/time tests not supported on this RDBMS", 6
+	    unless $do_rawtests;
 
-    like($jll->{birthDate}, qr/1963/, "load of Date::Manip object [1]");
-    like($jll->{birthDate}, qr/13/, "load of Date::Manip object [2]");
-    like($jll->{birthDate}, qr/8/, "load of Date::Manip object [3]");
+	like($jll->{birthTime}, qr/11/, "raw time [1]");
+	like($jll->{birthTime}, qr/34/, "raw time [2]");
+	like($jll->{birthTime}, qr/17/, "raw time [3]");
+
+	like($jll->{birthDate}, qr/1963/, "raw date [1]");
+	like($jll->{birthDate}, qr/13/, "raw date [2]");
+	like($jll->{birthDate}, qr/8/, "raw date [3]");
+    }
 
     my $rp = $storage->remote(qw( NaturalPerson ));
-    my @results = $storage->select( $rp, $rp->{birth} > '1990-1-1' );
+
+    # FIXME - this is pretty much a hack for now.  It doesn't seem
+    # straightforward to overload Tangram::DMDateTime::binop to be
+    # able to wrap the arg later on.  This works for now!
+     my @results = $storage->select
+	( $rp, $rp->{incarnation} > $storage->dbms_date('19900101') );
 
     is(@results, 1, "Select by date compare");
     is($storage->id( $results[0] ), $ids{chloe},

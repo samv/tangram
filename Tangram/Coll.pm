@@ -115,6 +115,8 @@ sub includes
 	my ($self, $item) = @_;
 	my ($coll, $memdef) = @$self;
 
+	my $schema = $coll->{storage}{schema};
+
 	my $coll_tid = $coll->root_table;
 
 	my $link_tid = Tangram::Alias->new;
@@ -131,7 +133,7 @@ sub includes
 	if (ref $item) {
 	    if ($item->isa('Tangram::QueryObject'))
 		{
-		    $target = 't' . $item->object->root_table . '.id';
+		    $target = 't' . $item->object->root_table . '.' . $schema->{sql}{id_col};
 		    $objects->insert( $item->object );
 		}
 	    else
@@ -147,7 +149,7 @@ sub includes
 
 	Tangram::Filter->new
 		(
-		 expr => "t$link_tid.$coll_col = t$coll_tid.id AND t$link_tid.$item_col = $target",
+		 expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND t$link_tid.$item_col = $target",
 		 tight => 100,      
 		 objects => $objects,
 		 link_tid => $link_tid # for Sequence prefetch
@@ -158,6 +160,7 @@ sub includes_or {
     my ($self, @items) = @_;
     my ($coll, $memdef) = @$self;
 
+    my $schema = $coll->{storage}{schema};
     my $coll_tid = $coll->root_table;
 
     my $link_tid = Tangram::Alias->new;
@@ -174,8 +177,8 @@ sub includes_or {
         if (ref $item) {
             if ($item->isa('Tangram::QueryObject'))
               {
-                  push @targets, ('t' . $item->object->root_table .
-'.id');
+                  push @targets, ('t' . $item->object->root_table.'.'
+				  . $schema->{sql}{id_col});
                   $objects->insert( $item->object );
               }
             else
@@ -195,7 +198,7 @@ object"
     
         Tangram::Filter->new
         (
-         expr => "t$link_tid.$coll_col = t$coll_tid.id AND
+         expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND
 t$link_tid.$item_col IN ($joined_targets)",
          tight => 100,      
          objects => $objects,
@@ -218,6 +221,7 @@ sub includes
 	my $coll_tid = $coll->root_table;
 	my $item_class = $memdef->{class};
 	my $storage = $coll->{storage};
+	my $schema = $storage->{schema};
 
 	my $item_id;
 
@@ -229,7 +233,7 @@ sub includes
 
 			return Tangram::Filter->new
 				(
-				 expr => "t$item_tid.$memdef->{coll} = t$coll_tid.id",
+				 expr => "t$item_tid.$memdef->{coll} = t$coll_tid.$schema->{sql}{id_col}",
 				 tight => 100,
 				 objects => Set::Object->new($coll, $item->object),
 				)
@@ -244,6 +248,7 @@ sub includes
 	}
 
 	my $remote = $storage->remote($item_class);
+	# FIXME - style inconsistency
 	return ($self->includes($remote) & ($remote->{id} == $item_id));
 }
 
@@ -255,6 +260,7 @@ sub includes_or
 	my $item_class = $memdef->{class};
 	my $item_tid;
 	my $storage = $coll->{storage};
+	my $schema = $storage->{schema};
 
 	my (@targets_fwd, @targets_rev);
 	my $objects = Set::Object->new
@@ -289,7 +295,7 @@ sub includes_or
 	    $expr =
 	    Tangram::Filter->new
 		    (
-		     expr => "(t$coll_tid.id IN ($joined_targets))",
+		     expr => "(t$coll_tid.$schema->{sql}{id_col} IN ($joined_targets))",
 		     tight => 120,
 		     objects => $objects,
 		    );
@@ -304,7 +310,7 @@ sub includes_or
 	    my $new_expr = 
 		Tangram::Filter->new
 			(
-			 expr => "(t$item_tid.id in ($joined_targets))",
+			 expr => "(t$item_tid.$schema->{sql}{id_col} in ($joined_targets))",
 			 tight => 100,
 			 objects => $objects,
 			);
@@ -367,7 +373,6 @@ sub STORE
 {
 	my ($self, $coll) = @_;
 	my ($type, $def, $storage, $id, $member, $class) = @$self;
-
 	my $obj = $storage->{objects}{$id}
 	    or confess "FETCH failed to get object $id!";
 	$type->demand($def, $storage, $obj, $member, $class);

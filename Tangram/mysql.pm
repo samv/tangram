@@ -10,9 +10,26 @@ use vars qw(@ISA);
 
 sub connect
   {
-	shift;
-	return Tangram::mysql::Storage->connect( @_ );
+      my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
+      ${$opts||={}}{driver} = $pkg->new();
+      my $storage = Tangram::mysql::Storage->connect
+	  ( $schema, $cs, $user, $pw, $opts );
   }
+
+# FIXME - this should be implemented in the same way as the
+# IntegerExpr stuff, below.
+sub dbms_date {
+    my $self = shift;
+
+    my $date = $self->SUPER::dbms_date(shift);
+
+    # convert standard ISO-8601 to a format that MySQL natively
+    # understands, dumbass that it is.
+    $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
+	{$1-$2-$3 $4:$5:$6};
+
+    return $date;
+}
 
 package Tangram::mysql::Storage;
 

@@ -60,7 +60,6 @@ sub defered_save
 	my $coll_id = $storage->export_object($obj);
 	
 	my $classes = $storage->{schema}{classes};
-	#use Data::Dumper; print Dumper \@_;
 	my $item_classdef = $classes->{ $def->{class} };
 	my $table = $item_classdef->{table} or die;
 	my $item_col = $def->{coll};
@@ -73,6 +72,8 @@ sub defered_save
 	
 	my $old_state = $self->get_load_state($storage, $obj, $field) || [];
 	my $old_size = $old_state ? @$old_state : 0;
+	# FIXME - where on earth are the undef values coming from ?  :(
+	@$old_state = grep { defined } @$old_state;
 	
 	my %removed;
 	@removed{ @$old_state } = () if $old_state;
@@ -84,7 +85,11 @@ sub defered_save
 		my $item_id = $storage->id( $coll->[$slot] ) || die;
 		my $ex_item_id = $storage->{export_id}->($item_id);
 		
-		$storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = $slot WHERE id = $ex_item_id")
+		$storage->sql_do
+		    ("UPDATE $table SET "
+		     ."$item_col = $coll_id, "
+		     ."$slot_col = $slot WHERE "
+		     ."$storage->{schema}{sql}{id_col} = $ex_item_id")
 		  unless $slot < $old_size && $item_id eq $old_state->[$slot];
 		
 		push @new_state, $item_id;
@@ -95,7 +100,7 @@ sub defered_save
 	if (keys %removed)
 	  {
 		my $removed = join(', ', map { $storage->{export_id}->($_) } keys %removed);
-		$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE id IN ($removed)");
+		$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $storage->{schema}{sql}{id_col} IN ($removed)");
 	  }
 	
 	$self->set_load_state($storage, $obj, $field, \@new_state);	

@@ -32,13 +32,12 @@ my $dbh = DBI->connect($cs, $user, $passwd)
 
    #local($Tangram::TRACE)=\*STDERR;
    my $cursor = $storage->cursor
-       ( $r_person,
+       ( undef,
 	 filter => $r_person->{children}->includes($r_child),
 	 group => [ $r_person ],
-	 retrieve => [ $r_child->count(), $r_child->{age}->sum() ]
+	 retrieve => [ $r_child->{id}->count(), $r_child->{age}->sum() ]
        );
 
-   $cursor->execute();
    my @data;
    while ( my $row = $cursor->next() ) {
        push @data, [ $cursor->residue ];

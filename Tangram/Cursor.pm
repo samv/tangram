@@ -14,7 +14,7 @@ sub new
 	confess unless $conn;
 
 	$remote = $storage->remote($remote)
-	  unless ref $remote;
+	    unless ref $remote or not defined $remote;
 
 	my $self = {};
 
@@ -69,7 +69,8 @@ sub select
 	$self->{-distinct} = $args{distinct};
 	$self->{-limit} = $args{limit};
 
-	$self->retrieve( @{ $args{retrieve} } ) if exists $args{retrieve};
+	$self->retrieve( @{ $args{retrieve} } )
+	    if exists $args{retrieve};
 
 	my $target = $self->{TARGET};
 
@@ -81,12 +82,18 @@ sub select
 	{
 		$filter->{expr} = $user_filter->{expr};
 		$filter->{objects}->insert($user_filter->{objects}->members);
-		$filter->{objects}->remove($target->object);
+		$filter->{objects}->remove($target->object) if $target;
 	}
 
-	$self->{SELECTS} = [ map {
-	  [ $self->build_select( $_, [], [ $filter->from ],  [ $filter->where ]), undef, $_ ]
-	} $self->{STORAGE}->get_polymorphic_select( $target->class ) ];
+	$self->{SELECTS} =
+	    [
+	     map {
+		 [ $self->build_select( $_, [], [ $filter->from ],
+					[ $filter->where ]), undef, $_ ]
+	     }
+	     $self->{STORAGE}->get_polymorphic_select
+	     ( $target ? $target->class : "")
+	    ];
 
 	$self->{position} = -1;
 
@@ -98,15 +105,19 @@ sub execute
 	my ($self) = @_;
 	return $self->{-current} if $self->{position} == 0;
 	$self->{cur_select} = [ @{ $self->{SELECTS} } ];
-	return $self->prepare_next_statement() && $self->next();
+	$self->prepare_next_statement() && $self->next();
   }
 
 sub prepare_next_statement
   {
 	my ($self) = @_;
 
-	my $select = $self->{ACTIVE} = shift @{ $self->{cur_select} } or return undef;
-
+	my $select = $self->{ACTIVE} = shift @{ $self->{cur_select} }
+	    or do { 
+		#print $Tangram::TRACE "Cursor - no active selects?\n"
+		    #if $Tangram::TRACE;
+		return undef;
+	    };
 	my ($sql, $sth, $template) = @$select;
 
 	$self->{sth}->finish() if $self->{sth};
@@ -151,6 +162,9 @@ sub build_select
            $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
 	       if @not_in_it;
 
+	   # FIXME - this should include *ALL* selected columns that
+	   # are not aggregate functions.  In short, normally you
+	   # would not want to select an object.
            $select .= ("\n\tGROUP BY ".
 		       join ', ', map { $_->expr } @$group);
 	}
@@ -191,7 +205,9 @@ sub _next
 	$self->{-current} = undef;
 	++$self->{position};
 
-	my $sth = $self->{sth};
+	my $sth = $self->{sth}
+	    or confess "no sth";
+
 	my @row;
 
 	while (1)
@@ -203,25 +219,31 @@ sub _next
 
 	my $storage = $self->{STORAGE};
 
-	my ($id, $classId, $state) = $self->{ACTIVE}[-1]->extract(\@row);
+	if ($self->{TARGET}) {
+	    my ($id, $classId, $state) = $self->{ACTIVE}[-1]->extract(\@row);
 
-	$id = $storage->{import_id}->($id, $classId);
+	    $id = $storage->{import_id}->($id, $classId);
 
-	my $class = $storage->{id2class}{$classId} or die "unknown class id $classId";
+	    my $class = $storage->{id2class}{$classId} or die "unknown class id $classId";
 
-	# even if object is already loaded we must read it so that @rpw only contains residue
-	my $obj = $storage->read_object($id, $class, $state);
+	    # even if object is already loaded we must read it so that @rpw only contains residue
+	    my $obj = $storage->read_object($id, $class, $state);
+
+	    # if object is already loaded return previous copy
+	    $obj = $storage->{objects}{$id} if exists $storage->{objects}{$id};
+
+	    $self->{-current} = $obj;
+
+	} else {
+	    $self->{-current} = undef;
+	}
 
 	$self->{-residue} = exists $self->{-retrieve}
-		? [ map { ref $_ ? $_->{type}->read_data(\@row) : shift @row } @{$self->{-retrieve}} ]
-			: \@row;
+	    ? [ map { ref $_ ? $_->{type}->read_data(\@row) : shift @row } @{$self->{-retrieve}} ]
+		: \@row;
+	$self->{-current} ||= $self->{-residue};
 
-	# if object is already loaded return previous copy
-	$obj = $storage->{objects}{$id} if exists $storage->{objects}{$id};
-   
-	$self->{-current} = $obj;
-
-	return $obj;
+	return $self->{-current};
 }
 
 sub next

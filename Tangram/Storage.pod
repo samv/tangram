@@ -309,14 +309,30 @@ The above example would return rows 6 through 15 on a MySQL database.
 
 The select method is valid only in list context.
 
-=head2 sum
+=head2 sum( $expr, [$filter] )
 
-   $sum = $storage->sum( $expr, $filter );
+Returns the total of the remote expression ($expr) for all rows that
+match $filter, as summed by the RDBMS.  $filter is optional, and if
+not passed the implication is to sum the value for ALL objects of that
+type.
+
+   my $r_thing = $storage->remote("Thing");
+   $sum = $storage->sum( $r_thing->{field},
+                         ($r_thing->{foo} eq "bar") );
+
+It is also possible to pass a list of fields to sum, as an array ref:
 
    ($sum_expr1, $sum_expr2)
-       = $storage->sum( [ $expr1, $expr2] );
+       = $storage->sum( [ $expr1, $expr2 ], $filter );
 
-Gets the sum of the expression.  $filter is optional.
+=head2 count( $expr, [$filter] )
+
+Works as B<sum()>, but returns the count of the given objects or
+columns instead of the sum.
+
+This function does I<not> support counting multiple columns by passing
+an array ref.  However, this can be achieved using the
+C<-E<gt>count()> remote expression function (see L<Tangram::Expr>).
 
 =head2 cursor
 
@@ -517,7 +533,36 @@ unload() is called.
 
 unload() should be called only when no other references exist to
 persistent objects, otherwise the same object (in the database) may
-end up having two copies in transient storage.
+end up having two copies in transient storage, or vice versa!
+
+In most cases, you never want to use this function - letting objects
+pass out of scope and be cleaned up is a much more natural way to let
+the object cache take care of itself.
+
+=head2 unload_all( [ $notify_method ])
+
+Drops references to all objects in the object cache.  If you pass a
+notify method, then this will be passed to all objects as they are
+dumped (so long as they C<-E<gt>can()> handle it).  This can be used,
+for instance, with Class::Tangram objects to make sure all circular
+references in cached objects are cleared, if you pass C<clear_refs> as
+the C<$notify_method>.
+
+Similar warnings apply to this function as C<$storage-E<gt>unload()>.
+
+This function is particularly useful in OLTP (online transaction
+processing) servers.  In those, it should be called before the first
+C<$storage-E<gt>tx_start()>, so that all objects are known to be
+"fresh" in the current transaction.  Due to ACID guarantees of
+consistent reads etc (not on MySQL/MyISAM!), you should then not have
+the classic "dirty read" problem - so long as you wrap the entire
+transaction in a function that catches a failure on
+C<-e<gt>tx_commit()> and attempts a retry (make sure to clear the
+cache again before a retry!).
+
+You might also want to see your RDBMS manual under the topic of
+"transaction isolation", in particular the SQL command C<SET
+TRANSACTION ISOLATION LEVEL>.
 
 =head2 disconnect
 

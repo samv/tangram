@@ -32,6 +32,10 @@ sub get_importer
 # work with most databases (read: I've only tested with MySQL but the
 # value is sensible)
 #
+# Of course, some databases don't like to try and guess date formats,
+# even when they're in nice forms.  So, allow a hook for reformatting
+# dates.
+#
 sub get_exporter
 {
     my $self = shift;
@@ -39,10 +43,10 @@ sub get_exporter
     my $name = $self->{name};
 
     return sub {
-	my ($obj, $row, $context) = @_;
+	my ($obj, $context) = @_;
 	my $val = $obj->{$name};
-	$val = UnixDate($val, "%Y-%m-%d %H:%M:%S") if defined $val;
-	$row->{$name} = $val;
+	$val = $context->{storage}->dbms_date($val) if defined $val;
+	return $val;
     }
 }
 1;

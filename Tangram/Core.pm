@@ -24,11 +24,12 @@ $DEBUG_LEVEL = 0;
 
 package Tangram::Core;
 
-use vars qw(@ISA @EXPORT @EXPORT_OK);
+use Exporter;
+use vars qw(@ISA @EXPORT_OK);
 
 BEGIN {
     @ISA = qw(Exporter);
-    @EXPORT = qw(pretty);
+    @EXPORT_OK = qw(pretty);
 }
 
 sub pretty {

@@ -91,6 +91,12 @@ sub new {
 	$engine->{TYPE_COL} = $schema->{sql}{class_col} || 'type';
     }
 
+    if ( $opts{driver} ) {
+	$engine->{driver} = $opts{driver};
+	print $Tangram::TRACE ref($opts{driver})." driver selected\n"
+	    if $Tangram::TRACE;
+    }
+
     for my $class ($schema->all_classes) {
 	$engine->{ROOT_TABLES}{$class->{table}} = 1
 	    if $class->is_root();
@@ -419,6 +425,7 @@ sub deploy
 	my $schema = $engine->{SCHEMA};
 
     $output ||= \*STDOUT;
+    my $driver = $engine->{driver} || Tangram::Relational->new();
 
     my $do = _deploy_do($output);
 
@@ -437,13 +444,17 @@ sub deploy
 	my $timestamp_type = $schema->{sql}{timestamp} || 'TIMESTAMP';
 	my $timestamp = $schema->{sql}{timestamp_all_tables};
 
-	push @base_cols,("$id_col $schema->{sql}{id} NOT NULL,\n"
+	push @base_cols,("$id_col ".
+			 $driver->type("$schema->{sql}{id} NOT NULL")
+			 .",\n"
 			 ."PRIMARY KEY( $id_col )")
 	    if exists $cols->{$id_col};
-	push @base_cols, "$class_col $schema->{sql}{cid} NOT NULL"
+	push @base_cols, "$class_col "
+	    .$driver->type("$schema->{sql}{cid} NOT NULL")
 	    if exists $cols->{$class_col};
 
-	push @base_cols, "$timestamp_col $timestamp_type NOT NULL"
+	push @base_cols, "$timestamp_col "
+	    .$driver->type("$timestamp_type NOT NULL")
             if $timestamp;
 
 	delete @$cols{$id_col};
@@ -451,7 +462,8 @@ sub deploy
 
 	$do->("CREATE TABLE $table\n(\n  ",
 	      join( ",\n  ", (@base_cols,
-			      map { "$_ $cols->{$_}" } keys %$cols) ),
+			      map { "$_ ".$driver->type($cols->{$_}) }
+			      keys %$cols) ),
 	      "\n) ".($type?" TYPE=$type":""));
     }
 
@@ -526,10 +538,10 @@ sub instantiate {
 
     if (@$xwhere) {
 	$xwhere[0] = join ' AND ', @$xwhere;
-	$xwhere[0] =~ s[%][%%]g;
+	$xwhere[0] =~ s[%][%%]g; # FIXME - no, no, no.
     }
 
-    my @tables = $remote->table_ids();
+    my @tables = $remote->table_ids() if $remote;
 
     my $select = sprintf("SELECT %s\n  FROM %s",
 			 join(', ', @$cols, @$xcols),
@@ -659,6 +671,7 @@ package Tangram::Relational::Engine::Class;
 
 use vars qw(@ISA);
 @ISA = qw( Tangram::Node );
+use Carp qw(confess);
 
 sub new {
     bless { }, shift;
@@ -672,7 +685,9 @@ sub fracture {
 
 sub initialize {
     my ($self, $engine, $class, $mapping) = @_;
-    $self->{CLASS} = $class;
+    ref($self->{CLASS} = $class)
+	&& UNIVERSAL::isa($class, "Tangram::Class")
+	    or confess "not class but $class";
     $self->{MAPPING} = $mapping;
     $self->{BASES} = [
 		      map { $engine->get_class_engine($_) }

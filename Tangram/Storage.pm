@@ -57,13 +57,20 @@ sub split_id
 sub combine_ids
   {
 	my $self = shift;
-	my $id = shift or confess "no id";
-	my $cid = shift or confess "no cid";
+	defined(my $id = shift) or confess "no id";
+	defined(my $cid = shift) or confess "no cid";
 	defined($self->{cid_size}) or die "no CID size in schema";
 	return ( $self->{layout1}
 		 ? shift
 		 : sprintf("%d%0$self->{cid_size}d", $id, $cid) );
   }
+
+sub dbms_date
+    {
+	my $self = shift;
+	my $driver = $self->{driver} or confess "no driver";
+	return $self->{driver}->dbms_date(shift);
+    }
 
 sub _open
   {
@@ -114,6 +121,13 @@ sub _open
 	{
 	  my ($obj, $id) = @_;
 
+	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
+		if ($id) {
+		   print $Tangram::TRACE "Welcoming $obj as $id\n";
+		} else {
+		   print $Tangram::TRACE "Un-welcoming $obj\n";
+		}
+	  }
 	  if ($id) {
 	    $self->{ids}{Tangram::refaddr($obj)} = $id;
 	  } else {
@@ -122,8 +136,12 @@ sub _open
 	};
 
     $self->{get_id} = $schema->{get_id} || sub {
-	  my $address = Tangram::refaddr(shift());
+	  my $obj = shift;
+	  my $address = Tangram::refaddr($obj);
 	  my $id = $self->{ids}{$address};
+	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
+		print $Tangram::TRACE "$obj is ".($id?"oid $id" : "not in storage")."\n";
+	  }
 	  return undef unless $id;
 	  # refaddr's can be re-used, but weakrefs are magic :-)
 	  return $id if defined($self->{objects}{$id});
@@ -337,6 +355,17 @@ sub tx_start
 	unless (@{ $self->{tx} }) {
 	  delete $self->{set_mark};
 	  delete $self->{mark};
+	  print $Tangram::TRACE "START TRANSACTION;\n"
+	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0);
+	  unless ($self->{no_tx}) {
+	      $self->{db}->{AutoCommit} = 1;
+	      $self->{db}->{AutoCommit} = 0;
+	      #eval { $self->{db}->rollback(); };
+	      #$self->{db}->begin_work();
+	  }
+	} else {
+	  print $Tangram::TRACE "START TRANSACTION; (virtual)\n"
+	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 1);
 	}
 
     push @{ $self->{tx} }, [];
@@ -377,7 +406,12 @@ sub tx_commit
     
     unless ($self->{no_tx} || @{ $self->{tx} } > 1) {
 	  # committing outer tx: commit to db
+	  print $Tangram::TRACE "COMMIT;\n"
+	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0);
 	  $self->{db}->commit;
+	} else {
+	  print $Tangram::TRACE "COMMIT; (virtual)\n"
+	      if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 1);
 	}
 	
     pop @{ $self->{tx} };		# drop rollback subs
@@ -824,7 +858,14 @@ sub _fetch_object_state
 sub get_polymorphic_select
   {
 	my ($self, $class) = @_;
-	return $self->{engine}->get_polymorphic_select($self->{schema}->classdef($class), $self);
+	if ( $class ) {
+	    return $self->{engine}->get_polymorphic_select
+		($self->{schema}->classdef($class), $self);
+	}
+	else {
+	    return Tangram::Relational::PolySelectTemplate
+		->new([],[],[],[],{});
+	}
   }
 
 sub select {
@@ -1063,7 +1104,9 @@ sub connect
 
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
-    my $db = $opts->{dbh};
+    $self->{driver} = $opts->{driver} || Tangram::Relational->new;
+
+   my $db = $opts->{dbh};
     unless ( $db ) {
       $db = $self->open_connection;
       $self->{db_owned} = 1;
@@ -1095,7 +1138,7 @@ sub connect
 	
     $self->_open($schema);
 
-	$self->{engine} = Tangram::Relational::Engine->new($schema, layout1 => $self->{layout1});
+	$self->{engine} = Tangram::Relational::Engine->new($schema, layout1 => $self->{layout1}, driver => $self->{driver});
 
     return $self;
 }
@@ -1122,8 +1165,10 @@ sub sql_prepare
 {
     my ($self, $sql, $connection) = @_;
     confess unless $connection;
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
-    return $connection->prepare($sql) or die;
+    print $Tangram::TRACE "           $sql\n" if $Tangram::TRACE;
+    my $sth = $connection->prepare($sql);
+    die "prepare failed; $DBI::errstr - SQL:\n--->\n$sql\n<---\n" unless $sth;
+    return $sth;
 }
 
 sub sql_cursor
@@ -1132,7 +1177,7 @@ sub sql_cursor
 
     confess unless $connection;
 
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+    print $Tangram::TRACE "new cursor for $sql\n" if $Tangram::TRACE;
 
     my $sth = $connection->prepare($sql) or die;
     $sth->execute() or confess;
@@ -1160,6 +1205,45 @@ sub unload
       }
     }
   }
+
+sub unload_all {
+    my $self = shift;
+    my $send_method = shift;
+
+    if ( $send_method ) {
+	my $objects = $self->{objects};
+	if ($objects and ref $objects eq "HASH") {
+	    while (my $oid = each %$objects) {
+		if (defined $objects->{$oid}) {
+		    if (my $x = UNIVERSAL::can($objects->{$oid},
+					       $send_method)) {
+			$x->($objects->{$oid});
+		    }
+		    $self->goodbye($objects->{$oid}, $oid);
+		}
+	    }
+	}
+	while (my $oid = each %$objects) {
+	    next unless defined $objects->{$oid};
+	    warn __PACKAGE__."::unload_all: cached ref to oid $oid "
+		."is not weak"
+		    if (!$Tangram::no_weakrefs and
+			!Scalar::Util::isweak($objects->{$oid}));
+	    my $x;
+	    warn __PACKAGE__."::unload_all: refcnt of oid $oid is $x"
+		if (!$Tangram::no_weakrefs and
+		    $x = Set::Object::rc($objects->{$oid}));
+	}
+    }
+    $self->{ids} = {};
+    $self->{objects} = {};
+    $self->{PREFETCH} = {};
+    $self->{scratch} = {};
+    print $Tangram::TRACE __PACKAGE__.": cache dumped\n"
+	if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 0) ;
+
+    #$self->SUPER::unload_all();
+}
 
 # checks to see if an object ID ->isa the correct type, based on its
 # classtype

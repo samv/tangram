@@ -1,16 +1,62 @@
 # (c) Sound Object Logic 2000-2001
 
+# The old man page for Tangram::Dialect, reproduced here, is incorrect
+# but documents this code well so is included here.
+
+#=head1 CLASS METHODS
+#
+#=head2 new()
+#
+#Returns a new Dialect object.
+#
+#=head1 INSTANCE METHODS
+#
+#=head2 expr($type, $expr, @remotes)
+#
+#Returns a new Expr object. The object is obtained by calling method
+#expr() on $type. See L<Tangram::Expr> for a description of the
+#arguments.
+#
+#=head1 EXAMPLE
+#
+#The following code adds support for Sybase's C<datepart>
+#extension. See below how to actually I<use> the extension.
+#
+# ...
+#
+# To take advantage of the new Dialect, we must pass it to the connect()
+# method:
+# 
+# 
+#   my $storage = Tangram::Storage->connect($schema,
+#      $data_source, $user, $passwd,
+#      { dialect => 'Tangram::Dialect::Sybase' } );
+#
+#
+#Now we can filter on the various parts of a Date:
+#
+#
+#   my $remote = $storage->remote('NaturalPerson');
+#
+#   my ($person) = $storage->select($remote,
+#      $remote->{birth}->datepart('year') == 1963);
+#
+#
+#=head1 SEE ALSO
+#
+#L<Tangram::Type>, L<Tangram::Expr>, L<Tangram::Storage>.
 use strict;
 
 package Tangram::Sybase;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
 
-sub connect
-  {
-	shift;
-	Tangram::Sybase::Storage->connect( @_ )
-  }
+sub connect {
+    my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
+    ${$opts||={}}{driver} = $pkg->new();
+    my $storage = Tangram::Sybase::Storage->connect
+	( $schema, $cs, $user, $pw, $opts );
+}
 
 use Tangram::Storage;
 
@@ -95,6 +141,7 @@ sub finish
 	my $sth = pop @$self;
 	$sth->finish();
   }
+
 
 ############################################
 # derive a DateExpr class from existing Expr

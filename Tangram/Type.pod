@@ -59,7 +59,7 @@ Set relationships are closest to the main type of relationship used in
 an RDBMS.  Avid CompSci students will know that the relational
 database model is based heavily on `Set Theory', which is a subset of
 a more general concept of `Categories' - generic couplings of a number
-of classes.  At is wot I is 'erd.  Aii!!
+of classes.
 
 In Perl space, these collections are represented via the Set::Object
 module.  Sets may not have duplicate elements, and cannot contain

@@ -134,7 +134,7 @@ sub reschema {
 
     my $options = {
 		   col => $schema->{normalize}->("idbif", "colname"),
-		   sql => 'BLOB',  # Sorry, varchar(255) just *isn't* sane...
+		   sql => $schema->{sql}{dumper_type},
 		   dumper => $schema->{sql}{dumper},
 		   members => [ ],
 		  };
@@ -165,6 +165,7 @@ sub reschema {
 	$options->{save_all} = $schema->{classes}{$class};
     }
 
+    $options->{dumper_wanted} = $options->{dumper};
     if (lc $options->{dumper} eq "yaml") {
 	require 'YAML.pm';
 	$options->{dumper} = sub { YAML::Dump(shift) };

@@ -29,6 +29,8 @@ Tangram/Sybase.pm
 Tangram/Sybase.pod
 Tangram/mysql.pm
 Tangram/mysql.pod
+Tangram/Oracle.pm
+Tangram/Oracle.pod
 
 Tangram/Ref.pm
 Tangram/IntrRef.pm
@@ -44,7 +46,9 @@ Tangram/FlatHash.pm
 Tangram/AbstractSet.pm
 Tangram/Set.pm
 Tangram/IntrSet.pm
+
 Tangram/IDBIF.pm
+Tangram/Complicity.pm
 
 Tangram/AbstractHash.pm
 Tangram/Hash.pm
@@ -81,7 +85,6 @@ Tangram/DateTime.pod
 
 Tangram/Type.pod
 Tangram/Type/Extending.pod
-Tangram/Dialect.pod
 
 t/Springfield.pm
 

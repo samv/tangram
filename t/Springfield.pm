@@ -55,6 +55,9 @@ use vars qw($no_tx $no_subselects $table_type);
   $dialect = "Tangram::$vendor";  # deduce dialect from DBI driver
   eval "use $dialect";
   $dialect = 'Tangram::Relational' if $@;
+  print $Tangram::TRACE "Vendor driver $dialect not found - using ANSI SQL ($@)\n"
+      if $@ and $Tangram::TRACE;
+  print $Tangram::TRACE "Using dialect $dialect\n" if $Tangram::TRACE;
 }
 
 sub list_if {
@@ -106,14 +109,17 @@ $schema = Tangram::Schema->new
 		 credit => { aggreg => 1 },
 		},
 
-		list_if( $vendor ne 'Sybase',
-				 rawdate => [ qw( birthDate ) ],
-				 rawtime => [ qw( birthTime ) ],
-				 rawdatetime => [ qw( birth ) ],
-			 ($no_date_manip ? () : (
-				 dmdatetime => [ qw( incarnation ) ]
-					   ))
-			   ),
+	    # only test the RAW columns with PostgreSQL and MySQL
+	    ($vendor =~ m/^(Pg|mysql)/
+		 ?
+		 (rawdate => [ qw( birthDate ) ],
+		  rawtime => [ qw( birthTime ) ],
+		  rawdatetime => [ qw( birth ) ],
+		 ):()),
+
+	    ($no_date_manip ? () : (
+				    dmdatetime => [ qw( incarnation ) ]
+				   )),
 
 		array =>
 		{

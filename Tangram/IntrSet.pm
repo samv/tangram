@@ -60,13 +60,13 @@ sub defered_save
 	$self->update($storage, $obj, $field,
 				  sub
 				  {
-					my $sql = "UPDATE $table SET $item_col = $coll_id WHERE id = @_";
+					my $sql = "UPDATE $table SET $item_col = $coll_id WHERE $storage->{schema}{sql}{id_col} = @_";
 					$storage->sql_do($sql);
 				  },
 				  
 				  sub
 				  {
-					my $sql = "UPDATE $table SET $item_col = NULL WHERE id = @_ AND $item_col = $coll_id";
+					my $sql = "UPDATE $table SET $item_col = NULL WHERE $storage->{schema}{sql}{id_col} = @_ AND $item_col = $coll_id";
 					$storage->sql_do($sql);
 				  } );
   }
@@ -79,11 +79,14 @@ sub demand
 
 	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
 	{
+	    print $Tangram::TRACE "demanding ".$storage->id($obj)
+		.".$member from prefetch\n" if $Tangram::TRACE;
 		$set->insert(@$prefetch);
 	}
 	else
 	{
-		print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
+	    print $Tangram::TRACE "demanding ".$storage->id($obj)
+		.".$member from storage\n" if $Tangram::TRACE;
 
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 

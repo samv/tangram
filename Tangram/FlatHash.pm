@@ -15,6 +15,8 @@ sub includes
 	my ($self, $item) = @_;
 	my ($coll, $memdef) = @$self;
 
+	my $schema = $coll->{storage}{schema};
+
 	$item = Tangram::String::quote($item)
 		if $memdef->{string_type};
 
@@ -23,7 +25,7 @@ sub includes
 
 	return Tangram::Filter->new
 		(
-		 expr => "$data_tid.coll = $coll_tid.id AND $data_tid.v = $item",
+		 expr => "$data_tid.coll = $coll_tid.$schema->{sql}{id_col} AND $data_tid.v = $item",
 		 tight => 100,      
 		 objects => Set::Object->new($coll, Tangram::Table->new($memdef->{table}, $data_tid) ),
 		 data_tid => $data_tid # for prefetch
@@ -35,6 +37,8 @@ sub exists
 	my ($self, $item) = @_;
 	my ($coll, $memdef) = @$self;
 
+	my $schema = $coll->{storage}{schema};
+
 	$item = Tangram::String::quote($item)
 		if $memdef->{string_type};
 
@@ -42,7 +46,7 @@ sub exists
 
 	return Tangram::Filter->new
 		(
-		 expr => "EXISTS (SELECT * FROM $memdef->{table} WHERE coll = $coll_tid.id AND v = $item)",
+		 expr => "EXISTS (SELECT * FROM $memdef->{table} WHERE coll = $coll_tid.$schema->{sql}{id_col} AND v = $item)",
 		 objects => Set::Object->new($coll),
 		);
 }

@@ -13,11 +13,13 @@ Tangram::DateTime - map date & time fields
    use Tangram::DMDateTime;
 
    Tangram::Schema->new(
-      classes => { NaturalPerson => { fields => {
-         rawdatetime => [ qw( birth death ) ],
-         rawdate => [ qw( depart return ) ],
-         rawtime => [ qw( breakfast lunch dinner ) ],
-         dmdatetime => [ qw( attack retreat ) ],
+      classes => {
+          NaturalPerson => {
+             fields => {
+                 rawdatetime => [ qw( birth death ) ],
+                 rawdate => [ qw( depart return ) ],
+                 rawtime => [ qw( breakfast lunch dinner ) ],
+                 dmdatetime => [ qw( attack retreat ) ],
 
 
 =head1 DESCRIPTION
@@ -33,9 +35,10 @@ to DBI.
 
 C<dmdatetime> is like C<rawdatetime> except that the date is converted
 to the Date::Manip internal format (ISO-8601, see L<Date::Manip>) when
-in memory, and written out to the database in SQL datetime format
-(C<YYYY-MM-DD HH:MM:SS>). This mapping was contributed by Sam Vilain
-E<lt>sam@vilain.netE<gt>.
+read into memory from the database, and written out to the database in
+ISO-8601 format (C<YYYYMMDDHH:MM:SS>).  RDBMS-specific extensions may
+define how the date is reformatted to be passed to the database (for
+an example, see the source for L<Tangram::mysql>).
 
 The persistent fields may be specified either as a hash or as an array
 of field names.

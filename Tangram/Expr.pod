@@ -2,19 +2,18 @@
 
 =head1 NAME
 
-Tangram::Expr - manipulate expressions on database server side
+Tangram::Expr - represent expressions on database server side
 
 =head1 SYNOPSIS
-   
+
    my ($r1, $r2) = $storage->remote(qw( ... ));
 
    $r1->{field} operator $value
-      $r1->{field} operator $r2->{field2}
-   
-      $r1->{collection}->includes( $obj )
-      $r1->{collection}->exists( $obj, $filter )
+   $r1->{field} operator $r2->{field2}
 
-      $r1->{collection}->includes_or( $obj1, $obj2, ... )
+   $r1->{collection}->includes( $obj )
+   $r1->{collection}->exists( $obj, $filter )
+   $r1->{collection}->includes_or( $obj1, $obj2, ... )
 
 =head1 DESCRIPTION
 
@@ -24,8 +23,10 @@ the database server side.
 Expression objects fall into one of the following categories: numeric,
 string, reference or collection.
 
-The methods in Expr are needed only by people extending Tangram. See
-L<Tangram::Dialect>.
+Many of the methods in Expr are needed only by people extending
+Tangram.  See also L<Tangram::Relational>, and the source the
+L<Tangram::mysql> and L<Tangram::Sybase> for examples on how these
+functions are intercepted to allow RDBMS-specific expressions.
 
 =head1 NUMERIC EXPRESSIONS
 
@@ -150,6 +151,10 @@ $person is not $bart's parent
 
       !$person->{children}->includes( $bart )
       !($person->{children} < $bart)
+
+$person is one of the local list of people, @person
+
+      $person->in(@person)
 
 =head1 SEE ALSO
 

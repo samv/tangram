@@ -15,16 +15,18 @@ sub demand
 {
 	my ($self, $def, $storage, $obj, $member, $class) = @_;
 
-	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
-   
 	my (@coll, @lost);
 
 	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->export_object($obj)})
 	{
+	    print $Tangram::TRACE "demanding ".$storage->id($obj)
+		.".$member from prefetch\n" if $Tangram::TRACE;
 		@coll = @$prefetch;
 	}
 	else
 	{
+	    print $Tangram::TRACE "demanding ".$storage->id($obj)
+		.".$member from storage\n" if $Tangram::TRACE;
 		my $cursor = $self->cursor($def, $storage, $obj, $member);
 
 		for (my $item = $cursor->select(); $item; $item = $cursor->next)
@@ -49,7 +51,7 @@ sub demand
 		}
 	}
 
-	$self->set_load_state($storage, $obj, $member, [ map { $_ && $storage->id($_) } @coll ]);
+	$self->set_load_state($storage, $obj, $member, [ map { ($_) ? $storage->id($_) : (die "No ID for $_") } @coll ]);
 
 	return \@coll;
 }
