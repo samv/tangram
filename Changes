@@ -3,19 +3,43 @@ Revision history for Perl extension Tangram.
 0.01  Sun Mar 21 10:46:45 1999
 	- original version; created by h2xs 1.18
 
-1.00  Nov 07 1999
-	- first mature release version
-		deploy() now also works directly on DBI handles
-		deploy() allows specification of SQL types via the schema hash
-		intrusive collections allow element-to-container navigation
-		improve speed of read_object
-		fixed various bugs
-		rewrote part of, and expanded documentation
+0.03  Stardate: unknown
+	- first public alpha release
 
-1.01  Nov 12 1999
-	- interim version
-		added (raw) mapping between Perl strings and date/time SQL types
+0.08  Stardate: unknown
+	- second public alpha release
 
-1.02  Nov 14 1999
-	- interim version
-		added support for aggregated refs, arrays and sets
+0.09  Stardate: unknown
+
+   - split Tangram.pm into several modules
+   - replaced @ISA with 'use base'
+   - replaced default typetags with automounting
+   - prefetch now takes either class or remote
+   - implemented prefetch for IntrArray and IntrSet
+      *::prefetch still need real-life testing,
+      especially when class(coll) <> class(item)
+
+1.00  Nov 07 1999 - first mature release version
+	- deploy() now also works directly on DBI handles
+	- deploy() allows specification of SQL types via the schema hash
+	- intrusive collections allow element-to-container navigation
+	- improve speed of read_object
+	- fixed various bugs
+	- rewrote part of, and expanded documentation
+
+1.01  Nov 12 1999 - interim version
+	- added (raw) mapping between Perl strings and date/time SQL types
+
+1.02  Nov 14 1999 - interim version
+	- added support for aggregated refs, arrays and sets
+
+1.03  Dec 28 1999 - interim version
+	- added support for customizing object & class id types, etc
+	- as a consequence Tangram should now work with PostgreSql
+	- fixed bug: erase() failed in presence of stateless leaf classes
+	- temporarily removed RawDate and RawTime tests because M$ SQL
+	  cannot handle them; those modules are still present though
+		
+
+
+
