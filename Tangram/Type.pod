@@ -15,7 +15,7 @@ Tangram comes with built-in support for the following types:
 =item B<Simple Scalar types>
 
 Supported are strings, integers, real numbers and dates.  More types
-are easily added.
+of this ilk are easily added.
 
 C<string>, C<int>, C<real>: see L<Tangram::Scalar>
 
@@ -30,13 +30,19 @@ C<storable>: see L<Tangram::Storable>.  Very much like C<perl_dump>,
 but implemented via the `Storable' serialisation engine.
 
 C<yaml>: see L<Tangram::YAML>.  Very much like C<perl_dump>, but
-implemented via the `YAML' serialisation engine.
+implemented via the `YAML' serialisation engine.  Doesn't currently
+work, due to inadequacies in the current Perl YAML implementation.
+
+B<NEW in Tangram 2.08>:
+
+C<idbif>: see L<Tangram::IDBIF>.  Like the above, but can combine
+multiple object properties into a single database column.
 
 =item B<`Flat' Array & Hash types>
 
 Note: these are only actually required if you need to be able to query
-on individual fields inside the array/hash - otherwise, the C<perl_dump>
-mapping is a lot faster and more flexible.
+on individual fields inside the array/hash - otherwise, the
+C<perl_dump> or C<idbif> mapping is a lot faster and more flexible.
 
 C<flat_array>: see L<Tangram::FlatArray>
 

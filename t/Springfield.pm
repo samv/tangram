@@ -10,6 +10,7 @@ use Tangram::FlatArray;
 use Tangram::FlatHash;
 use Tangram::PerlDump;
 use Tangram::Storable;
+use Tangram::IDBIF;
 
 package Springfield;
 use Exporter;
@@ -68,9 +69,12 @@ $schema = Tangram::Schema->new
 
    sql =>
    {
-	   cid_size => 3,
+    cid_size => 3,
+
     # Allow InnoDB style tables
-           ( $table_type ? ( table_type => $table_type ) : () )
+    ( $table_type ? ( table_type => $table_type ) : () ),
+
+    #dumper => "Storable",
    },
 
    class_table => 'Classes',
@@ -278,6 +282,39 @@ $schema = Tangram::Schema->new
 	  }
 	 }
 	},
+
+    Faerie => {
+	       fields =>
+	       { idbif => { -poof => # there goes another one!
+			    undef
+			 #   { dumper => "Storable" }
+			  },
+		 string => [ qw(name) ],
+	       },
+	      },
+
+    FaerieHairy => {
+		    fields =>
+		    {
+		     string => [ qw(name) ],
+		     idbif => { friends => undef,
+				enemies => undef,
+				#-options => { dumper => "Storable" },
+			      } },
+		   },
+
+    Sprite => {
+	       table => qw(Faerie),
+	       bases => [ qw(Faerie) ],
+	       fields => { string => [ qw(foo) ], },
+	      },
+
+    Nymph => {
+	      table => qw(FaerieHairy),
+	      bases => [ qw(FaerieHairy) ],
+	      fields => { idbif => [ qw(buddies) ],
+			},
+	     },
 
    ],
 	($ENV{"NORMALIZE_TEST"} ?
@@ -569,6 +606,14 @@ use vars qw(@ISA);
 @ISA = qw( SpringfieldObject );
 
 package Item;
+use vars qw(@ISA);
+@ISA = qw( SpringfieldObject );
+
+package Faerie;
+use vars qw(@ISA);
+@ISA = qw( SpringfieldObject );
+
+package FaerieHairy;
 use vars qw(@ISA);
 @ISA = qw( SpringfieldObject );
 

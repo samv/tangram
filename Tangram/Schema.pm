@@ -231,6 +231,8 @@ sub new
     $self->{sql}{oid} ||= 'INTEGER';
     $self->{sql}{cid_size} ||= 4;
 
+    $self->{sql}{dumper} ||= "Storable";
+
     my $types = $self->{types} ||= {};
 
     %$types = ( %TYPES, %$types );
