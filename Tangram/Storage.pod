@@ -148,6 +148,30 @@ satisfy $filter if it is present (see also: Remote and Filter).
 
 Valid only in list context.
 
+=head2 select( $remote, opt1 => val1 [, op2 => val2 ... ] )
+
+Returns a list containing all the objects that are type-compatible
+with $remote.
+
+A series of optional directives can be passed as key/value
+pairs. Currently Tangram recognizes the following directives:
+
+=over 4
+
+=item * filter
+
+=item * order
+
+=back
+
+Option C<filter> specifies a Filter that can be used to restrict the
+result set.
+
+Option C<order> is an array of Expr; retrieved objects will be ordered
+according by increasing order for each Expr.
+
+Valid only in list context.
+
 =head2 cursor( $remote [ , $filter ] )
 
 Returns a Cursor on the objects that are type-compatible with $remote, and
@@ -156,6 +180,28 @@ satisfy $filter if it is present (see also: Remote and Filter).
 $remote must be an Tangram::Remote object. $filter must be an Tangram::Filter if it is present.
 
 Valid only in scalar context.
+
+=head2 cursor( $remote, opt1 => val1 [, op2 => val2 ... ] )
+
+Returns a Cursor on the objects that are type-compatible with $remote.
+
+A series of optional directives can be passed as key/value
+pairs. Currently Tangram recognizes the following directives:
+
+=over 4
+
+=item * filter
+
+=item * order
+
+=item * retrieve
+
+=back
+
+For options C<filter> and C<order>, see C<select> above.
+
+Option C<retrieve> is an array of Expr, to be retrieved in addition to
+the object itself.
 
 =head2 erase( @objs )
 
