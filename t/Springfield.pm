@@ -245,6 +245,9 @@ sub empty
       $conn->do("DELETE FROM $classdef->{table}") or die
 		unless $classdef->{stateless};
 	}
+
+	$conn->do('DELETE FROM a_children');
+	$conn->do('DELETE FROM s_children');
   }
 
 sub connect_empty
