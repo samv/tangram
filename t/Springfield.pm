@@ -7,6 +7,7 @@ use Tangram::RawTime;
 use Tangram::RawDateTime;
 
 use Tangram::FlatArray;
+use Tangram::FlatHash;
 
 use Tangram::Dialect::Sybase;
 use Tangram::Dialect::Mysql;
@@ -119,6 +120,9 @@ $schema = Tangram::Schema->new( {
 		},
 
 		flat_array => [ qw( interests ) ],
+
+	        flat_hash => [ qw( opinions ) ],
+	    
 	   },
       },
 
