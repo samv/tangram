@@ -199,3 +199,10 @@ Revision history for Perl extension Tangram.
 	- Fixed bug with Tangram::Intr* and erasing objects that
 	  referred to a class which didn't use their class name as
 	  their table name.
+	- Added the ability to use limit => [ N, Y ] in
+	  Tangram::Storage->select statements
+	- Added Tangram::Coll::includes_or; see the man page for
+	  Tangram::Expr
+	- Enhancement of error message from
+	  Tangram::Relational::Engine
+	- Minor documentation fixes
