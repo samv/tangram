@@ -83,7 +83,7 @@ sub new
 	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
 	$self->{sql}{id_col} ||= 'id';
 	$self->{sql}{id} ||= 'INTEGER';
-#	$self->{sql}{class_col} ||= 'type';
+	$self->{sql}{class_col} ||= 'type';
 	$self->{sql}{cid} ||= 'INTEGER';
 	$self->{sql}{oid} ||= 'INTEGER';
 	$self->{sql}{cid_size} ||= 4;
