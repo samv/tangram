@@ -47,6 +47,13 @@ sub for_conforming
    $traverse->($class);
  }
 
+#---------------------------------------------------------------------
+#  Tangram::Node->for_composing($closure, @_)
+#
+# Runs the given closure once for this class, and all its superclasses
+# listed in the schema as $class->{BASES}
+#
+#---------------------------------------------------------------------
 sub for_composing
 {
    my ($class, $fun, @args) = @_;
@@ -281,30 +288,34 @@ sub new
 		foreach my $typetag (keys %{$classdef->{members}})
 		{
 			my $memdefs = $classdef->{members}{$typetag};
-	    
-			$memdefs = $classdef->{members}{$typetag} =
-			{ map { $_, $_ } @$memdefs } if (ref $memdefs eq 'ARRAY');
+
+			# Aha, so *here* is where the array is reschema'd.
+			$memdefs = $classdef->{members}{$typetag}
+			    = { map { $_, $_ } @$memdefs }
+				if (ref $memdefs eq 'ARRAY');
 
 			my $type = $self->{types}{$typetag};
 
-			croak("Unknow field type '$typetag', ",
-				  "did you forget some 'use Tangram::SomeType' ",
-				  "in your program?\n")
-				unless defined $types->{$typetag};
+			croak("Unknown field type '$typetag', ",
+			      "did you forget some 'use Tangram::SomeType' ",
+			      "in your program?\n")
+			    unless defined $types->{$typetag};
 
-			my @members = $types->{$typetag}->reschema($memdefs, $class, $self)
+			my @members = $types->{$typetag}->reschema
+			    ($memdefs, $class, $self)
 				if $memdefs;
 
 			for my $field (keys %$memdefs) {
-			  $memdefs->{$field}{name} = $field;
-			  my $fielddef = bless $memdefs->{$field}, ref $type;
-			  my @cols = $fielddef->get_export_cols( {} );
-			  $cols += @cols;
+			    $memdefs->{$field}{name} = $field;
+			    my $fielddef = bless $memdefs->{$field}, ref $type;
+			    my @cols = $fielddef->get_export_cols( {} );
+			    $cols += @cols;
 			}
 
-			@{$classdef->{member_type}}{@members} = ($type) x @members;
-	    
-			@{$classdef->{MEMDEFS}}{keys %$memdefs} = values %$memdefs;
+			@{$classdef->{member_type}}{@members}
+			    = ($type) x @members;
+			@{$classdef->{MEMDEFS}}{keys %$memdefs}
+			    = values %$memdefs;
 		}
 
 		$classdef->{stateless} = !$cols

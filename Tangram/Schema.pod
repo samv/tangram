@@ -154,8 +154,9 @@ fields:
 All the fields are optional.
 
 C<default_null> can be used to deal with those databases that don't
-support the explicit 'NULL' specifier in column definitions. Defaults
-to 'NULL'.
+support the explicit 'NULL' specifier in column definitions.  Defaults
+to 'NULL'.  Note that this does not get automatically appended to
+attributes that have a SQL type explicitly declared.
 
 The other fields are related to the SQL types that Tangram uses to
 store meta-information.
@@ -167,11 +168,11 @@ allocator, then appends the class id to it. Thus the object id for a
 NaturalPerson may look like C<270005>, where C<0005> is the class
 id.
 
-Field C<id> contains the SQL type that is used to map an entire object
-id. It defaults to 'INTEGER'.
+Field C<id> contains the SQL type that is used to map the rowid part
+of the object id. It defaults to 'INTEGER'.
 
-Field C<cid> contains the SQL type that is used to map a class id. It
-defaults to 'INTEGER'.
+Field C<cid> contains the SQL type that is used to map the class id
+part of the object id. It defaults to 'INTEGER'.
 
 Field C<cid_size> contains the number of decimal positions that the
 class id occupies within the object id. It defaults to '4'.
