@@ -121,7 +121,7 @@ sub get_exporter
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  $context->{storage}->defer(sub { $self->defered_save($context->{storage}, $obj, $self->{name}, $self) } );;
+	  $self->defered_save($context->{storage}, $obj, $self->{name}, $self);
 	  ();
 	}
   }
@@ -257,7 +257,8 @@ sub erase
 
 	foreach my $def (values %$members)
 	{
-		$storage->sql_do("DELETE FROM $def->{table} WHERE coll = $coll_id");
+		my $id = $storage->id($obj);
+		$storage->sql_do("DELETE FROM $def->{table} WHERE coll = $id");
 	}
 }
 
