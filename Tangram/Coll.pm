@@ -7,7 +7,8 @@ use Tangram::Ref;
 
 package Tangram::Coll;
 
-our @ISA = qw( Tangram::Type );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Type );
 
 sub get_import_cols
   {
@@ -106,7 +107,8 @@ sub exists
 
 package Tangram::CollExpr;
 
-our @ISA = qw( Tangram::AbstractCollExpr );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::AbstractCollExpr );
 
 sub includes
 {
@@ -153,7 +155,8 @@ use overload '<' => \&includes;
 
 package Tangram::IntrCollExpr;
 
-our @ISA = qw( Tangram::AbstractCollExpr );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::AbstractCollExpr );
 
 sub includes
 {
@@ -269,7 +272,8 @@ sub DESTROY
 
 package Tangram::BackRefOnDemand;
 
-our @ISA = qw( Tangram::RefOnDemand );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::RefOnDemand );
 
 sub FETCH
 {
@@ -288,7 +292,8 @@ sub FETCH
 
 package Tangram::BackRef;
 
-our @ISA = qw( Tangram::Scalar );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Scalar );
 
 $Tangram::Schema::TYPES{backref} = Tangram::BackRef->new;
 

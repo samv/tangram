@@ -57,7 +57,8 @@ sub exists
 
 package Tangram::FlatArray;
 
-our @ISA = qw( Tangram::AbstractArray );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::AbstractArray );
 use Tangram::AbstractArray;
 
 $Tangram::Schema::TYPES{flat_array} = Tangram::FlatArray->new;

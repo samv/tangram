@@ -210,7 +210,8 @@ sub expr_hash
 
 package Tangram::RDBObject;
 
-our @ISA = qw( Tangram::CursorObject );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::CursorObject );
 
 sub where
 {
@@ -564,7 +565,8 @@ package Tangram::Select;
 
 use Carp;
 
-our @ISA = qw( Tangram::Expr );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Expr );
 
 sub new
 {

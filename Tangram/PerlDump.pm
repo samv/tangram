@@ -14,7 +14,8 @@ use Tangram::Scalar;
 
 package Tangram::PerlDump;
 
-our @ISA = qw( Tangram::String );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::String );
 use Data::Dumper;
 
 $Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;
@@ -43,7 +44,7 @@ sub reschema {
     die ref($self), ": $class\:\:$field: unexpected $refdef"
       unless $refdef eq 'HASH';
 	
-    $def->{col} ||= $schema->normalize->($field, 'colname');
+    $def->{col} ||= $schema->{normalize}->($field, 'colname');
     $def->{sql} ||= 'VARCHAR(255)';
     $def->{indent} ||= 0;
     $def->{terse} ||= 1;

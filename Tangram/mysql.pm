@@ -5,7 +5,8 @@ use Tangram::Core;
 
 package Tangram::mysql;
 
-our @ISA = qw( Tangram::Relational );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Relational );
 
 sub connect
   {
@@ -16,7 +17,8 @@ sub connect
 package Tangram::mysql::Storage;
 
 use Tangram::Storage;
-our @ISA = qw( Tangram::Storage );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Storage );
 
 sub make_id
   {
@@ -79,7 +81,8 @@ sub expr
   }
 
 package Tangram::mysql::IntegerExpr;
-our @ISA = qw( Tangram::Expr );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Expr );
 
 sub bitwise_and
 {
@@ -107,7 +110,8 @@ sub bitwise_nor
 }
 
 package Tangram::mysql::DateExpr;
-our @ISA = qw( Tangram::Expr );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Expr );
 
 my %autofun = (
 			   dayofweek => 'Integer',

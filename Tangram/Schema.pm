@@ -149,7 +149,8 @@ sub get_importer {
 }
 
 package Tangram::Class;
-our @ISA = qw( Tangram::Node );
+use vars qw(@ISA);
+ @ISA = qw( Tangram::Node );
 
 sub members
 {

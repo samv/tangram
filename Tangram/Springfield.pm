@@ -11,20 +11,25 @@ sub new
   }
 
 package Person;
-our @ISA = qw( SpringfieldObject );
+use vars qw(@ISA);
+ @ISA = qw( SpringfieldObject );
 
 package NaturalPerson;
-our @ISA = qw( Person );
+use vars qw(@ISA);
+ @ISA = qw( Person );
 
 package LegalPerson;
-our @ISA = qw( Person );
+use vars qw(@ISA);
+ @ISA = qw( Person );
 
 package Address;
-our @ISA = qw( SpringfieldObject );
+use vars qw(@ISA);
+ @ISA = qw( SpringfieldObject );
 
 package Tangram::Springfield;
 use Exporter;
-our @ISA = qw( Exporter );
+use vars qw(@ISA);
+ @ISA = qw( Exporter );
 use vars qw( @EXPORT $schema );
 
 @EXPORT = qw( $schema );
