@@ -29,7 +29,27 @@ L<Tangram::Schema>
 
 =head1 DESCRIPTION
 
-An Tangram::Storage object is a connection to a database configured for use with Tangram.
+A Tangram::Storage object is a connection to a database configured for
+use with Tangram.
+
+=head1 MEMORY MANAGEMENT (IMPORTANT)
+
+Starting with version 1.18, Tangram attempts to use the support for
+weak reference that was introduced in Perl 5.6. Whether that support
+is found or not has a major impact on how Storage influences object
+lifetime.
+
+If weakref support I<is> available, Storage uses weak references
+to keep track of objects that have already been loaded. This does
+I<not> prevent the objects from being reclaimed by Perl. IOW, the
+I<client> code decides how long an object remains in memory.
+
+If weakref support I<is not> available, Storage uses normal, 'strong'
+references. Storage will pin in memory all the objects that have been loaded
+I<and> inserted through it, until you call L<"disconnect"> or
+L<"unload">.
+
+In either case, Tangram will I<not> break circular structures for you.
 
 =head1 CLASS METHODS
 

@@ -78,6 +78,7 @@ t/tx.t
 t/reload.t
 t/unload.t
 t/deep_update.t
+t/weakref.t
 
 # mappings
 t/ref.t

@@ -270,14 +270,15 @@ don't leak objects:
 
    $homer->{partner} = undef; # do this before $homer goes out of scope
 
-Also, when we're finished with a storage, we I<must> explicitly disconnect it:
+Also, when we're finished with a storage, we can explicitly disconnect it:
 
    $storage->disconnect();
 
-A connected storage will hold references to those persistent objects
-that are present in transient storage (the memory), until it's
-explicitly disconnected. This requirement will go away when Perl
-starts supporting weak references.
+Whether it's important or not to disconnect the Storage depends on
+what version of Perl you use. If it's prior to 5.6, you I<must>
+disconnect the storage explicitly (or at least call unload())
+otherwise the Storage will prevent the objects it controls from being
+reclaimed by Perl. For more information see see L<Tangram::Storage>.
 
 =head2 Finding objects
 
