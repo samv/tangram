@@ -346,3 +346,5 @@ Revision history for Perl extension Tangram.
 	  whether objects that it is saving should be inserted to the
 	  DB first.
 
+2.08 26 Mar 2005
+	- Release this version with a couple of minor bugfixes

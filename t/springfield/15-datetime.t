@@ -37,7 +37,7 @@ my %ids;
 
 	my $chloe = NaturalPerson->new
 		(
-		 firstName => 'Chloé',  # uh-oh, iso-8859-1!
+		 firstName => 'Chloe',
 		 ($do_rawtests ? (birth => '1993-7-28 13:10:00')
 		  : () ),
 		 incarnation => ParseDate('1993-7-28 13:10:00'),
@@ -56,7 +56,7 @@ is(leaked, 0, "leaktest");
     my $jll = $storage->load( $ids{jll} );
 
  SKIP:{
-	skip "RAW date/time tests not supported on this RDBMS", 6
+	skip "RAW date/time tests not worth it", 6
 	    unless $do_rawtests;
 
 	like($jll->{birthTime}, qr/11/, "raw time [1]");

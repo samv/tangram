@@ -412,7 +412,9 @@ sub class_id
 	my @stack = \%{$_[0]."::"};
 	my $seen = Set::Object->new(@stack);
 	while ( my $stash = pop @stack ) {
-	    my @supers = @{ *{$stash->{ISA}}{ARRAY} };
+            defined $stash or next;
+            my @supers = @{ *{$stash->{ISA}}{ARRAY} }
+		if exists $stash->{ISA};
 	    for my $super ( @supers ) {
 		if ( defined $self->{class2id}{$super} ) {
 		    $self->{class2id}{$_[0]}
@@ -1189,7 +1191,7 @@ sub id_maybe_insert
 	return $id;
     } else {
 	my $class = ref $object;
-	if ( $self->class_id($class) ) {
+	if ( eval { $self->class_id($class) } ) {
 	    print $Tangram::TRACE "id_maybe_insert: inserting $object\n"
 		if $Tangram::TRACE;
 	    return $self->insert($object);
