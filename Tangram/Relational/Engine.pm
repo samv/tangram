@@ -275,11 +275,10 @@ sub Tangram::Set::coldefs
 
     foreach my $member (values %$members)
     {
-	$tables->{ $member->{table} }{COLS} =
-	    {
-	     $member->{coll} => $schema->{sql}{id},
-	     $member->{item} => $schema->{sql}{id},
-	    };
+	my $COLS = $tables->{ $member->{table} }{COLS} ||= { };
+
+	$COLS->{$member->{coll}} = $schema->{sql}{id};
+	$COLS->{$member->{item}} = $schema->{sql}{id};
     }
 }
 
@@ -316,12 +315,11 @@ sub Tangram::Array::coldefs
 
     foreach my $member (values %$members)
     {
-	$tables->{ $member->{table} }{COLS} =
-	    {
-	     $member->{coll} => $schema->{sql}{id},
-	     $member->{item} => $schema->{sql}{id},
-	     $member->{slot} => "INT $schema->{sql}{default_null}"
-	    };
+	my $COLS = $tables->{ $member->{table} }{COLS} ||= { };
+
+	$COLS->{$member->{coll}} = $schema->{sql}{id};
+	$COLS->{$member->{item}} = $schema->{sql}{id};
+	$COLS->{$member->{slot}} = "INT $schema->{sql}{default_null}";
     }
 }
 
@@ -435,12 +433,18 @@ sub deploy
 
 	my $id_col = $schema->{sql}{id_col};
 	my $class_col = $schema->{sql}{class_col} || 'type';
+	my $timestamp_col = $schema->{sql}{timestamp_col} || '__ts';
+	my $timestamp_type = $schema->{sql}{timestamp} || 'TIMESTAMP';
+	my $timestamp = $schema->{sql}{timestamp_all_tables};
 
 	push @base_cols,("$id_col $schema->{sql}{id} NOT NULL,\n"
 			 ."PRIMARY KEY( $id_col )")
 	    if exists $cols->{$id_col};
 	push @base_cols, "$class_col $schema->{sql}{cid} NOT NULL"
 	    if exists $cols->{$class_col};
+
+	push @base_cols, "$timestamp_col $timestamp_type NOT NULL"
+            if $timestamp;
 
 	delete @$cols{$id_col};
 	delete @$cols{$class_col};
