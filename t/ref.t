@@ -2,7 +2,7 @@ use t::Springfield;
 
 my %id;
 
-Springfield::begin_tests(7);
+Springfield::begin_tests(11);
 
 {
 	$storage = Springfield::connect_empty;
@@ -26,9 +26,9 @@ Springfield::leaktest;
 	my ($p1, $p2) = $storage->remote(qw( NaturalPerson NaturalPerson ));
 
 	my ($homer, $other) = $storage->select( $p1,
-		$p1->{partner} == $p2 & $p2->{firstName} eq 'Marge' );
+											$p1->{partner} == $p2 & $p2->{firstName} eq 'Marge' );
 
-   Springfield::test( $homer && !$other );
+	Springfield::test( $homer && !$other );
 
 	$storage->disconnect();
 }
@@ -38,13 +38,13 @@ Springfield::leaktest;
 {
 	$storage = Springfield::connect();
 
-   my $marge = $storage->load( $id{Marge} );
+	my $marge = $storage->load( $id{Marge} );
 
 	my ($p1) = $storage->remote(qw( NaturalPerson ));
 
 	my ($marge2, $other) = $storage->select( $p1, $p1 == $marge );
 
-   Springfield::test( $marge2 && !$other );
+	Springfield::test( $marge2 && !$other );
 
 	$storage->disconnect();
 }
@@ -54,7 +54,7 @@ Springfield::leaktest;
 {
 	$storage = Springfield::connect();
 
-   my $marge = $storage->load( $id{Marge} );
+	my $marge = $storage->load( $id{Marge} );
 
 	my ($p1, $p2) = $storage->remote(qw( NaturalPerson NaturalPerson ));
 
@@ -62,7 +62,36 @@ Springfield::leaktest;
 
 	my ($homer, $other) = $storage->select( $p1, $p1->{partner} == $marge );
 
-   Springfield::test( $homer && !$other );
+	Springfield::test( $homer && !$other );
+
+	$storage->disconnect();
+}
+
+Springfield::leaktest;
+
+{
+
+	$storage = Springfield::connect_empty();
+
+	$ids{Homer} = $storage->insert( NaturalPerson->new(
+        name => 'Homer',
+		credit => Credit->new( limit => 1000 ) ) );
+
+	my @credits = $storage->select('Credit');
+	Springfield::test( @credits == 1 );
+
+	$storage->disconnect();
+}
+
+Springfield::leaktest;
+
+{
+	$storage = Springfield::connect();
+
+	$storage->erase( $storage->load( $ids{Homer} ) );
+
+	my @credits = $storage->select('Credit');
+	Springfield::test( @credits == 0 );
 
 	$storage->disconnect();
 }

@@ -98,17 +98,23 @@ sub erase
 
    foreach my $member (keys %$members)
    {
-      next if tied $obj->{$member};
-
       my $def = $members->{$member};
-      my $item_classdef = $storage->{schema}{$def->{class}};
-      my $table = $item_classdef->{table} || $def->{class};
-      my $item_col = $def->{coll};
-      my $slot_col = $def->{slot};
+
+	  if ($def->{aggreg})
+	  {
+		  $storage->erase( @{ $obj->{$member} } );
+	  }
+	  else
+	  {
+		  my $item_classdef = $storage->{schema}{$def->{class}};
+		  my $table = $item_classdef->{table} || $def->{class};
+		  my $item_col = $def->{coll};
+		  my $slot_col = $def->{slot};
       
-      my $sql = "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id";
-      $storage->sql_do($sql);
-   }
+		  $storage->sql_do(
+              "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
+	  }
+  }
 }
 
 sub cursor

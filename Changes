@@ -15,3 +15,7 @@ Revision history for Perl extension Tangram.
 1.01  Nov 12 1999
 	- interim version
 		added (raw) mapping between Perl strings and date/time SQL types
+
+1.02  Nov 14 1999
+	- interim version
+		added support for aggregated refs, arrays and sets

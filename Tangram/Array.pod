@@ -59,6 +59,8 @@ string. The hash uses the following fields:
 
 =item * class
 
+=item * aggreg
+
 =item * table
 
 =item * coll
@@ -70,6 +72,10 @@ string. The hash uses the following fields:
 =back
 
 Mandatory field C<class> specifies the class of the elements.
+
+Optional field C<aggreg> specifies that the elements of the collection
+must be removed (erased) from persistent storage along with the
+containing object. The default is not to aggregate.
 
 Optional field C<table> sets the name of the link table. This
 defaults to 'C_F', where C is the class of the containing object and F

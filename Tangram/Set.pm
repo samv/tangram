@@ -133,9 +133,19 @@ sub erase
       
       my $table = $def->{table} || $def->{class} . "_$member";
       my $coll_col = $def->{coll} || 'coll';
-     
-      my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
-      $storage->sql_do($sql);
+
+	  my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
+	  
+	  if ($def->{aggreg})
+	  {
+		  my @content = $obj->{$member}->members;
+		  $storage->sql_do($sql);
+		  $storage->erase( @content ) ;
+	  }
+	  else
+	  {
+		  $storage->sql_do($sql);
+	  }
    }
 }
 

@@ -102,4 +102,16 @@ sub refid
    return $refid;
 }
 
+sub erase
+{
+	my ($self, $storage, $obj, $members) = @_;
+
+	foreach my $member (keys %$members)
+	{
+		$storage->erase( $obj->{$member} )
+			if $members->{$member}{aggreg} && $obj->{$member};
+	}
+}
+
 1;
+

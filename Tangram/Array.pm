@@ -106,7 +106,17 @@ sub erase
       my $coll_col = $def->{coll} || 'coll';
      
       my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
-      $storage->sql_do($sql);
+	  
+	  if ($def->{aggreg})
+	  {
+		  my @content = @{ $obj->{$member} };
+		  $storage->sql_do($sql);
+		  $storage->erase( @content ) ;
+	  }
+	  else
+	  {
+		  $storage->sql_do($sql);
+	  }
    }
 }
 

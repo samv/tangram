@@ -40,7 +40,11 @@ $schema = Tangram::Schema->new( {
 
 		int => [ qw( age ) ],
 
-		ref => [ qw( partner ) ],
+		ref =>
+		{
+		 partner => undef,
+		 credit => { aggreg => 1 },
+		},
 
 		rawdate => [ qw( birthDate ) ],
 		rawtime => [ qw( birthTime ) ],
@@ -52,6 +56,7 @@ $schema = Tangram::Schema->new( {
 		 {
 		  class => 'NaturalPerson',
 		  table => 'a_children',
+		  aggreg => 1,
 		 }
 		},
 
@@ -71,7 +76,8 @@ $schema = Tangram::Schema->new( {
 		  class => 'NaturalPerson',
 		  coll => 'ia_ref',
 		  slot => 'ia_slot',
-		  back => 'ia_parent'
+		  back => 'ia_parent',
+		  aggreg => 1,
 		 }
 		},
 
@@ -81,6 +87,7 @@ $schema = Tangram::Schema->new( {
 		 {
 		  class => 'NaturalPerson',
 		  table => 's_children',
+		  aggreg => 1,
 		 }
 		},
 
@@ -91,7 +98,8 @@ $schema = Tangram::Schema->new( {
 		  class => 'NaturalPerson',
 		  coll => 'is_ref',
 		  slot => 'is_slot',
-		  back => 'is_parent'
+		  back => 'is_parent',
+		  aggreg => 1,
 		 }
 		},
 	   },
@@ -146,6 +154,15 @@ $schema = Tangram::Schema->new( {
 	   }
 	  },
 	 },
+	},
+
+	Credit =>
+	{
+	 fields =>
+	 {
+	  #int => { limit => { col => '_limit' } },
+	  int => { limit => '_limit' },
+	 }
 	},
 
    } } );
@@ -330,6 +347,9 @@ use vars qw( @ISA );
 @ISA = 'LegalPerson';
 
 package Opinion;
+use base qw( SpringfieldObject );
+
+package Credit;
 use base qw( SpringfieldObject );
 
 1;

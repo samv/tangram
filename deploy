@@ -1,5 +1,5 @@
 #!perl
-use blib;
+use lib '.';
 use lib 't';
 use Springfield;
 use FindBin qw( $Bin );

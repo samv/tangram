@@ -58,19 +58,19 @@ sub _open
     }
 
     $self->{set_id} = $schema->{set_id} ||
-	sub
-	{
-	    my ($obj, $id) = @_;
+    	sub
+		{
+			my ($obj, $id) = @_;
          
-	    if ($id)
-	    {
-		$self->{ids}{0 + $obj} = $id;
-	    }
-	    else
-	    {
-		delete $self->{ids}{0 + $obj};
-	    }
-	};
+			if ($id)
+			{
+				$self->{ids}{0 + $obj} = $id;
+			}
+			else
+			{
+				delete $self->{ids}{0 + $obj};
+			}
+		};
 
     $self->{get_id} = $schema->{get_id}
 	|| sub { $self->{ids}{0 + shift()} };
@@ -195,7 +195,7 @@ sub tx_commit
     carp $error_no_transaction unless @{ $self->{tx} };
 
     $self->{db}->commit unless $self->{no_tx}
-	|| @{ $self->{tx} } > 1; # don't commit db if nested tx
+		|| @{ $self->{tx} } > 1; # don't commit db if nested tx
 
     pop @{ $self->{tx} };	# drop rollback subs
 }
@@ -238,24 +238,24 @@ sub tx_do
 
     eval
     {
-	if ($wantarray)
-	{
-	    @results = $sub->()
-	}
-	else
-	{
-	    $results = $sub->()
-	}
+		if ($wantarray)
+		{
+			@results = $sub->();
+		}
+		else
+		{
+			$results = $sub->();
+		}
     };
 
     if ($@)
     {
-	$self->tx_rollback();
-	die $@;
+		$self->tx_rollback();
+		die $@;
     }
     else
     {
-	$self->tx_commit();
+		$self->tx_commit();
     }
 
     return wantarray ? @results : $results;
@@ -280,17 +280,17 @@ sub insert
     my ($self, @objs) = @_;
 
     my @ids = $self->tx_do(
-			   sub
-			   {
-			       map
-			       {
-				   local %done = ();
-				   local $self->{defered} = [];
-				   my $id = $self->_insert($_);
-				   $self->do_defered;
-				   $id;
-			       } @objs;
-			   } );
+	   sub
+	   {
+		   map
+		   {
+			   local %done = ();
+			   local $self->{defered} = [];
+			   my $id = $self->_insert($_);
+			   $self->do_defered;
+			   $id;
+		   } @objs;
+	   } );
 
     return wantarray ? @ids : shift @ids;
 }
@@ -458,41 +458,58 @@ sub save
 
 sub erase
 {
-    my $self = shift;
+    my ($self, @objs) = @_;
+
     my $schema = $self->{schema};
     my $classes = $self->{schema}{classes};
 
-    foreach my $obj (@_)
-    {
-	my $id = $self->id($obj) or confess "object $obj is not persistent";
+	$self->tx_do(
+        sub
+		{
+			#foreach my $obj (@objs) # causes memory leak??
+			while (my $obj = shift @objs)
+			{
+				my $id = $self->id($obj) or confess "object $obj is not persistent";
 
-	local $self->{defered} = [];
+				local $self->{defered} = [];
       
-	$schema->visit_down(ref($obj), sub
-			    {
-				my $class = shift;
-				my $classdef = $classes->{$class};
+				$schema->visit_down(ref($obj),
+				    sub
+					{
+						my $class = shift;
+						my $classdef = $classes->{$class};
 
-				foreach my $typetag (keys %{$classdef->{members}})
-				{
-				    my $members = $classdef->{members}{$typetag};
-				    my $type = $schema->{types}{$typetag};
-				    $type->erase($self, $obj, $members, $id);
-				}
-			    } );
+						foreach my $typetag (keys %{$classdef->{members}})
+						{
+							my $members = $classdef->{members}{$typetag};
+							my $type = $schema->{types}{$typetag};
+							$type->erase($self, $obj, $members, $id);
+						}
+					} );
       
-	$schema->visit_down(ref($obj), sub
-			    {
-				my $class = shift;
-				my $classdef = $classes->{$class};
+				$schema->visit_down(ref($obj),
+					sub
+					{
+						my $class = shift;
+						my $classdef = $classes->{$class};
 
-				my $sql = "DELETE FROM $classdef->{table} WHERE id = $id";
-				$self->sql_do($sql);
-			    } );
+						my $sql = "DELETE FROM $classdef->{table} WHERE id = $id";
+						$self->sql_do($sql);
+					} );
 
-	$self->do_defered;
-    }
+				$self->do_defered;
 
+				delete $self->{objects}{$id};
+				$self->{set_id}->($obj, undef);
+
+				$self->tx_on_rollback(
+				    sub
+					{
+						$self->{objects}{$id} = $obj;
+						$self->{set_id}->($obj, $id);
+					} );
+			}
+		} );
 }
 
 sub do_defered
@@ -501,7 +518,7 @@ sub do_defered
 
     foreach my $defered (@{$self->{defered}})
     {
-	$defered->($self);
+		$defered->($self);
     }
 
     $self->{defered} = [];

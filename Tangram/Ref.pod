@@ -52,15 +52,17 @@ fields:
 
 =over 4
 
-=item *
+=item * aggreg
 
-col
+=item * col
 
-=item *
-
-null
+=item * null
 
 =back
+
+Optional field C<aggreg> specifies that the referenced element (if
+any) must be removed (erased) from persistent storage along with the
+source object. The default is not to aggregate.
 
 C<col> sets the name of the column that contains the target object's
 id. This field is optional, it default to the persistent field

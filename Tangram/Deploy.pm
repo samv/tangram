@@ -45,10 +45,9 @@ sub Tangram::Scalar::_coldefs
 
     for my $def (values %$members)
     {
-	$cols->{ $def->{col} } = $def->{sql} || $sql;
+		$cols->{ $def->{col} } = $def->{sql} || $sql;
     }
 }
-
 sub Tangram::Integer::coldefs
 {
     my ($self, $cols, $members) = @_;
