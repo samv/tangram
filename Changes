@@ -139,3 +139,7 @@ Revision history for Perl extension Tangram.
 	- stored object id no longer contains type id
 	- introduced Relational::Engine
 	- flexible mapping
+
+2.05pre2 Jun 2003 - SamV
+	- explicitly select all ORDER BY columns
+
