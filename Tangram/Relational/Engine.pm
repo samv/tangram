@@ -675,13 +675,19 @@ sub instantiate
 
 	$xcols ||= [];
 	$xfrom ||= [];
-	$xwhere ||= [];
+
+	my @xwhere;
+
+	if (@$xwhere) {
+	  $xwhere[0] = join ' AND ', @$xwhere;
+	  $xwhere[0] =~ s[%][%%]g;
+	}
 
 	my @tables = $remote->table_ids();
 
 	my $select = sprintf "SELECT %s\n  FROM %s", join(', ', @$cols, @$xcols), join(', ', @$from, @$xfrom);
 
-	$select = sprintf "%s\n  WHERE %s", $select, join(' AND ', @$where, @$xwhere)
+	$select = sprintf "%s\n  WHERE %s", $select, join(' AND ', @$where, @xwhere)
 	  if @$where || @$xwhere;
 
 	sprintf $select, map { $tables[$_] } @$expand;
