@@ -43,8 +43,8 @@ sub reschema
 sub query_expr
 {
     my ($self, $obj, $memdefs, $tid, $storage) = @_;
-	my $dialect = $storage->{dialect};
-    return map { $dialect->expr($self, "t$tid.$_", $obj) } keys %$memdefs;
+    my $dialect = $storage->{dialect};
+    return map { $dialect->expr($self, "t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
 }
 
 sub cols
