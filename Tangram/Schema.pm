@@ -41,9 +41,9 @@ sub new
     $self->{class_table} ||= 'OpalClass';
 
 	$self->{sql}{default_null} = 'NULL' unless exists $self->{sql}{default_null};
-	$self->{sql}{id} ||= 'NUMERIC(15,0)';
-	$self->{sql}{cid} ||= 'NUMERIC(5,0)';
-	$self->{sql}{oid} ||= 'NUMERIC(10,0)';
+	$self->{sql}{id} ||= 'INTEGER';
+	$self->{sql}{cid} ||= 'INTEGER';
+	$self->{sql}{oid} ||= 'INTEGER';
 	$self->{sql}{cid_size} ||= 4;
 
     my $types = $self->{types} ||= {};
