@@ -25,7 +25,7 @@ sub marge_test
 					   || $storage->load( $id{Marge} )->children eq 'Bart Lisa Maggie' );
 }
 
-Springfield::begin_tests(45);
+Springfield::begin_tests(46);
 
 sub stdpop
 {
@@ -254,7 +254,7 @@ Springfield::leaktest;
 	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
 
 	my $homer = NaturalPerson->new( firstName => 'Homer',
-									children => [ map { NaturalPerson->new( firstName => $_ ) } @kids ] );
+									$children => [ map { NaturalPerson->new( firstName => $_ ) } @kids ] );
 
 	my $abe = NaturalPerson->new( firstName => 'Abe',
 								  $children => [ $homer ] );
@@ -273,6 +273,8 @@ Springfield::leaktest;
 
 	my @pop = $storage->select('NaturalPerson');
 	Springfield::test( @pop == 0 );
+
+	Springfield::test( $intrusive || 0 == $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM a_children")->[0][0] );
 
 	$storage->disconnect();
 }      

@@ -15,7 +15,7 @@ sub compare_hash {
   1;
 }
 
-Springfield::begin_tests(16);
+Springfield::begin_tests(18);
 
 #$Tangram::TRACE = \*STDOUT;
 
@@ -171,3 +171,9 @@ leaktest();
 
 leaktest();
 
+{
+	my $storage = Springfield::connect();
+	$storage->erase( $storage->select('NaturalPerson'));
+	Springfield::test( 0 == $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM NaturalPerson_opinions")->[0][0] );
+	$storage->disconnect();
+}

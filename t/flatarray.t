@@ -4,7 +4,7 @@ use strict;
 use lib 't';
 use Springfield;
 
-Springfield::begin_tests(20);
+Springfield::begin_tests(21);
 
 # $Tangram::TRACE = \*STDOUT;
 
@@ -179,3 +179,9 @@ leaktest();
 
 leaktest();
 
+{
+	my $storage = Springfield::connect();
+	$storage->erase( $storage->select('NaturalPerson'));
+	Springfield::test( 0 == $storage->connection()->selectall_arrayref("SELECT COUNT(*) FROM NaturalPerson_interests")->[0][0] );
+	$storage->disconnect();
+}
