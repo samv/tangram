@@ -34,11 +34,16 @@ sub prepare_select
 
 sub make_1st_id_in_tx
   {
-    my ($self, $class_id) = @_;
-    
-	my $table = $self->{schema}{class_table};
-	$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
-	return $self->{db}->selectall_arrayref("SELECT lastObjectId from $table WHERE classId =  $class_id")->[0][0];
+    my ($self) = @_;
+	my $table = $self->{schema}{control};
+	$self->sql_do("UPDATE $table SET mark = mark + 1");
+	return $self->{db}->selectall_arrayref("SELECT mark from $table")->[0][0];
+  }
+
+sub update_id_in_tx
+  {
+	my ($self, $mark) = @_;
+	$self->sql_do("UPDATE $self->{schema}{control} SET mark = $mark");
   }
 
 my %improved =
@@ -68,12 +73,6 @@ sub execute
 	my ($storage, $sql) = @$self;
 	my $dbh = $storage->{db};
 	$dbh->do($sql, {}, @_);
-	#$sql =~ s/\?/$dbh->quote(shift)/ge; 
-	#print "$sql\n";
-	#$storage->sql_do($sql);
-
-	
-
   }
 
 sub finish

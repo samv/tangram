@@ -236,6 +236,14 @@ sub make_1st_id_in_tx
 	return $id;
   }
 
+sub update_id_in_tx
+  {
+	my ($self, $mark) = @_;
+	my $sth = $self->{make_id}{set};
+	$sth->execute($mark);
+	$sth->finish();
+  }
+
 sub unknown_classid
 {
     my $class = shift;
@@ -276,9 +284,7 @@ sub tx_commit
     # update lastObjectId's
     
     if ($self->{set_mark}) {
-	  my $sth = $self->{make_id}{set};
-	  $sth->execute($self->{mark});
-	  $sth->finish();
+	  $self->update_id_in_tx($self->{mark});
 	}
 
 	# ------------------------------
