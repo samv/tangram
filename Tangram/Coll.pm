@@ -119,8 +119,8 @@ sub includes
 			 tight => 100,      
 			 objects => $objects,
 			 link_tid => $link_tid # for Sequence prefetch
-			)
-		}
+			);
+}
 
 package Tangram::IntrCollExpr;
 
