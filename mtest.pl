@@ -2,7 +2,7 @@
 
 use strict;
 
-@ARGV = qw( mysql pg ) unless @ARGV;
+@ARGV = qw( mysql pg sybase ) unless @ARGV;
 
 delete $ENV{LANG};
 
