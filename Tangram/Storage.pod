@@ -313,7 +313,7 @@ end up having two copies in transient storage.
 =head2 disconnect
 
 Disconnects from the database. Drops references to persistent
-objects present in memory (see L<reset>).
+objects present in memory (see L<unload>).
 
 =head1 INTERNAL CONNECTION
 

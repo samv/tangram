@@ -68,3 +68,15 @@ Revision history for Perl extension Tangram.
 1.08  Mar 26 2000 - interim version
 	- batch allocation of object ids
 	- support for Lobs contributed by marian.kelc@ruhr-uni-bochum.de
+	- Storage::reset()
+
+1.09  ? - interim version
+	- String calls DBI for correct quoting, as Marian Kelc suggested
+	- fixed Array problem when removing elements from middle of collection
+	- (?)
+
+1.10  Apr 19 2000 - interim version
+	- changed reset() into unload() and added support for partial unloading
+	- tx_do() can now propagate arguments to closure/anon-sub;
+	  insert(), update() and erase() pass anon-subs to tx_do to prevent
+	  leaks (thanks Radu Greab)

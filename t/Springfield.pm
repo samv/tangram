@@ -46,7 +46,7 @@ $schema = Tangram::Schema->new( {
 	   {
 		string =>
 		{
-		 firstName => { sql => 'VARCHAR(40) NULL' },
+		 firstName => undef,
 		 name => undef,
 		},
 
