@@ -131,6 +131,15 @@ $schema = Tangram::Schema->new
 		 }
 		},
 
+		ihash =>
+		{
+		 ih_opinions =>
+		 {
+		  class => 'Opinion',
+		  back => "ih_parent",
+		 }
+		},
+
 		hash =>
 		{
 		 h_opinions =>

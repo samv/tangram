@@ -10,41 +10,38 @@ use vars qw(@ISA);
 
 use Carp;
 
-sub reschema
-{
-	my ($self, $members, $class, $schema) = @_;
+sub reschema {
+    my ($self, $members, $class, $schema) = @_;
 
-	foreach my $member (keys %$members)
-	{
-		my $def = $members->{$member};
+    foreach my $member (keys %$members) {
+	my $def = $members->{$member};
 
-		unless (ref($def))
-		{
-			$def = { class => $def };
-			$members->{$member} = $def;
-		}
+	unless (ref($def))
+	    {
+		$def = { class => $def };
+		$members->{$member} = $def;
+	    }
 
-		$def->{coll} ||= ($schema->{normalize}->($class)
-				  . "_$member");
-		$def->{slot} ||= ($schema->{normalize}->($class)
-				  . "_$member" . "_slot");
+	$def->{coll} ||= ($schema->{normalize}->($class)
+			  . "_$member");
+	$def->{slot} ||= ($schema->{normalize}->($class)
+			  . "_$member" . "_slot");
    
-		$schema->{classes}{$def->{class}}{stateless} = 0;
+	$schema->{classes}{$def->{class}}{stateless} = 0;
 
-		if (exists $def->{back})
-		{
-			my $back = $def->{back} ||= $def->{item};
-			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
-			  bless {
-					 name => $back,
-					 col => $def->{coll},
-					 class => $class,
-					 field => $member
-					}, 'Tangram::BackRef';
-		}
+	if (exists $def->{back}) {
+	    my $back = $def->{back} ||= $def->{item};
+	    $schema->{classes}{ $def->{class} }{members}{backref}{$back} =
+		bless {
+		       name => $back,
+		       col => $def->{coll},
+		       class => $class,
+		       field => $member
+		      }, 'Tangram::BackRef';
 	}
+    }
 
-	return keys %$members;
+    return keys %$members;
 }
 
 sub defered_save

@@ -236,3 +236,13 @@ Revision history for Perl extension Tangram.
 	- Makefile.PL should now hopefully be more informative about
 	  which modules are needed for what.
 	- Removed Selfloader from Tangram::Ref (Kate Pugh)
+
+2.07.1, 29-Dec-2003 - SamV
+
+	- Tangram::IntrHash implemented at last :-).  Tangram::IxHash
+          and Tangram::IntrIxHash are next :->
+	- verbose error message in Tangram::Coll when demand paging is
+	  happening on stale tied collections (eg, erroneously created
+	  via dclone())
+	- some reformatting, as I grasp more of the code.
+	- fix for Postgres sub-select detection (Pedro Alves)

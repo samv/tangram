@@ -1,3 +1,10 @@
+libtangram-perl (2.07.1) unstable; urgency=low
+
+  * Tangram::IntrHash
+  * See Changes file for further changes
+
+ -- Sam Vilain <sam@vilain.net>  Mon,  8 Dec 2003 13:50:08 +1300
+
 libtangram-perl (2.07) unstable; urgency=low
 
   * See Changes file for detailed list of changes

@@ -5,7 +5,7 @@ use strict;
 package Tangram::Storage;
 use DBI;
 use Carp;
-use Tangram::Core;
+use Tangram::Core qw(pretty);
 
 use vars qw( %storage_class );
 
@@ -26,6 +26,7 @@ BEGIN {
 	*Tangram::refaddr = \&Scalar::Util::refaddr;
 	$Tangram::no_weakrefs = 0;
     }
+    *pretty = *Tangram::Core::pretty;
 }
 
 sub new
@@ -56,7 +57,12 @@ sub split_id
 sub combine_ids
   {
 	my $self = shift;
-	return $self->{layout1} ? shift : sprintf("%d%0$self->{cid_size}d", @_);
+	my $id = shift or confess "no id";
+	my $cid = shift or confess "no cid";
+	defined($self->{cid_size}) or die "no CID size in schema";
+	return ( $self->{layout1}
+		 ? shift
+		 : sprintf("%d%0$self->{cid_size}d", $id, $cid) );
   }
 
 sub _open
@@ -238,6 +244,8 @@ sub make_id
 		$self->{set_mark} = 1;	# cleared by tx_start
 	  } else {
 		$id = $self->make_1st_id_in_tx();
+		$self->{mark} = $id+1;
+ 		$self->{set_mark} = 1;
 	  }
 	  
 	  return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
@@ -1037,7 +1045,7 @@ sub connect
     } else {
 	local($SIG{__WARN__})=sub{};
 	eval {
-	    my $sth = $db->prepare("select * from (select 1+1)");
+	    my $sth = $db->prepare("select * from (select 1+1) as test");
 	    $sth->execute() or die;
 	};
 	if ($@ or $DBI::errstr) {
@@ -1060,9 +1068,9 @@ sub connection { shift->{db} }
 
 sub sql_do
 {
-    my ($self, $sql) = @_;
-    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
-	my $rows_affected = $self->{db}->do($sql);
+    my ($self, $sql, @placeholders) = @_;
+    print $Tangram::TRACE "$sql with (@placeholders)\n" if $Tangram::TRACE;
+    my $rows_affected = $self->{db}->do($sql, {}, @placeholders);
     return defined($rows_affected) ? $rows_affected
 	  : croak $DBI::errstr;
 }
@@ -1128,8 +1136,9 @@ sub oid_isa
 
 	my $class = shift;
 	my $classes = $self->{schema}->{classes};
-	croak "Class ".pretty($oid)." is not defined in the schema"
-	    unless defined($class) and exists $classes->{$class};
+	carp "Class ".pretty($class)." is not defined in the schema",
+	    return undef
+		unless defined($class) and exists $classes->{$class};
 
 	my @bases = $self->{id2class}->{ ($self->split_id($oid))[1] + 0 };
 

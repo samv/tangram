@@ -28,16 +28,15 @@ use vars qw(@ISA @EXPORT @EXPORT_OK);
 
 BEGIN {
     @ISA = qw(Exporter);
-    @EXPORT = qw();
-    @EXPORT_OK = qw(pretty);
+    @EXPORT = qw(pretty);
 }
+
 sub pretty {
     my $thingy = shift;
-
     if (defined($thingy)) {
 	return "`$thingy'";
     } else {
-	return undef;
+	return "undef";
     }
 }
 

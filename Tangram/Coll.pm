@@ -342,6 +342,8 @@ sub where
 
 package Tangram::CollOnDemand;
 
+use Carp qw(confess);
+
 sub TIESCALAR
 {
 	my $pkg = shift;
@@ -352,7 +354,8 @@ sub FETCH
 {
 	my $self = shift;
 	my ($type, $def, $storage, $id, $member, $class) = @$self;
-	my $obj = $storage->{objects}{$id} or die;
+	my $obj = $storage->{objects}{$id}
+	    or confess "FETCH failed to get object $id!";
 	my $coll = $type->demand($def, $storage, $obj, $member, $class);
 	untie $obj->{$member};
 	$obj->{$member} = $coll;
@@ -365,7 +368,8 @@ sub STORE
 	my ($self, $coll) = @_;
 	my ($type, $def, $storage, $id, $member, $class) = @$self;
 
-	my $obj = $storage->{objects}{$id} or die;
+	my $obj = $storage->{objects}{$id}
+	    or confess "FETCH failed to get object $id!";
 	$type->demand($def, $storage, $obj, $member, $class);
 
 	untie $obj->{$member};

@@ -272,9 +272,16 @@ sub Tangram::IntrArray::coldefs
     }
 }
 
-sub Tangram::HashRef::coldefs
+sub Tangram::IntrHash::coldefs
 {
-    #later
+    my ($self, $cols, $members, $schema, $class, $tables) = @_;
+
+    foreach my $member (values %$members)
+    {
+		my $table = $tables->{ $schema->{classes}{$member->{class}}{table} } ||= {};
+		$table->{COLS}{$member->{coll}} = "$schema->{sql}{id} $schema->{sql}{default_null}";
+		$table->{COLS}{$member->{slot}} = "VARCHAR(255) $schema->{sql}{default_null}";
+    }
 }
 
 sub Tangram::BackRef::coldefs
@@ -794,77 +801,86 @@ sub get_exporter {
   my ($self, $context) = @_;
 
   return $self->{EXPORTER} ||= do {
-	
-	my (@export_sources, @export_closures);
-	
-	$self->for_composing( sub {
-							my ($composing) = @_;
 
-							my $class = $composing->{CLASS};
-							$context->{class} = $class;
-							
-							for my $field ($composing->{MAPPING}->get_direct_fields()) {
-							  if (my $exporter = $field->get_exporter($context)) {
-								if (ref $exporter) {
-								  push @export_closures, $exporter;
-								  push @export_sources, 'shift(@closures)->($obj, $context)';
-								} else {
-								  push @export_sources, $exporter;
-								}
-							  }
-							}
-						  } );
-	
-	my $export_source = join ",\n", @export_sources;
-	my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
-	
-	# $Tangram::TRACE = \*STDOUT;
-	
-	$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
-	
-	print $Tangram::TRACE "Compiling exporter for $self->{name}...\n$export_source\n"
+      my (@export_sources, @export_closures);
+
+      $self->for_composing
+	  ( sub {
+		my ($composing) = @_;
+
+		my $class = $composing->{CLASS};
+		$context->{class} = $class;
+
+		for my $field ($composing->{MAPPING}->get_direct_fields()) {
+		    if (my $exporter = $field->get_exporter($context)) {
+			if (ref $exporter) {
+			    push @export_closures, $exporter;
+			    push @export_sources, 'shift(@closures)->($obj, $context)';
+			} else {
+			    push @export_sources, $exporter;
+			}
+		    }
+		}
+	    } );
+
+      my $export_source = join ",\n", @export_sources;
+      my $copy_closures =
+	  ( @export_closures ? ' my @closures = @export_closures;' : '' );
+
+      $export_source = ("sub { my (\$obj, \$context) = \@_;"
+			."$copy_closures\n$export_source }");
+
+      print $Tangram::TRACE ("Compiling exporter for $self->{name}..."
+			     ."\n$export_source\n")
 	  if $Tangram::TRACE;
-	
-	eval $export_source or die;
-	}
+
+      eval $export_source or die;
   }
+}
 
 sub get_importer {
   my ($self, $context) = @_;
 
   return $self->{IMPORTER} ||= do {
 	my (@import_sources, @import_closures);
-	
-	$self->for_composing( sub {
-							my ($composing) = @_;
-							
-							my $class = $composing->{CLASS};
-							$context->{class} = $class;
-							
-							for my $field ($composing->{MAPPING}->get_direct_fields()) {
-							
-							  my $importer = $field->get_importer($context)
-								or next;
-							
-							  if (ref $importer) {
-								push @import_closures, $importer;
-								push @import_sources, 'shift(@closures)->($obj, $row, $context)';
-							  } else {
-								push @import_sources, $importer;
-							  }
-							}
-						  } );
-	
+
+	$self->for_composing
+	    (
+	     sub {
+		 my ($composing) = @_;
+
+		 my $class = $composing->{CLASS};
+		 $context->{class} = $class;
+
+		 for my $field ($composing->{MAPPING}->get_direct_fields()) {
+
+		     my $importer = $field->get_importer($context)
+			 or next;
+
+		     if (ref $importer) {
+			 push @import_closures, $importer;
+			 push @import_sources, 'shift(@closures)->($obj, $row, $context)';
+		     } else {
+			 push @import_sources, $importer;
+		     }
+		 }
+	     } );
+
 	my $import_source = join ";\n", @import_sources;
-	my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
-	
+	my $copy_closures = 
+	    ( @import_closures
+	      ? ' my @closures = @import_closures;'
+	      : '' );
+
 	# $Tangram::TRACE = \*STDOUT;
-	
-	$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
-	
-	print $Tangram::TRACE "Compiling importer for $self->{name}...\n$import_source\n"
+
+	$import_source = ("sub { my (\$obj, \$row, \$context) = \@_;"
+			  ."$copy_closures\n$import_source }");
+
+	print $Tangram::TRACE ("Compiling importer for $self->{name}:"
+			       ."\n$import_source\n")
 	  if $Tangram::TRACE;
-	
+
 	# use Data::Dumper; print Dumper \@cols;
 	eval $import_source or die;
   };

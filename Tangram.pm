@@ -13,7 +13,7 @@ require Exporter;
 @EXPORT = qw(
 	
 );
-$VERSION = '2.07';
+$VERSION = '2.07.1';
 
 
 # Preloaded methods go here.
@@ -27,6 +27,7 @@ use Tangram::Array;
 use Tangram::IntrArray;
 
 use Tangram::Hash;
+use Tangram::IntrHash;
 
 sub connect
   {
