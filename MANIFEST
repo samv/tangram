@@ -11,6 +11,7 @@ Tangram.pod
 Tangram/Tour.pod
 
 Tangram/Relational.pm
+Tangram/Relational/Engine.pm
 Tangram/Relational.pod
 Tangram/Relational/Mappings.pod
 

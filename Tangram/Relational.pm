@@ -1,5 +1,7 @@
 # (c) Sound Object Logic 2000-2001
 
+use Tangram::Relational::Engine;
+
 package Tangram::Relational;
 
 sub connect
