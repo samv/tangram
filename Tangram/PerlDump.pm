@@ -17,6 +17,7 @@ package Tangram::PerlDump;
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
 use Data::Dumper;
+use Set::Object qw(reftype);
 
 $Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;
 
@@ -33,12 +34,12 @@ sub reschema {
     
   for my $field (keys %$members) {
     my $def = $members->{$field};
-    my $refdef = ref($def);
+    my $refdef = reftype($def);
     
     unless ($refdef) {
       # not a reference: field => field
       $def = $members->{$field} = { col => $schema->{normalize}->(($def || $field), 'colname') };
-	  $refdef = ref($def);
+	  $refdef = reftype($def);
     }
 
     die ref($self), ": $class\:\:$field: unexpected $refdef"

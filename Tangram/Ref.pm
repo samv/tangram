@@ -71,7 +71,7 @@ sub get_exporter
 
 	my $field = $self->{name};
 	my $table = $context->{class}{table};
-	my $deep_update = exists $self->{deep_update};
+	my $deep_update = $self->{deep_update};
 	
 	if ($context->{layout1}) {
 	  return sub {

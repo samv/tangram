@@ -356,6 +356,8 @@ sub FETCH
 	my $coll = $type->demand($def, $storage, $obj, $member, $class);
 	untie $obj->{$member};
 	$obj->{$member} = $coll;
+	my ($pkg,$fn,$l) = caller;
+	return $coll;
 }
 
 sub STORE

@@ -1,12 +1,14 @@
+# -*- perl -*-
 # (c) Sound Object Logic 2000-2001
 
 use strict;
-use t::Springfield;
+use lib "t";
+use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;
 
-Springfield::begin_tests(9);
-                           
+use Test::More tests => 13;
+
 {
    my $storage = Springfield::connect_empty;
 
@@ -25,7 +27,28 @@ Springfield::begin_tests(9);
    $storage->disconnect();
 }
 
-Springfield::leaktest;
+is(&leaked, 0, "leaktest");
+
+# BEGIN ks.perl@kurtstephens.com 2002/10/16
+# Test non-commutative operator argument swapping
+{
+   my $storage = Springfield::connect;
+
+   my ($person) = $storage->remote(qw( NaturalPerson ));
+ 
+   #$DB::single = 1;
+   # local $Tangram::TRACE = \*STDERR;
+   my @results = $storage->select( $person,
+      (1 <= $person->{person_id}) & ($person->{person_id} <= 2) );
+   
+   is(@results, 2, "non-commutative operator argument swapping" );
+
+   $storage->disconnect();
+}      
+
+is(&leaked, 0, "leaktest");
+# END ks.perl@kurtstephens.com 2002/10/16
+
 
 # filter on string field
 
@@ -35,12 +58,14 @@ Springfield::leaktest;
    my ($person) = $storage->remote(qw( NaturalPerson ));
 
    my @results = $storage->select( $person, $person->{name} eq 'Simpson' );
-   Springfield::test( join( ' ', sort map { $_->{firstName} } @results ) eq 'Homer Marge' );
+   is(join( ' ', sort map { $_->{firstName} } @results ),
+      'Homer Marge',
+      "filter on string field");
 
    $storage->disconnect();
 }      
 
-Springfield::leaktest;
+is(&leaked, 0, "leaktest");
 
 # logical and
 
@@ -52,12 +77,13 @@ Springfield::leaktest;
    my @results = $storage->select( $person,
       $person->{firstName} eq 'Homer' & $person->{name} eq 'Simpson' );
 
-   Springfield::test( @results == 1 && $results[0]{firstName} eq 'Homer' );
+   is( @results, 1, "Logical and");
+   is ( $results[0]{firstName}, 'Homer', "Logical and" );
 
    $storage->disconnect();
 }      
 
-Springfield::leaktest;
+is(&leaked, 0, "leaktest");
 
 {
    my $storage = Springfield::connect;
@@ -67,12 +93,13 @@ Springfield::leaktest;
    my @results = $storage->select( $person,
       ($person->{partner} == $partner) & ($partner->{firstName} eq 'Marge') );
 
-   Springfield::test( @results == 1 && $results[0]{firstName} eq 'Homer' );
+   is( @results, 1, "Logical and");
+   is ( $results[0]{firstName}, 'Homer', "Logical and" );
 
    $storage->disconnect();
 }      
 
-Springfield::leaktest;
+is(&leaked, 0, "leaktest");
 
 {
    my $storage = Springfield::connect;
@@ -80,12 +107,12 @@ Springfield::leaktest;
    my ($person) = $storage->remote(qw( NaturalPerson ));
 
    my @results = $storage->select( $person, $person->{partner} != undef );
-   print join(' ', map { $_->{firstName} } @results), "\n";
 
-   Springfield::test(
-      join( ' ', sort map { $_->{firstName} } @results ) eq 'Homer Marge' );
+   is(join( ' ', sort map { $_->{firstName} } @results ),
+      'Homer Marge',
+      "!= undef test");
 
    $storage->disconnect();
 }      
 
-Springfield::leaktest;
+is(&leaked, 0, "leaktest");

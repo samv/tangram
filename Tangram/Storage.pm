@@ -11,15 +11,14 @@ use vars qw( %storage_class );
 
 BEGIN {
 
-  eval { require 'WeakRef.pm' };
-
-  if ($@) {
-    *Tangram::weaken = sub { };
-    $Tangram::no_weakrefs = 1;
-  } else {
-    *Tangram::weaken = \&WeakRef::weaken;
-    $Tangram::no_weakrefs = 0;
-  }
+    eval 'use Scalar::Util qw(refaddr)';
+    if ($@) {
+	*Tangram::weaken = sub { };
+	$Tangram::no_weakrefs = 1;
+    } else {
+	*Tangram::weaken = \&Scalar::Util::weaken;
+	$Tangram::no_weakrefs = 0;
+    }
 }
 
 sub new
@@ -103,14 +102,14 @@ sub _open
 	  my ($obj, $id) = @_;
 
 	  if ($id) {
-	    $self->{ids}{0 + $obj} = $id;
+	    $self->{ids}{refaddr($obj)} = $id;
 	  } else {
-	    delete $self->{ids}{0 + $obj};
+	    delete $self->{ids}{refaddr($obj)};
 	  }
 	};
 
     $self->{get_id} = $schema->{get_id} || sub {
-	  my $address = 0 + shift();
+	  my $address = refaddr(shift());
 	  my $id = $self->{ids}{$address};
 	  return undef unless $id;
 	  return $id if exists $self->{objects}{$id};
@@ -142,7 +141,15 @@ sub open_connection
     # private - open a new connection to DB for read
 
     my $self = shift;
-    DBI->connect($self->{-cs}, $self->{-user}, $self->{-pw}) or die;
+    my $db = DBI->connect($self->{-cs}, $self->{-user}, $self->{-pw})
+	or die;
+
+    if (exists $self->{no_tx}) {
+	$db->{AutoCommit} = ($self->{no_tx} ? 1 : 0);
+
+    }
+
+    return $db;
 }
 
 sub close_connection
@@ -202,7 +209,9 @@ sub prepare
   {
 	my ($self, $sql) = @_;
 	
-	print $Tangram::TRACE "preparing [@{[ $psi++ ]}] $sql\n" if $Tangram::TRACE;
+	print $Tangram::TRACE "Tangram::Storage: "
+	    ."preparing [@{[ $psi++ ]}] $sql\n"
+	    if $Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 1);
 	$self->{db}->prepare($sql);
   }
 
@@ -268,7 +277,13 @@ sub make_1st_id_in_tx
 	
 	$sth = $self->{make_id}{get};
 	$sth->execute();
-	my $id = $sth->fetchrow_arrayref()->[0];
+    my $row = $sth->fetchrow_arrayref() or
+	die "`Tangram' table corrupt; insert a valid row!";
+	my $id = $row->[0];
+    while ($row =  $sth->fetchrow_arrayref()) {
+	warn "Eep!  More than one row in `Tangram' table!";
+	$id = $row->[0] if ($row->[0] > $id);
+    }
 	$sth->finish();
 
 	return $id;
@@ -367,11 +382,13 @@ sub tx_rollback
 		$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
 		
 		# execute rollback subs in reverse order
-		
-		foreach my $rollback ( @{ pop @{ $self->{tx} } } )
-		  {
-			$rollback->($self);
-		  }
+
+		if (my $rb = pop @{ $self->{tx} }) {
+		    foreach my $rollback ( @$rb )
+			{
+			    $rollback->($self);
+			}
+		}
 	  }
 }
 
@@ -540,7 +557,8 @@ sub _update
 
 	my $sths = $self->{UPDATE_STHS}{$class->{name}} ||=
 	  [ map {
-		print $Tangram::TRACE "preparing $_\n" if $Tangram::TRACE;
+		print $Tangram::TRACE "Tangram::Storage: preparing $_\n"
+		    if ( $Tangram::TRACE && ( $Tangram::DEBUG_LEVEL > 1 ) );
 		$self->prepare($_)
 	  } $engine->get_update_statements($class) ];
 
@@ -702,6 +720,7 @@ sub welcome
   {
     my ($self, $obj, $id) = @_;
     $self->{set_id}->($obj, $id);
+
     Tangram::weaken( $self->{objects}{$id} = $obj );
   }
 
@@ -718,7 +737,7 @@ sub shrink
     my ($self) = @_;
 
     my $objects = $self->{objects};
-    my $prefetch = $self->{prefetch};
+    my $prefetch = $self->{PREFETCH};
 
     for my $id (keys %$objects)
       {
@@ -752,6 +771,9 @@ sub _row_to_object
     my ($self, $obj, $id, $class, $row) = @_;
 	my $context = { storage => $self, id => $id, layout1 => $self->{layout1} };
 	$self->{schema}->classdef($class)->get_importer($context)->($obj, $row, $context);
+    if (my $x=$obj->can("T2_import")) {
+	$x->($obj);
+    }
 	return $obj;
 }
 
@@ -992,7 +1014,9 @@ sub connect
 
 	$opts ||= {};
 
-    my $db = $opts->{dbh} || DBI->connect($cs, $user, $pw);
+    @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
+
+    my $db = $opts->{dbh} || $self->open_connection;
  
 	if (exists $opts->{no_tx}) {
 	  $self->{no_tx} = $opts->{no_tx};
@@ -1015,8 +1039,6 @@ sub connect
     }
 
     $self->{db} = $db;
-
-    @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
     $self->{cid_size} = $schema->{sql}{cid_size};
 	

@@ -195,7 +195,7 @@ Revision history for Perl extension Tangram.
 	- Fixed minor bugs causing test suite to issue large warnings
 	  on 5.8.1-RC2
 
-2.07 Sep 1 2003 - SamV
+2.07 Nov 8 2003 - SamV
 	- Fixed bug with Tangram::Intr* and erasing objects that
 	  referred to a class which didn't use their class name as
 	  their table name [closes: 2650]
@@ -222,4 +222,14 @@ Revision history for Perl extension Tangram.
 	- Cosmetic Test Suite changes
 	- ID column name wasn't being used for the index in
           Tangram::Relational::Engine (Kurt Stephens)
-
+        Lost patches from 2002/06/25 (Kurt Stephens):
+        - Added missing Tangram::Expr and Tangram::Filter operators:
+            '+', '-', '*', '/',
+            '&', '|', '!',
+            '==', '!=', '<', '>', '<=', '>=',
+            'eq', 'ne', 'lt', 'gt', 'le', 'ge',
+            'cos', 'sin', 'acos',
+        - Added argument swapping for non-commutative operators, like
+	  "<".
+        - Fixed export problem with 5.6.1 (reported by Kate Pugh)
+	- deep_update with Tangram::Ref bug fix (reported by Aaron Mackey)

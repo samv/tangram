@@ -89,7 +89,7 @@ $schema = Tangram::Schema->new
 		 name => undef,
 		},
 
-		int => [ qw( age ) ],
+		int => [ qw( age person_id ) ], # ks.perl@kurtstephens.com 2003/10/16
 
 		ref =>
 		{
@@ -400,6 +400,8 @@ sub stdpop
     my $storage = Springfield::connect_empty;
     my $children = shift || "children";
 
+    $NaturalPerson::person_id = 0; # ks.perl@kurtstephens.com 2003/10/16
+
     my @children = (map { NaturalPerson->new( firstName => $_ ) }
 		    @kids);
     @id{ @kids } = $storage->insert( @children );
@@ -503,8 +505,13 @@ package NaturalPerson;
 use vars qw(@ISA);
 @ISA = qw( Person );
 
+# BEGIN ks.perl@kurtstephens.com 2003/10/16
+our $person_id = 0;
+# END ks.perl@kurtstephens.com 2003/10/16
+
 sub defaults
 {
+   'person_id' => ++ $person_id, # ks.perl@kurtstephens.com 2003/10/16
    a_children => [], ia_children => [],
 	s_children => Set::Object->new, is_children => Set::Object->new,
    h_opinions => {}

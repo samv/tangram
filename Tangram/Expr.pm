@@ -289,7 +289,88 @@ sub as_string
 	return ref($self) . "($self->{expr})";
 }
 
-use overload "&" => \&and, "|" => \&or, '!' => \&not, fallback => 1;
+
+# BEGIN ks.perl@kurtstephens.com 2002/06/25
+sub unaop
+{
+    Tangram::Expr::unaop(@_);
+}
+
+
+sub binop
+{
+    my ($self, $op, $arg, $tight, $swap) = @_;
+
+    my @objects = $self->objects;
+    my $objects = Set::Object->new(@objects);
+    # my $storage = $self->{storage};
+    my $ltight = $self->{'tight'};
+    my $rtight = 100;
+
+    if ( ref($arg) ) {
+	if ( $arg->isa('Tangram::Expr') ) {
+	    $objects->insert($arg->objects);
+	    $rtight = $arg->{'tight'};
+	    $arg = $arg->{'expr'};
+	}
+	if ( $arg->isa('Tangram::Filter') ) {
+	    $objects->insert($arg->objects);
+	    $rtight = $arg->{'tight'};
+	    $arg = $arg->{'expr'};
+	}
+	elsif ( $arg->isa('Tangram::QueryObject') ) {
+	    $objects->insert($arg->object);
+	    $rtight = $arg->{'tight'};
+	    $arg = $arg->{'id'}->{'expr'};
+	}
+    }
+
+    $tight ||= 100;
+    $self = $self->{'expr'};
+    $self = "($self)" if $ltight < $tight;
+    $arg  = "($arg)"  if $rtight < $tight;
+    if ( $swap ) {
+      ($self, $arg) = ($arg, $self);
+    }
+    # $DB::single = $swap;
+
+    return new Tangram::Filter(expr => "$self $op $arg", tight => $tight,
+			       objects => $objects );
+}
+
+
+# Aliases
+*cos =  \&Tangram::Expr::sin;
+*sin =  \&Tangram::Expr::cos;
+*acos = \&Tangram::Expr::acos;
+
+#use overload "&" => \&and, "|" => \&or, '!' => \&not, fallback => 1;
+use overload 
+  "&"    => \&and, 
+  "|"    => \&or, 
+  '!'    => \&not,
+  '+'    => \&Tangram::Expr::add,
+  '-'    => \&Tangram::Expr::subt,
+  '*'    => \&Tangram::Expr::mul,
+  '/'    => \&Tangram::Expr::div,
+  'cos'  => \&Tangram::Expr::cos, 
+  'sin'  => \&Tangram::Expr::sin,
+  'acos' => \&Tangram::Expr::acos,
+  "=="   => \&Tangram::Expr::eq,
+  "eq"   => \&Tangram::Expr::eq,
+  "!="   => \&Tangram::Expr::ne,
+  "ne"   => \&Tangram::Expr::ne,
+  "<"    => \&Tangram::Expr::lt,
+  "lt"   => \&Tangram::Expr::lt,
+  "<="   => \&Tangram::Expr::le,
+  "le"   => \&Tangram::Expr::le,
+  ">"    => \&Tangram::Expr::gt,
+  "gt"   => \&Tangram::Expr::gt,
+  ">="   => \&Tangram::Expr::ge,
+  "ge"   => \&Tangram::Expr::ge,
+  fallback => 1;
+# END ks.perl@kurtstephens.com 2002/06/25
+
 
 sub op
 {
@@ -377,33 +458,95 @@ sub ne
 	return $self->binop('<>', $arg);
 }
 
+# BEGIN ks.perl@kurtstephens.com 2002/06/25
 sub lt
 {
-	my ($self, $arg) = @_;
-	return $self->binop('<', $arg);
+	my ($self, $arg, $swap) = @_;
+	return $self->binop('<', $arg, undef, $swap);
 }
 
 sub le
 {
-	my ($self, $arg) = @_;
-	return $self->binop('<=', $arg);
+	my ($self, $arg, $swap) = @_;
+	return $self->binop('<=', $arg, undef, $swap);
 }
 
 sub gt
 {
-	my ($self, $arg) = @_;
-	return $self->binop('>', $arg);
+	my ($self, $arg, $swap) = @_;
+	return $self->binop('>', $arg, undef, $swap);
 }
 
 sub ge
 {
-	my ($self, $arg) = @_;
-	return $self->binop('>=', $arg);
+	my ($self, $arg, $swap) = @_;
+	return $self->binop('>=', $arg, undef, $swap);
 }
+
+sub add
+{
+    my ($self, $arg) = @_;
+    $self->binop('+', $arg, 90);
+}
+
+
+sub subt
+{
+    my ($self, $arg, $swap) = @_;
+    $self->binop('-', $arg, 90, $swap);
+}
+
+
+sub mul
+{
+    my ($self, $arg) = @_;
+    $self->binop('*', $arg, 95);
+}
+
+
+sub div
+{
+    my ($self, $arg, $swap) = @_;
+    $self->binop('/', $arg, 95, $swap);
+}
+
+
+sub cos
+{
+    my ($self) = @_;
+    $self->unaop('COS', 100);
+}
+
+
+sub sin
+{
+    my ($self) = @_;
+    $self->unaop('SIN', 100);
+}
+
+sub acos
+{
+    my ($self) = @_;
+    $self->unaop('ACOS', 100);
+}
+
+
+sub unaop
+{
+    my ($self, $op, $tight) = @_;
+    
+    my @objects = $self->objects;
+    my $objects = Set::Object->new(@objects);
+    my $storage = $self->{storage};
+    
+    return new Tangram::Filter(expr => "$op($self->{expr})", tight => $tight || 100,
+			       objects => $objects );
+}
+
 
 sub binop
 {
-	my ($self, $op, $arg) = @_;
+	my ($self, $op, $arg, $tight, $swap) = @_;
 
 	my @objects = $self->objects;
 	my $objects = Set::Object->new(@objects);
@@ -446,9 +589,14 @@ sub binop
 		$arg = 'NULL';
 	}
 
-	return new Tangram::Filter(expr => "$self->{expr} $op $arg", tight => 100,
+	my ($l, $r) = $swap ? ($arg, $self->{expr}) : ($self->{expr}, $arg);
+	$tight ||= 100;
+
+	return new Tangram::Filter(expr => "$l $op $r", tight => $tight,
 							   objects => $objects );
 }
+# END ks.perl@kurtstephens.com 2002/06/25
+
 
 sub like
 {
@@ -485,6 +633,15 @@ sub AUTOLOAD {
 }
 
 use overload
+# BEGIN ks.perl@kurtstephens.com 2002/06/25
+        '+'    => \&add,
+        '-'    => \&subt,
+        '*'    => \&mul,
+        '/'    => \&div,
+        'cos'  => \&cos, 
+        'sin'  => \&sin,
+        'acos' => \&acos,
+# END ks.perl@kurtstephens.com 2002/06/25
 	"==" => \&eq,
 	"eq" => \&eq,
 	"!=" => \&ne,

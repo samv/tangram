@@ -15,9 +15,17 @@ use Tangram::Relational;
 
 package Tangram;
 
-use vars qw( $TRACE );
+use vars qw( $TRACE $DEBUG_LEVEL @EXPORT_OK );
 $TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
   if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
+
+use base qw(Exporter);
+
+BEGIN {
+    @EXPORT_OK = qw(pretty);
+}
+
+$DEBUG_LEVEL = 0;
 
 sub pretty {
     my $thingy = shift;

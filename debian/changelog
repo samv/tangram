@@ -1,3 +1,33 @@
+libtangram-perl (2.07-1take5) unstable; urgency=low
+
+  * pcvs test build version 2.07-1take5
+
+ -- Sam Vilain <sam@vilain.net>  Mon, 27 Oct 2003 17:08:45 +0000
+
+libtangram-perl (2.07-1take4) unstable; urgency=low
+
+  * pcvs test build version 2.07-1take4
+
+ -- Sam Vilain <sam@vilain.net>  Mon, 27 Oct 2003 17:08:28 +0000
+
+libtangram-perl (2.07-1take3) unstable; urgency=low
+
+  * pcvs test build version 2.07-1take3
+
+ -- Sam Vilain <sam@vilain.net>  Mon, 27 Oct 2003 17:07:20 +0000
+
+libtangram-perl (2.07-1take2) unstable; urgency=low
+
+  * pcvs test build version 2.07-1take2
+
+ -- Sam Vilain <sam@vilain.net>  Mon, 27 Oct 2003 17:04:18 +0000
+
+libtangram-perl (2.07-1take1) unstable; urgency=low
+
+  * pcvs test build version 2.07-1take1
+
+ -- Sam Vilain <sam@vilain.net>  Tue, 21 Oct 2003 15:44:58 +0100
+
 libtangram-perl (2.07) unstable; urgency=low
 
   * See Changes file for detailed list of changes

@@ -122,3 +122,4 @@ debian/rules
 debian/copyright
 
 META.yml                                Module meta-data (added by MakeMaker)
+t/prefetch.t

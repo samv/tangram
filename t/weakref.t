@@ -1,23 +1,30 @@
+# -*- perl -*-
 # (c) Sound Object Logic 2000-2001
 
 use strict;
 use lib 't';
 use Springfield;
+BEGIN {
+    eval "use Scalar::Util";
+    eval "use WeakRef" if $@;
+    if ($@) {
+	eval 'use Test::More skip_all => "No WeakRef / Scalar::Util"';
+	exit;
+    } else {
+	eval 'use Test::More tests => 3;';
+    }
+}
 
 # $Tangram::TRACE = \*STDOUT;
 
 my $tests = 3;
-Springfield::begin_tests($tests);
-
-Springfield::optional_tests('weakrefs', !$Tangram::no_weakrefs, $tests)
-  or exit;
 
 {
   my $storage = Springfield::connect_empty;
 
   $storage->insert( NaturalPerson->new( firstName => 'Homer' ));
 
-  Springfield::leaktest;
+  is(leaked, 0, "WeakRef works");
 
   $storage->disconnect();
 }
@@ -27,10 +34,11 @@ Springfield::optional_tests('weakrefs', !$Tangram::no_weakrefs, $tests)
 
   {
     my ($homer) = $storage->select('Person');
-    Springfield::test($SpringfieldObject::pop == 1);
+    is($SpringfieldObject::pop, 1,
+       "Objects not lost until they fall out of scope");
   }
 
-  Springfield::leaktest;
+  is(leaked, 0, "WeakRef still works");
 
   $storage->disconnect();
 }

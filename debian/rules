@@ -31,7 +31,7 @@ binary-indep:	checkroot build
 	dh_clean
 	dh_installdirs
 
-	$(MAKE) pure_install PREFIX=$(prefix)
+	$(MAKE) pure_install PREFIX=$(prefix) DESTDIR=
 
 	dh_installdocs README
 	dh_installexamples tour 

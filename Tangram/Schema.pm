@@ -101,9 +101,9 @@ sub get_exporter {
 	
 	$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
 	
-	print $Tangram::TRACE "Compiling exporter for $self->{name}...\n$export_source\n"
-	  if $Tangram::TRACE;
-	
+	print $Tangram::TRACE "Compiling exporter for $self->{name}...\n".($Tangram::DEBUG_LEVEL > 1 ? "$export_source\n" : "")
+	    if $Tangram::TRACE;
+
 	eval $export_source or die;
 	}
   }
@@ -140,7 +140,7 @@ sub get_importer {
 	
 	$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
 	
-	print $Tangram::TRACE "Compiling importer for $self->{name}...\n$import_source\n"
+	print $Tangram::TRACE "Compiling importer for $self->{name}...\n".($Tangram::DEBUG_LEVEL > 1 ? "$import_source\n" : "")."\n"
 	  if $Tangram::TRACE;
 	
 	# use Data::Dumper; print Dumper \@cols;
