@@ -67,3 +67,4 @@ Revision history for Perl extension Tangram.
 
 1.08  Mar 26 2000 - interim version
 	- batch allocation of object ids
+	- support for Lobs contributed by marian.kelc@ruhr-uni-bochum.de
