@@ -1010,6 +1010,8 @@ sub connect
     return $self;
 }
 
+sub connection { shift->{db} }
+
 sub sql_do
 {
     my ($self, $sql) = @_;
