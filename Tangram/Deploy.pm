@@ -81,12 +81,12 @@ sub Tangram::Set::coldefs
 {
     my ($self, $cols, $members, $schema, $class, $tables) = @_;
 
-    foreach my $member (keys %$members)
+    foreach my $member (values %$members)
     {
-		$tables->{ $members->{$member}{table} }{COLS} =
+		$tables->{ $member->{table} }{COLS} =
 		{
-		 coll => $schema->{sql}{id},
-		 item => $schema->{sql}{id},
+		 $member->{coll} => $schema->{sql}{id},
+		 $member->{item} => $schema->{sql}{id},
 		};
     }
 }
@@ -106,12 +106,13 @@ sub Tangram::Array::coldefs
 {
     my ($self, $cols, $members, $schema, $class, $tables) = @_;
 
-    foreach my $member (keys %$members)
+    foreach my $member (values %$members)
     {
-		$tables->{ $members->{$member}{table} }{COLS} =
+		$tables->{ $member->{table} }{COLS} =
 		{
-		 coll => $schema->{sql}{id}, item => $schema->{sql}{id},
-		 slot => "INT $schema->{sql}{default_null}"
+		 $member->{coll} => $schema->{sql}{id},
+		 $member->{item} => $schema->{sql}{id},
+		 $member->{slot} => "INT $schema->{sql}{default_null}"
 		};
     }
 }
@@ -120,13 +121,13 @@ sub Tangram::Hash::coldefs
 {
     my ($self, $cols, $members, $schema, $class, $tables) = @_;
 
-    foreach my $member (keys %$members)
+    foreach my $member (values %$members)
     {
-		$tables->{ $members->{$member}{table} }{COLS} =
+		$tables->{ $member->{table} }{COLS} =
 		{
-		 coll => $schema->{sql}{id},
-		 item => $schema->{sql}{id},
-		 slot => "VARCHAR(255) $schema->{sql}{default_null}"
+		 $member->{coll} => $schema->{sql}{id},
+		 $member->{item} => $schema->{sql}{id},
+		 $member->{slot} => "VARCHAR(255) $schema->{sql}{default_null}"
 		};
     }
 }
