@@ -174,6 +174,12 @@ sub query_expr
    return map { $self->expr("t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
 }
 
+sub remote_expr
+{
+   my ($self, $obj, $tid, $storage) = @_;
+   $self->expr("t$tid.$self->{col}", $obj);
+}
+
 sub refid
 {
    my ($storage, $obj, $member) = @_;

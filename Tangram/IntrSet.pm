@@ -87,7 +87,7 @@ sub demand
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
-		my $tid = $cursor->{TARGET}->object->leaf_table;
+		my $tid = $cursor->{TARGET}->object->{table_hash}{$def->{class}}; # leaf_table;
 		$cursor->{-coll_where} = "t$tid.$def->{coll} = $coll_id";
    
 		$set->insert($cursor->select);
@@ -126,6 +126,12 @@ sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
 	map { Tangram::IntrCollExpr->new($obj, $_); } values %$members;
+}
+
+sub remote_expr
+{
+	my ($self, $obj, $tid) = @_;
+	Tangram::IntrCollExpr->new($obj, $self);
 }
 
 sub prefetch

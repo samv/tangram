@@ -119,6 +119,12 @@ sub cursor
 	return $cursor;
 }
 
+sub remote_expr
+{
+	my ($self, $obj, $tid) = @_;
+	Tangram::CollExpr->new($obj, $self);
+}
+
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;

@@ -47,6 +47,12 @@ sub query_expr
     return map { $storage->expr($self, "t$tid.$memdefs->{$_}{col}", $obj) } keys %$memdefs;
 }
 
+sub remote_expr
+{
+    my ($self, $obj, $tid, $storage) = @_;
+    $storage->expr($self, "t$tid.$self->{col}", $obj);
+}
+
 sub get_exporter
   {
 	my ($self) = @_;

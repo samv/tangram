@@ -283,6 +283,12 @@ sub query_expr
 	map { Tangram::FlatHash::Expr->new($obj, $_); } values %$members;
 }
 
+sub remote_expr
+{
+	my ($self, $obj, $tid) = @_;
+	Tangram::FlatHash::Expr->new($obj, $self);
+}
+
 sub prefetch
 {
 	my ($self, $storage, $def, $coll, $class, $member, $filter) = @_;

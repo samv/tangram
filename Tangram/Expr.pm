@@ -36,31 +36,51 @@ sub new
 	my $self = bless { storage => $storage, tables => \@tables, class => $class,
 					   table_hash => $table_hash }, $pkg;
 
-	$storage->{schema}->visit_up($class,
-								 sub
-								 {
-									 my $class = shift;
+	my %seen;
+
+	for my $part ($storage->{engine}->get_parts($schema->classdef($class))) {
+	  my $table = $part->{table};
+
+	  unless (exists $seen{$table}) {
+		my $id = $seen{$table} = $storage->alloc_table;
+		#push @tables, [ $part->{name}, $id ];
+		push @tables, [ $table, $id ];
+	  }
+
+	  my $id =  $seen{$table};
+	  $table_hash->{ $part->{name} } = $id;
+
+	  $self->{root} ||= $id;
+	}
+
+	# use Data::Dumper; print Dumper \@tables;
+
+
+# 	$storage->{schema}->visit_up($class,
+# 								 sub
+# 								 {
+# 									 my $class = shift;
 			
-									 unless ($classes->{$class}{stateless})
-									 {
-										 my $id = $storage->alloc_table;
-										 push @tables, [ $class, $id ];
-										 $table_hash->{$class} = $id;
-									 }
-								 } );
+# 									 unless ($classes->{$class}{stateless})
+# 									 {
+# 										 my $id = $storage->alloc_table;
+# 										 push @tables, [ $class, $id ];
+# 										 $table_hash->{$class} = $id;
+# 									 }
+# 								 } );
 
 	return $self;
 }
 
-sub copy
-{
-	my ($pkg, $other) = @_;
+# sub copy
+# {
+# 	my ($pkg, $other) = @_;
 
-	my $self = { %$other };
-	$self->{tables} = [ @{ $self->{tables} } ];
+# 	my $self = { %$other };
+# 	$self->{tables} = [ @{ $self->{tables} } ];
 
-	bless $self, $pkg;
-}
+# 	bless $self, $pkg;
+# }
 
 sub storage
 {
@@ -73,10 +93,10 @@ sub table
 	$self->{table_hash}{$class} or confess "no table for $class in stored '$self->{class}'";
 }
 
-sub tables
-{
-	shift->{tables}
-}
+# sub tables
+# {
+# 	shift->{tables}
+# }
 
 sub class
 {
@@ -91,28 +111,28 @@ sub table_ids
 	return map { $_->[1] } @{ shift->{tables} };
 }
 
-sub parts
-{
-	return map { $_->[0] } @{ shift->{tables} };
-}
+# sub parts
+# {
+# 	return map { $_->[0] } @{ shift->{tables} };
+# }
 
 sub root_table
 {
 	my ($self) = @_;
-	return $self->{tables}[0][1];
+	return $self->{root};
 }
 
-sub class_id_col
-{
-	my ($self) = @_;
-	return "t$self->{tables}[0][1].$self->{storage}{class_col}";
-}
+# sub class_id_col
+# {
+# 	my ($self) = @_;
+# 	return "t$self->{tables}[0][1].$self->{storage}{class_col}";
+# }
 
-sub leaf_table
-{
-	my ($self) = @_;
-	return $self->{tables}[-1][1];
-}
+# sub leaf_table
+# {
+# 	my ($self) = @_;
+# 	return $self->{tables}[-1][1];
+# }
 
 sub from
 {
@@ -122,7 +142,7 @@ sub from
 	my $schema = $self->storage->{schema};
 	my $classes = $schema->{classes};
 	my $tables = $self->{tables};
-	map { "$classes->{$_->[0]}{table} t$_->[1]" } @$tables;
+	map { "$_->[0] t$_->[1]" } @$tables;
 }
 
 sub where
@@ -132,15 +152,15 @@ sub where
 	my ($self) = @_;
    
 	my $tables = $self->{tables};
-	my $root = $tables->[0][1];
+	my $root = $tables->{root};
 
-	map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables];
+	map { "t$_->[1].id = t$root.id" } @$tables[1..$#$tables];
 }
 
-sub mark
-{
-	return @{ shift->{tables} };
-}
+# sub mark
+# {
+# 	return @{ shift->{tables} };
+# }
 
 sub expr_hash
 {
@@ -149,29 +169,37 @@ sub expr_hash
 	my $schema = $storage->{schema};
 	my $classes = $schema->{classes};
 	my @tables = @{$self->{tables}};
-	my $root_tid = $tables[0][1];
    
 	my %hash =
 		(
 		 object => $self, 
-		 id => Tangram::Number->expr("t$root_tid.id", $self)
+		 id => Tangram::Number->expr("t$self->{root}.id", $self)
 		);
 
-	$schema->visit_up($self->{class},
-					  sub
-					  {
-						  my $classdef = $classes->{shift()};
+	for my $part ($storage->{engine}->get_parts($schema->classdef($self->{class}))) {
+	  for my $field ($part->direct_fields) {
+		$hash{ $field->{name} } = $field->remote_expr($self, $self->{table_hash}{$part->{name}}, $storage);
+	  }
+	}
+													  
+	  
+	
 
-						  my $tid = (shift @tables)->[1] unless $classdef->{stateless};
+# 	$schema->visit_up($self->{class},
+# 					  sub
+# 					  {
+# 						  my $classdef = $classes->{shift()};
 
-						  foreach my $typetag (keys %{$classdef->{members}})
-						  {
-							  my $type = $schema->{types}{$typetag};
-							  my $memdefs = $classdef->{members}{$typetag};
-							  @hash{$type->members($memdefs)} =
-								  $type->query_expr($self, $memdefs, $tid, $storage);
-						  }
-					  } );
+# 						  my $tid = (shift @tables)->[1] unless $classdef->{stateless};
+
+# 						  foreach my $typetag (keys %{$classdef->{members}})
+# 						  {
+# 							  my $type = $schema->{types}{$typetag};
+# 							  my $memdefs = $classdef->{members}{$typetag};
+# 							  @hash{$type->members($memdefs)} =
+# 								  $type->query_expr($self, $memdefs, $tid, $storage);
+# 						  }
+# 					  } );
 
 	return \%hash;
 }

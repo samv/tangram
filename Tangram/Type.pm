@@ -30,6 +30,10 @@ sub query_expr
 {
 }
 
+sub remote_expr
+{
+}
+
 sub erase
 {
 }

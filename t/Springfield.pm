@@ -227,7 +227,8 @@ my $no_tx;
 
 sub connect
   {
-	my $storage = $dialect->connect($Springfield::schema, $cs, $user, $passwd) || die;
+	my $schema = shift || $Springfield::schema;
+	my $storage = $dialect->connect($schema, $cs, $user, $passwd) || die;
 	$no_tx = $storage->{no_tx};
 	return $storage;
   }
@@ -235,9 +236,10 @@ sub connect
 sub empty
   {
 	my $storage = shift || Springfield::connect;
+	my $schema = shift || $Springfield::schema;
 	my $conn = $storage->{db};
 
-	foreach my $classdef (values %{ $Springfield::schema->{classes} }) {
+	foreach my $classdef (values %{ $schema->{classes} }) {
       $conn->do("DELETE FROM $classdef->{table}") or die
 		unless $classdef->{stateless};
 	}
@@ -245,8 +247,9 @@ sub empty
 
 sub connect_empty
   {
-	my $storage = Springfield::connect;
-	empty($storage);
+	my $schema = shift || $Springfield::schema;
+	my $storage = Springfield::connect($schema);
+	empty($storage, $schema);
 	return $storage;
   }
 

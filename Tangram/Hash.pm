@@ -151,6 +151,12 @@ sub query_expr
     map { Tangram::CollExpr->new($obj, $_); } values %$members;
 }
 
+sub remote_expr
+{
+    my ($self, $obj, $tid) = @_;
+    Tangram::CollExpr->new($obj, $self);
+}
+
 sub prefetch
 {
     q{
