@@ -23,8 +23,11 @@ $schema = Tangram::Schema->new( {
 
    sql =>
    {
-	   cid_size => 2
+	   cid_size => 2,
+	   
    },
+
+   class_table => 'Classes',
 								  
    classes =>
    {
