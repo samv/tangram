@@ -7,52 +7,54 @@ use Carp;
 
 sub reschema
 {
-   my ($self, $members, $class, $schema) = @_;
+	my ($self, $members, $class, $schema) = @_;
 
-   foreach my $member (keys %$members)
-   {
-      my $def = $members->{$member};
+	foreach my $member (keys %$members)
+	{
+		my $def = $members->{$member};
 
-      unless (ref($def))
-      {
-         $def = { class => $def };
-         $members->{$member} = $def;
-      }
+		unless (ref($def))
+		{
+			$def = { class => $def };
+			$members->{$member} = $def;
+		}
 
-      $def->{coll} ||= $class . "_$member";
-      $def->{slot} ||= $class . "_$member" . "_slot";
+		$def->{coll} ||= $class . "_$member";
+		$def->{slot} ||= $class . "_$member" . "_slot";
    
-      $schema->{classes}{$def->{class}}{stateless} = 0;
+		$schema->{classes}{$def->{class}}{stateless} = 0;
 
-      if (exists $def->{back})
-      {
-         my $back = $def->{back} ||= $def->{item};
-         $schema->{classes}{ $def->{class} }{members}{backref}{$back} =
-	     { col => $def->{coll} };
-      }
-   }
+		if (exists $def->{back})
+		{
+			my $back = $def->{back} ||= $def->{item};
+			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
+			{
+			 col => $def->{coll} };
+		}
+	}
 
-   return keys %$members;
+	return keys %$members;
 }
 
 sub defered_save
 {
-   use integer;
+	use integer;
 
-   my ($self, $storage, $obj, $members, $coll_id) = @_;
+	my ($self, $storage, $obj, $members, $coll_id) = @_;
 
 	my $classes = $storage->{schema}{classes};
 	my $old_states = $storage->{scratch}{ref($self)}{$coll_id};
 
-   foreach my $member (keys %$members)
-   {
-      next if tied $obj->{$member};
+	foreach my $member (keys %$members)
+	{
+		next if tied $obj->{$member};
+		next unless exists $obj->{$member} && defined $obj->{$member};
 
-      my $def = $members->{$member};
-      my $item_classdef = $classes->{$def->{class}};
-      my $table = $item_classdef->{table} or die;
-      my $item_col = $def->{coll};
-      my $slot_col = $def->{slot};
+		my $def = $members->{$member};
+		my $item_classdef = $classes->{$def->{class}};
+		my $table = $item_classdef->{table} or die;
+		my $item_col = $def->{coll};
+		my $slot_col = $def->{slot};
 
 		my $coll_id = $storage->id($obj);
 		my $coll = $obj->{$member};
@@ -61,7 +63,7 @@ sub defered_save
 		my @new_state = ();
 		
 		my $old_state = $old_states->{$member};
-      my $old_size = $old_state ? @$old_state : 0;
+		my $old_size = $old_state ? @$old_state : 0;
 
 		my %removed;
 		@removed{ @$old_state } = () if $old_state;
@@ -86,95 +88,95 @@ sub defered_save
 			$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE id IN ($removed)");
 		}
 
-      $old_states->{$member} = \@new_state;
+		$old_states->{$member} = \@new_state;
 
-      $storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
-   }
+		$storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
+	}
 }
 
 sub erase
 {
-   my ($self, $storage, $obj, $members, $coll_id) = @_;
+	my ($self, $storage, $obj, $members, $coll_id) = @_;
 
-   foreach my $member (keys %$members)
-   {
-      my $def = $members->{$member};
+	foreach my $member (keys %$members)
+	{
+		my $def = $members->{$member};
 
-	  if ($def->{aggreg})
-	  {
-		  $storage->erase( @{ $obj->{$member} } );
-	  }
-	  else
-	  {
-		  my $item_classdef = $storage->{schema}{$def->{class}};
-		  my $table = $item_classdef->{table} || $def->{class};
-		  my $item_col = $def->{coll};
-		  my $slot_col = $def->{slot};
+		if ($def->{aggreg})
+		{
+			$storage->erase( @{ $obj->{$member} } );
+		}
+		else
+		{
+			my $item_classdef = $storage->{schema}{$def->{class}};
+			my $table = $item_classdef->{table} || $def->{class};
+			my $item_col = $def->{coll};
+			my $slot_col = $def->{slot};
       
-		  $storage->sql_do(
-              "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
-	  }
-  }
+			$storage->sql_do(
+							 "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
+		}
+	}
 }
 
 sub cursor
 {
-   my ($self, $def, $storage, $obj, $member) = @_;
+	my ($self, $def, $storage, $obj, $member) = @_;
 
-   my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+	my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
-   my $item_col = $def->{coll};
-   my $slot_col = $def->{slot};
+	my $item_col = $def->{coll};
+	my $slot_col = $def->{slot};
 
-   my $coll_id = $storage->id($obj);
-   my $tid = $cursor->{-stored}->leaf_table;
-   $cursor->{-coll_cols} = ", t$tid.$slot_col";
-   $cursor->{-coll_where} = "t$tid.$item_col = $coll_id";
+	my $coll_id = $storage->id($obj);
+	my $tid = $cursor->{-stored}->leaf_table;
+	$cursor->{-coll_cols} = ", t$tid.$slot_col";
+	$cursor->{-coll_where} = "t$tid.$item_col = $coll_id";
 
-   return $cursor;
+	return $cursor;
 }
 
 sub query_expr
 {
-   my ($self, $obj, $members, $tid) = @_;
-   map { Tangram::IntrCollExpr->new($obj, $_); } values %$members;
+	my ($self, $obj, $members, $tid) = @_;
+	map { Tangram::IntrCollExpr->new($obj, $_); } values %$members;
 }
 
 sub prefetch
 {
-   my ($self, $storage, $def, $coll, $class, $member, $filter) = @_;
+	my ($self, $storage, $def, $coll, $class, $member, $filter) = @_;
 
-   my $ritem = $storage->remote($def->{class});
+	my $ritem = $storage->remote($def->{class});
 
-   my $ids = $storage->my_select_data( cols => [ $coll->{id} ], filter => $filter );
-   my $prefetch = $storage->{PREFETCH}{$class}{$member} ||= {}; # weakref
+	my $ids = $storage->my_select_data( cols => [ $coll->{id} ], filter => $filter );
+	my $prefetch = $storage->{PREFETCH}{$class}{$member} ||= {}; # weakref
 
-   while (my ($id) = $ids->fetchrow)
-   {
-      $prefetch->{$id} = []
-   }
+	while (my ($id) = $ids->fetchrow)
+	{
+		$prefetch->{$id} = []
+	}
 
-   my $cursor = Tangram::Cursor->new($storage, $ritem, $storage->{db});
+	my $cursor = Tangram::Cursor->new($storage, $ritem, $storage->{db});
 	
-   my $includes = $coll->{$member}->includes($ritem);
-   $includes &= $filter if $filter;
+	my $includes = $coll->{$member}->includes($ritem);
+	$includes &= $filter if $filter;
 
 	# also retrieve collection-side id and index of elmt in sequence
 
-   $cursor->retrieve($coll->{id},
-		Tangram::Expr->new("t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}",
-      'Tangram::Integer') );
+	$cursor->retrieve($coll->{id},
+					  Tangram::Expr->new("t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}",
+										 'Tangram::Integer') );
 
-   $cursor->select($includes);
+	$cursor->select($includes);
    
-   while (my $item = $cursor->current)
-   {
-      my ($coll_id, $slot) = $cursor->residue;
-      $prefetch->{$coll_id}[$slot] = $item;
-      $cursor->next;
-   }
+	while (my $item = $cursor->current)
+	{
+		my ($coll_id, $slot) = $cursor->residue;
+		$prefetch->{$coll_id}[$slot] = $item;
+		$cursor->next;
+	}
 
-   return $prefetch;
+	return $prefetch;
 }
 
 $Tangram::Schema::TYPES{iarray} = Tangram::IntrArray->new;

@@ -29,6 +29,12 @@ sub read
    }
 }
 
+sub bad_type
+{
+	my ($obj, $coll, $class, $item) = @_;
+    die "$item is not a '$class' in collection '$coll' of $obj";
+}
+
 package Tangram::AbstractCollExpr;
 
 sub new

@@ -43,6 +43,7 @@ sub defered_save
    foreach my $member (keys %$members)
    {
       next if tied $obj->{$member};
+		next unless exists $obj->{$member} && defined $obj->{$member};
 
       my $def = $members->{$member};
       my $item_classdef = $classes->{$def->{class}};

@@ -8,21 +8,21 @@ use base qw( Tangram::Coll );
 
 sub content
 {
-   shift;
-   @{shift()};
+	shift;
+	@{shift()};
 }
 
 use Carp;
 
 sub demand
 {
-   my ($self, $def, $storage, $obj, $member, $class) = @_;
+	my ($self, $def, $storage, $obj, $member, $class) = @_;
 
-   print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
+	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
    
-   my @coll;
+	my @coll;
 
-   if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
 	{
 		@coll = @$prefetch;
 	}
@@ -39,26 +39,30 @@ sub demand
 
 	$storage->{scratch}{ref($self)}{$storage->id($obj)}{$member} = [ map { $_ && $storage->id($_) } @coll ];
 
-   return \@coll;
+	return \@coll;
 }
 
 sub save
 {
-   my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
+	my ($self, $cols, $vals, $obj, $members, $storage, $table, $id) = @_;
 
-   foreach my $coll (keys %$members)
-   {
-      next if tied $obj->{$coll};
+	foreach my $coll (keys %$members)
+	{
+		next if tied $obj->{$coll};
+		next unless defined $obj->{$coll};
 
-      foreach my $item (@{$obj->{$coll}})
-      {
-         $storage->insert($item) unless $storage->id($item);
-      }
-   }
+		my $class = $members->{$coll}{class};
 
-   $storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
+		foreach my $item (@{$obj->{$coll}})
+		{
+			Tangram::Coll::bad_type($obj, $coll, $class, $item) if $^W && !$item->isa($class);
+			$storage->insert($item)	unless $storage->id($item);
+		}
+	}
 
-   return ();
+	$storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
+
+	return ();
 }
 
 1;

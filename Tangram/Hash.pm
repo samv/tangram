@@ -13,19 +13,19 @@ sub reschema
 
     foreach my $member (keys %$members)
     {
-	my $def = $members->{$member};
+		my $def = $members->{$member};
 
-	unless (ref($def))
-	{
-	    $def = { class => $def };
-	    $members->{$member} = $def;
-	}
+		unless (ref($def))
+		{
+			$def = { class => $def };
+			$members->{$member} = $def;
+		}
 
-	$def->{table} ||= $def->{class} . "_$member";
-	$def->{coll} ||= 'coll';
-	$def->{item} ||= 'item';
-	$def->{slot} ||= 'slot';
-	$def->{quote} = !exists $def->{key_type} || $def->{key_type} eq 'string' ? "'" : '';
+		$def->{table} ||= $def->{class} . "_$member";
+		$def->{coll} ||= 'coll';
+		$def->{item} ||= 'item';
+		$def->{slot} ||= 'slot';
+		$def->{quote} = !exists $def->{key_type} || $def->{key_type} eq 'string' ? "'" : '';
     }
     
     return keys %$members;
@@ -39,70 +39,71 @@ sub defered_save
 
     foreach my $member (keys %$members)
     {
-	next if tied($obj->{$member});
+		next if tied($obj->{$member});
+		next unless exists $obj->{$member} && defined $obj->{$member};
 
-	my $def = $members->{$member};
-	my ($table, $coll_col, $item_col, $slot_col) = @{ $def }{ qw( table coll item slot ) };
-	my $Q = $def->{quote};
+		my $def = $members->{$member};
+		my ($table, $coll_col, $item_col, $slot_col) = @{ $def }{ qw( table coll item slot ) };
+		my $Q = $def->{quote};
 	
-	my $coll = $obj->{$member};
+		my $coll = $obj->{$member};
 
-	my $old_state = $old_states->{$member} || {};
+		my $old_state = $old_states->{$member} || {};
 
-	my %removed = %$old_state;
-	delete @removed{ keys %$coll };
-	my @free = keys %removed;
+		my %removed = %$old_state;
+		delete @removed{ keys %$coll };
+		my @free = keys %removed;
 
-	my %new_state;
+		my %new_state;
 
-	foreach my $slot (keys %$coll)
-	{
-	    my $item_id = $storage->id($coll->{$slot});
-
-	    if (exists $old_state->{$slot})
-	    {
-		# key already exists
-
-		if ($item_id != $old_state->{$slot})
+		foreach my $slot (keys %$coll)
 		{
-		    # val has changed
-		    $storage->sql_do(
-				     "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$slot$Q" );
-		}
-	    }
-	    else
-	    {
-		# key does not exist
+			my $item_id = $storage->id($coll->{$slot});
+
+			if (exists $old_state->{$slot})
+			{
+				# key already exists
+
+				if ($item_id != $old_state->{$slot})
+				{
+					# val has changed
+					$storage->sql_do(
+									 "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$slot$Q" );
+				}
+			}
+			else
+			{
+				# key does not exist
+
+				if (@free)
+				{
+					# recycle an existing line
+					my $rslot = shift @free;
+					$storage->sql_do(
+									 "UPDATE $table SET $slot_col = $Q$slot$Q, $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$rslot$Q" );
+				}
+				else
+				{
+					# insert a new line
+					$storage->sql_do(
+									 "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $Q$slot$Q)" );
+				}
+			}
+
+			$new_state{$slot} = $item_id;
+
+		}						# foreach my $slot (keys %$coll)
+
+		# remove lines in excess
 
 		if (@free)
 		{
-		    # recycle an existing line
-		    my $rslot = shift @free;
-		    $storage->sql_do(
-				     "UPDATE $table SET $slot_col = $Q$slot$Q, $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$rslot$Q" );
+			@free = map { "$Q$_$Q" } @free if $Q;
+			$storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
 		}
-		else
-		{
-		    # insert a new line
-		    $storage->sql_do(
-				     "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $Q$slot$Q)" );
-		}
-	    }
 
-	    $new_state{$slot} = $item_id;
-
-	} # foreach my $slot (keys %$coll)
-
-	# remove lines in excess
-
-	if (@free)
-	{
-	    @free = map { "$Q$_$Q" } @free if $Q;
-	    $storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
-	}
-
-	$old_states->{$member} = \%new_state;
-	$storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
+		$old_states->{$member} = \%new_state;
+		$storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
     }
 }
 
@@ -112,17 +113,17 @@ sub erase
 
     foreach my $member (keys %$members)
     {
-	my $def = $members->{$member};
+		my $def = $members->{$member};
 	
-	my $table = $def->{table} || $def->{class} . "_$member";
-	my $coll_col = $def->{coll} || 'coll';
+		my $table = $def->{table} || $def->{class} . "_$member";
+		my $coll_col = $def->{coll} || 'coll';
 	
-	my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
-	$storage->sql_do($sql);
+		my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id";
+		$storage->sql_do($sql);
     }
 }
 
-sub cursor # ?? factorize ??
+sub cursor						# ?? factorize ??
 {
     my ($self, $def, $storage, $obj, $member) = @_;
 
