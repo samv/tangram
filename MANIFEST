@@ -103,3 +103,5 @@ t/iset.t
 
 t/mysql.t
 #t/sybase.t
+
+t/mapping.t
