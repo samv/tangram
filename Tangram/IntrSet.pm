@@ -33,8 +33,10 @@ sub reschema
 			my $back = $def->{back} ||= $def->{coll};
 			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
 			{
-			 col => $def->{coll} };
-			die '***' unless $schema->{types}{backref};
+			 col => $def->{coll},
+			 class => $class,
+			 field => $member
+			};
 		}
 	}
    
@@ -47,7 +49,7 @@ sub defered_save
 	
 	return  if tied $obj->{$field};
 	
-	my $coll_id = $storage->id($obj);
+	my $coll_id = $storage->export_object($obj);
 	my $classes = $storage->{schema}{classes};
 	my $item_classdef = $classes->{$def->{class}};
 	my $table = $item_classdef->{table};
@@ -83,7 +85,7 @@ sub demand
 
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
-		my $coll_id = $storage->id($obj);
+		my $coll_id = $storage->export_object($obj);
 		my $tid = $cursor->{-stored}->leaf_table;
 		$cursor->{-coll_where} = "t$tid.$def->{coll} = $coll_id";
    
@@ -98,6 +100,8 @@ sub demand
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $member (keys %$members)
 	{

@@ -65,7 +65,8 @@ sub new
 
     while (my ($class, $def) = splice @class_list, 0, 2)
     {
-		my $classdef = $class_hash->{$class} = $def;
+		my $classdef = $class_hash->{$class} ||= {};
+		%$classdef = (%$def, %$classdef);
 
 		if (exists $def->{id}) {
 		  $autoid = $def->{id};
@@ -104,7 +105,7 @@ sub new
 			@{$classdef->{MEMDEFS}}{keys %$memdefs} = values %$memdefs;
 	    
 			local $^W = undef;
-			$cols += scalar($type->cols($memdefs));
+			$cols += $type->isa('Tangram::Ref') || scalar($type->cols($memdefs));
 		}
 
 		$classdef->{stateless} = !$cols
@@ -378,17 +379,17 @@ sub Tangram::Real::coldefs
     $self->_coldefs($cols, $members, 'REAL', $schema);
 }
 
-sub Tangram::Ref::coldefs
-{
-    my ($self, $cols, $members, $schema) = @_;
+# sub Tangram::Ref::coldefs
+# {
+#     my ($self, $cols, $members, $schema) = @_;
 
-    for my $def (values %$members)
-    {
-		$cols->{ $def->{col} } = !exists($def->{null}) || $def->{null}
-			? "$schema->{sql}{id} $schema->{sql}{default_null}"
-			: $schema->{sql}{id};
-    }
-}
+#     for my $def (values %$members)
+#     {
+# 		$cols->{ $def->{col} } = !exists($def->{null}) || $def->{null}
+# 			? "$schema->{sql}{id} $schema->{sql}{default_null}"
+# 			: $schema->{sql}{id};
+#     }
+# }
 
 sub Tangram::String::coldefs
 {

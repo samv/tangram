@@ -95,7 +95,7 @@ sub update
       
 		unless (exists $old_state->{$item_id})
 		{
-			&$insert($item_id);
+			$insert->($storage->{export_id}->($item_id));
 		}
 
 		$new_state{$item_id} = 1;
@@ -104,7 +104,7 @@ sub update
 	foreach my $del (keys %$old_state)
 	{
 		next if $new_state{$del};
-		&$remove($del);
+		$remove->($storage->{export_id}->($del));
 	}
 
 	$old_states->{$member} = \%new_state;

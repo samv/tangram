@@ -278,10 +278,12 @@ sub _next
 		$sth = $self->prepare_next_statement() or return undef;
 	}
 
-	my $id = shift @row;
 	my $storage = $self->{-storage};
 
+	my $id = shift @row;
 	my $classId = shift @row;
+	$id = $storage->{import_id}->($id, $classId);
+
 	my $class = $storage->{id2class}{$classId} or die "unknown class id $classId";
 
 	# even if object is already loaded we must read it so that @rpw only contains residue

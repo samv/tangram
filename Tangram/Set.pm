@@ -38,7 +38,7 @@ sub defered_save
 
 	return if tied $obj->{$field};
       
-	my $coll_id = $storage->id($obj);
+	my $coll_id = $storage->export_object($obj);
 	my $table = $def->{table};
 	my $coll_col = $def->{coll};
 	my $item_col = $def->{item};
@@ -101,7 +101,7 @@ sub demand
 	{
 		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
-		my $coll_id = $storage->id($obj);
+		my $coll_id = $storage->export_object($obj);
 		my $coll_tid = $storage->alloc_table;
 		my $table = $def->{table};
 		my $item_tid = $cursor->{-stored}->root_table;
@@ -122,6 +122,8 @@ sub demand
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $member (keys %$members)
 	{

@@ -125,7 +125,7 @@ sub includes
 		}
 		else
 		{
-			$target = $coll->{storage}->id($item)
+			$target = $coll->{storage}->export_object($item)
 				or die "'$item' is not a persistent object";
 		}
 	}
@@ -173,12 +173,12 @@ sub includes
 				)
 			}
 
-		$item_id = $storage->id($item);
+		$item_id = $storage->export_object($item);
 
 	}
 	else
 	{
-		$item_id = $item;
+		$item_id = $storage->{export_id}->($item);
 	}
 
 	my $remote = $storage->remote($item_class);
@@ -271,9 +271,13 @@ use base qw( Tangram::RefOnDemand );
 sub FETCH
 {
 	my $self = shift;
-	my ($storage, $id, $member, $refid) = @$self;
+	my ($storage, $id, $member, $refid, $class, $field) = @$self;
 	my $obj = $storage->{objects}{$id};
-	my $refobj = $storage->load($refid);
+
+	my $owner = $storage->remote($class);
+	my ($refobj) = $storage->select($owner, $owner->{$field}->includes($obj));
+#	my $refobj = $storage->load($refid);
+
 	untie $obj->{$member};
 	$obj->{$member} = $refobj;	# weak
 	return $refobj;
@@ -289,6 +293,12 @@ sub get_export_cols
   {
 	()
   }
+
+sub cols
+{
+    my ($self, $members, $context) = @_;
+	return map { $_->{col} } values %$members;
+}
 
 sub get_exporter
   {
@@ -312,7 +322,7 @@ sub read
 
 		if ($rid)
 		{
-			tie $obj->{$r}, 'Tangram::BackRefOnDemand', $storage, $id, $r, $rid;
+		  tie $obj->{$r}, 'Tangram::BackRefOnDemand', $storage, $id, $r, $rid, $members->{$r}{class}, $members->{$r}{field};
 		}
 		else
 		{

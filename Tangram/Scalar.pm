@@ -16,31 +16,30 @@ sub reschema
     {
 		# short form
 		# transform into hash: { fieldname => { col => fieldname }, ... }
-		$_[1] = map { $_ => { col => $_ } } @$members;
-		return @$members;
-		die 'coverok';
+		$members = $_[1] = map { $_ => { col => $_ } } @$members;
     }
     
     for my $field (keys %$members)
     {
 		my $def = $members->{$field};
-		my $refdef = ref($def);
 
-		unless ($refdef)
+		unless (ref($def))
 		{
 			# not a reference: field => field
-			$members->{$field} = { col => $def || $field };
-			next;
+			$def = $members->{$field} = { col => $def || $field };
 		}
 
-		die ref($self), ": $class\:\:$field: unexpected $refdef"
-			unless $refdef eq 'HASH';
-
-		$def->{col} ||= $field;
+		$self->field_reschema($field, $def);
     }
 
     return keys %$members;
 }
+
+sub field_reschema
+  {
+	my ($self, $field, $def) = @_;
+	$def->{col} ||= $field;
+  }
 
 sub get_exporter
   {

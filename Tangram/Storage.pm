@@ -2,9 +2,11 @@
 
 use strict;
 
-package Tangram::AbstractStorage;
-
+package Tangram::Storage;
+use DBI;
 use Carp;
+
+use vars qw( %storage_class );
 
 BEGIN {
 
@@ -32,6 +34,26 @@ sub schema
     shift->{schema}
 }
 
+sub export_object
+  {
+    my ($self, $obj) = @_;
+    return $self->{export_id}->($self->{get_id}->($obj));
+  }
+
+sub split_id
+  {
+	carp unless wantarray;
+	my ($self, $id) = @_;
+	my $cid_size = $self->{cid_size};
+	return ( substr($id, 0, -$cid_size), substr($id, -$cid_size) );
+  }
+
+sub combine_ids
+  {
+	my $self = shift;
+	return $self->{layout1} ? shift : sprintf("%d%0$self->{cid_size}d", @_);
+  }
+
 sub _open
   {
     my ($self, $schema) = @_;
@@ -51,9 +73,13 @@ sub _open
 
 	  if ($control) {
 		$self->{class_col} = $schema->{sql}{class_col};
+		$self->{import_id} = sub { shift() . sprintf("%0$self->{cid_size}d", shift()) };
+		$self->{export_id} = sub { substr shift(), 0, -$self->{cid_size} };
 	  } else {
 		$self->{class_col} = 'classId';
 		$self->{layout1} = 1;
+		$self->{import_id} = sub { shift() };
+		$self->{export_id} = sub { shift() };
 	  }
 	}
 
@@ -442,7 +468,7 @@ sub _insert
 		$sth = $insert->[0] = $self->prepare($src)
 		  unless $sth;
 
-		my @meta = ($id);
+		my @meta = $self->{export_id}->($id);
 		push @meta, $classId if $root;
 
 		print $Tangram::TRACE "executing $src with (",
@@ -457,35 +483,11 @@ sub _insert
     return $id;
 }
 
-sub auto_insert
+sub is_being_saved
   {
-    # private - convenience sub for Refs, will be moved there someday
-	
-    my ($self, $obj, $table, $col, $id, $deep_update) = @_;
-	
-    return undef unless $obj;
-	
-    if (exists $done{$obj})
-	  {
-		# object is being saved already: we have a cycle
-		
-		$self->defer( sub
-					  {
-						# now that the object has been saved, we have an id for it
-						my $obj_id = $self->id($obj);
-						
-						# patch the column in the referant
-						$self->sql_do( "UPDATE $table SET $col = $obj_id WHERE id = $id" );
-					  } );
-		
-		return undef;
-	  }
-	
-    $self->_save($obj) if $deep_update;
-	
-    return $self->id($obj)		# already persistent
-      || $self->_insert($obj);	# autosave
-}
+	shift;
+	return exists $done{ shift() };
+  }
 
 #############################################################################
 # update
@@ -519,7 +521,7 @@ sub get_export_cache
     my $schema = $self->{schema};
     my $types = $schema->{types};
 
-	my $context = { schema => $schema };
+	my $context = { schema => $schema, storage => $self };
 	
 	unless ($cache->{exporter})
 	  {
@@ -536,7 +538,7 @@ sub get_export_cache
 							$context->{class} = $class;
 
 							foreach my $typetag (keys %$fields) {
-							  push @cols, $types->{$typetag}->get_export_cols($fields->{$typetag});
+							  push @cols, $types->{$typetag}->get_export_cols($fields->{$typetag}, $context);
 
 							  for my $exporter ($types->{$typetag}->get_exporters($fields->{$typetag}, $context)) {
 								if (ref $exporter) {
@@ -612,7 +614,7 @@ sub _update
 		my ($sth, $src, $cols) = @$update;
 		$sth = $update->[0] = $self->prepare($src)
 		  unless $sth;
-		$sth->execute(splice(@fields, 0, $cols), $id);
+		$sth->execute(splice(@fields, 0, $cols),  $self->{export_id}->($id));
 		$sth->finish();
 	  }
   }
@@ -687,12 +689,14 @@ sub erase
 					     }
 					   } );
 
+		       my $eid = $self->{export_id}->($id);
+
 		       $schema->visit_down(ref($obj),
 					   sub
 					   {
 					     my $class = shift;
 					     my $classdef = $classes->{$class};
-					     $self->sql_do("DELETE FROM $classdef->{table} WHERE id = $id")
+					     $self->sql_do("DELETE FROM $classdef->{table} WHERE id = $eid")
 					       unless $classdef->{stateless};
 					   } );
 
@@ -880,7 +884,8 @@ sub _fetch_object_state
     my $alias = Tangram::CursorObject->new($self, $class);
     my $select = $alias->cols;
     my $from = $alias->from;
-    my $where = join ' AND ', $alias->where, " t" . $alias->root_table . ".id = $id";
+	my $eid =  $self->{export_id}->($id);
+    my $where = join ' AND ', $alias->where, " t" . $alias->root_table . ".id = $eid";
     my $sql = "SELECT $select FROM $from WHERE $where";
    
     my $cursor = $self->sql_cursor($sql, $self->{db});
@@ -1070,12 +1075,6 @@ sub is_persistent
     return $self->{schema}->is_persistent($obj) && $self->id($obj);
 }
 
-sub DESTROY
-{
-    my ($self) = @_;
-    carp "Tangram::Storage '$self' destroyed without explicit disconnect" if keys %$self;
-}
-
 sub prefetch
 {
 	my ($self, $remote, $member, $filter) = @_;
@@ -1103,15 +1102,6 @@ sub prefetch
 
 	$type->prefetch($self, $memdef, $remote, $class, $member, $filter);
 }
-
-package Tangram::Storage;
-
-use DBI;
-use Carp;
-
-use base qw( Tangram::AbstractStorage );
-
-use vars qw( %storage_class );
 
 sub connect
 {
@@ -1173,7 +1163,7 @@ sub sql_cursor
     my $sth = $connection->prepare($sql) or die;
     $sth->execute() or confess;
 
-    new Tangram::Storage::Statement( statement => $sth, storage => $self,
+    Tangram::Storage::Statement->new( statement => $sth, storage => $self,
 				     connection => $connection );
 }
 

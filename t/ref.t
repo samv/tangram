@@ -90,7 +90,9 @@ Springfield::leaktest;
 {
 	$storage = Springfield::connect();
 
-	$storage->erase( $storage->load( $ids{Homer} ) );
+	my $homer = $storage->load( $ids{Homer} );
+	print $homer->{credit}, "\n";
+	$storage->erase( $homer );
 
 	my @credits = $storage->select('Credit');
 	Springfield::test( @credits == 0 );

@@ -33,7 +33,10 @@ sub reschema
 			my $back = $def->{back} ||= $def->{item};
 			$schema->{classes}{ $def->{class} }{members}{backref}{$back} =
 			{
-			 col => $def->{coll} };
+			 col => $def->{coll},
+			 class => $class,
+			 field => $member
+			};
 		}
 	}
 
@@ -53,7 +56,7 @@ sub defered_save
 	
 	return if tied $obj->{$field};
 
-	my $coll_id = $storage->id($obj);
+	my $coll_id = $storage->export_object($obj);
 	
 	my $classes = $storage->{schema}{classes};
 	#use Data::Dumper; print Dumper \@_;
@@ -78,8 +81,9 @@ sub defered_save
 	while ($slot < $coll_size)
 	  {
 		my $item_id = $storage->id( $coll->[$slot] ) || die;
+		my $ex_item_id = $storage->{export_id}->($item_id);
 		
-		$storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = $slot WHERE id = $item_id")
+		$storage->sql_do("UPDATE $table SET $item_col = $coll_id, $slot_col = $slot WHERE id = $ex_item_id")
 		  unless $slot < $old_size && $item_id eq $old_state->[$slot];
 		
 		push @new_state, $item_id;
@@ -89,7 +93,7 @@ sub defered_save
 	
 	if (keys %removed)
 	  {
-		my $removed = join(', ', keys %removed);
+		my $removed = join(', ', map { $storage->{export_id}->($_) } keys %removed);
 		$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE id IN ($removed)");
 	  }
 	
@@ -101,6 +105,8 @@ sub defered_save
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $member (keys %$members)
 	{
@@ -117,8 +123,7 @@ sub erase
 			my $item_col = $def->{coll};
 			my $slot_col = $def->{slot};
       
-			$storage->sql_do(
-							 "UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
+			$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE $item_col = $coll_id" );
 		}
 	}
 }
@@ -132,7 +137,7 @@ sub cursor
 	my $item_col = $def->{coll};
 	my $slot_col = $def->{slot};
 
-	my $coll_id = $storage->id($obj);
+	my $coll_id = $storage->export_object($obj);
 	my $tid = $cursor->{-stored}->leaf_table;
 	$cursor->{-coll_cols} = ", t$tid.$slot_col";
 	$cursor->{-coll_where} = "t$tid.$item_col = $coll_id";

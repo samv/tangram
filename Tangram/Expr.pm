@@ -140,9 +140,11 @@ sub cols
 
 	my $tables = $self->tables;
 	my $root = $tables->[0][1];
-	my $schema = $self->storage->{schema};
+	my $storage = $self->storage;
+	my $schema = $storage->{schema};
 
 	my $cols = "t$root.id, t$root.$self->{storage}{class_col}";
+	my $context = { storage => $storage };
 
 	foreach my $table (@$tables)
 	{
@@ -153,7 +155,7 @@ sub cols
 		{
 			my $members = $classdef->{members}{$typetag};
 
-			foreach my $col ($schema->{types}{$typetag}->cols($members))
+			foreach my $col ($schema->{types}{$typetag}->cols($members, $context))
 			{
 				$cols .= ", t$table->[1].$col";
 			}
@@ -433,7 +435,7 @@ sub binop
    
 			elsif (exists $storage->{schema}{classes}{$type})
 			{
-				$arg = $storage->id($arg) or Carp::confess "$arg is not persistent";
+				$arg = $storage->export_object($arg) or Carp::confess "$arg is not persistent";
 			}
 
 			else
@@ -529,7 +531,7 @@ sub eq
 	{
 		my $other_id = $self->{object}{storage}->id($other)
 			or confess "'$other' is not a persistent object";
-		$self->{id} == $self->{object}{storage}->id($other)
+		$self->{id} == $self->{object}{storage}->export_object($other)
 	}
 }
 

@@ -16,6 +16,7 @@ use Tangram::Relational;
 package Tangram;
 
 use vars qw( $TRACE );
-$TRACE = \*STDERR if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
+$TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
+  if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
 
 1;

@@ -136,3 +136,4 @@ Revision history for Perl extension Tangram.
 	- object ids are no longer allocated on a class basis
 	- introduced Tangram::Relational
 	- dialect are now done via derivation
+	- stored object id no longer contains type id

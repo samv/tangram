@@ -30,9 +30,7 @@ sub make_id
 	  $storage->sql_do("UPDATE $table SET mark = LAST_INSERT_ID(mark + 1)");
 	}
 
-    return sprintf "%d%0$storage->{cid_size}d",
-	  $storage->sql_selectall_arrayref("SELECT LAST_INSERT_ID()")->[0][0],
-		$class_id;
+    return sprintf "%d%0$storage->{cid_size}d", $storage->sql_selectall_arrayref("SELECT LAST_INSERT_ID()")->[0][0], $class_id;
   }
 
 sub tx_start

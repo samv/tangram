@@ -85,15 +85,14 @@ sub demand
 	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
    
 	my @coll;
+	my $id = $storage->export_object($obj);
 
-	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$id})
 	{
 		@coll = @$prefetch;
 	}
 	else
 	{
-		my $id = $storage->id($obj);
-
 		my $sth = $storage->sql_prepare(
             "SELECT a.i, a.v FROM $def->{table} a WHERE coll = $id", $storage->{db});
 
@@ -143,12 +142,14 @@ sub get_save_closures
 		$quote = sub { shift() };
 	}
 
+	my $eid = $storage->{export_id}->($id);
+
 	my $modify = sub
 	{
 		my ($i, $v) = @_;
 		die $no_ref if ref($v);
 		$v = $quote->($v);
-		$storage->sql_do("UPDATE $table SET v = $v WHERE coll = $id AND i = $i");
+		$storage->sql_do("UPDATE $table SET v = $v WHERE coll = $eid AND i = $i");
 	};
 
 	my $add = sub
@@ -156,13 +157,13 @@ sub get_save_closures
 		my ($i, $v) = @_;
 		die $no_ref if ref($v);
 		$v = $quote->($v);
-		$storage->sql_do("INSERT INTO $table (coll, i, v) VALUES ($id, $i, $v)");
+		$storage->sql_do("INSERT INTO $table (coll, i, v) VALUES ($eid, $i, $v)");
 	};
 
 	my $remove = sub
 	{
 		my ($new_size) = @_;
-		$storage->sql_do("DELETE FROM $table WHERE coll = $id AND i >= $new_size");
+		$storage->sql_do("DELETE FROM $table WHERE coll = $eid AND i >= $new_size");
 	};
 
 	return ($ne, $modify, $add, $remove);
@@ -171,6 +172,8 @@ sub get_save_closures
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $def (values %$members)
 	{
@@ -217,6 +220,8 @@ sub prefetch
 		my ($id, $i, $v) = @$row;
 		$prefetch->{$id}[$i] = $v;
 	}
+
+	# use Data::Dumper;	print STDERR Dumper $storage->{PREFETCH}, "\n";
 
 	return $prefetch;
 }

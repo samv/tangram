@@ -39,31 +39,32 @@ sub get_save_closures
 	my ($table, $cc, $ic, $sc) = @{ $def }{ qw( table coll item slot ) };
 
 	my $ne = sub { shift() != shift() };
+	my $eid = $storage->{export_id}->($id);
 
 	my $modify = sub
 	{
 		my ($slot, $item) = @_;
 
-		my $item_id = $storage->id($item)
+		my $item_id = $storage->export_object($item)
 			|| croak "element at $slot has no id";
          
 		$storage->sql_do(
-            "UPDATE $table SET $ic = $item_id WHERE $cc = $id AND $sc = $slot");
+            "UPDATE $table SET $ic = $item_id WHERE $cc = $eid AND $sc = $slot");
 	};
 
 	my $add = sub
 	{
 		my ($slot, $item) = @_;
-		my $item_id = $storage->id($item);
+		my $item_id = $storage->export_object($item);
 		$storage->sql_do(
-		    "INSERT INTO $table ($cc, $ic, $sc) VALUES ($id, $item_id, $slot)");
+		    "INSERT INTO $table ($cc, $ic, $sc) VALUES ($eid, $item_id, $slot)");
 	};
 
 	my $remove = sub
 	{
 		my ($new_size) = @_;
 		$storage->sql_do(
-            "DELETE FROM $table WHERE $cc = $id AND $sc >= $new_size");
+            "DELETE FROM $table WHERE $cc = $eid AND $sc >= $new_size");
 	};
 
 	return ($ne, $modify, $add, $remove);
@@ -72,6 +73,8 @@ sub get_save_closures
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $member (keys %$members)
 	{
@@ -101,7 +104,7 @@ sub cursor
 
 	my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
-	my $coll_id = $storage->id($obj);
+	my $coll_id = $storage->export_object($obj);
 	my $coll_tid = $storage->alloc_table;
 	my $table = $def->{table};
 	my $item_tid = $cursor->{-stored}->root_table;

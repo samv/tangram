@@ -90,15 +90,14 @@ sub demand
 	print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
    
 	my %coll;
+	my $id = $storage->export_object($obj);
 
-	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$storage->id($obj)})
+	if (my $prefetch = $storage->{PREFETCH}{$class}{$member}{$id})
 	{
 		%coll = %$prefetch;
 	}
 	else
 	{
-		my $id = $storage->id($obj);
-
 		my $sth = $storage->sql_prepare(
             "SELECT a.k, a.v FROM $def->{table} a WHERE coll = $id", $storage->{db});
 
@@ -219,13 +218,15 @@ sub get_save_closures
 		$key_quote = sub { shift() };
 	}
 	
+	my $eid = $storage->{export_id}->($id);
+
 	my $modify = sub
 	{
 		my ($k, $v) = @_;
 		die $no_ref if (ref($v) or ref($k));
 		$v = $quote->($v);
 		$k = $key_quote->($k);
-		$storage->sql_do("UPDATE $table SET v = $v WHERE coll = $id AND k = $k");
+		$storage->sql_do("UPDATE $table SET v = $v WHERE coll = $eid AND k = $k");
 	};
 
 	my $add = sub
@@ -234,7 +235,7 @@ sub get_save_closures
 		die $no_ref if (ref($v) or ref($k));
 		$v = $quote->($v);
 		$k = $key_quote->($k);
-		$storage->sql_do("INSERT INTO $table (coll, k, v) VALUES ($id, $k, $v)");
+		$storage->sql_do("INSERT INTO $table (coll, k, v) VALUES ($eid, $k, $v)");
 	};
 
 	my $remove = sub
@@ -242,7 +243,7 @@ sub get_save_closures
 		my ($k) = @_;
 		die $no_ref if ref($k);
 		$k = $key_quote->($k);
-		$storage->sql_do("DELETE FROM $table WHERE coll = $id AND k = $k");
+		$storage->sql_do("DELETE FROM $table WHERE coll = $eid AND k = $k");
 	};
 
 	return ($ne, $modify, $add, $remove);
@@ -251,6 +252,8 @@ sub get_save_closures
 sub erase
 {
 	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	$coll_id = $storage->{export_id}->($coll_id);
 
 	foreach my $def (values %$members)
 	{
