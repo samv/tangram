@@ -160,7 +160,7 @@ Springfield::leaktest;
 	Springfield::test( $homer->children eq 'Bart Lisa Maggie' );
 	marge_test( $storage );
 
-	$storage->reset();
+	$storage->unload();
 	undef $homer;
 
 	Springfield::leaktest;

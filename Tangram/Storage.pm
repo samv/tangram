@@ -3,6 +3,20 @@ use strict;
 package Tangram::AbstractStorage;
 
 use Carp;
+
+BEGIN {
+
+  eval { require 'WeakRef.pm' };
+
+  if ($@) {
+    *Tangram::weaken = sub { };
+    $Tangram::no_weakrefs = 1;
+  } else {
+    *Tangram::weaken = \&WeakRef::weaken;
+    $Tangram::no_weakrefs = 0;
+  }
+}
+
 use vars qw( %done );
 
 sub new
@@ -17,12 +31,12 @@ sub schema
 }
 
 sub _open
-{   
+  {
     my ($self, $schema) = @_;
 
     $self->{table_top} = 0;
     $self->{free_tables} = [];
-   
+
     $self->{tx} = [];
 
     $self->{schema} = $schema;
@@ -30,16 +44,15 @@ sub _open
     my $cursor = $self->sql_cursor("SELECT classId, className FROM $schema->{class_table}", $self->{db});
 
     my $classes = $schema->{classes};
-   
+
     my $id2class = {};
     my $class2id = {};
 
     my ($classId, $className);
 
-    while (($classId, $className) = $cursor->fetchrow())
-    {
-		$id2class->{$classId} = $className;
-		$class2id->{$className} = $classId;
+    while (($classId, $className) = $cursor->fetchrow()) {
+      $id2class->{$classId} = $className;
+      $class2id->{$className} = $classId;
     }
 
     $cursor->close();
@@ -47,32 +60,28 @@ sub _open
     $self->{id2class} = $id2class;
     $self->{class2id} = $class2id;
 
-    foreach my $class (keys %$classes)
-    {
-		warn "no class id for '$class'\n"
-			if $classes->{$class}{concrete} && !exists $self->{class2id}{$class};
+    foreach my $class (keys %$classes) {
+      warn "no class id for '$class'\n"
+	if $classes->{$class}{concrete} && !exists $self->{class2id}{$class};
     }
 
     $self->{set_id} = $schema->{set_id} ||
-    	sub
-		{
-			my ($obj, $id) = @_;
-         
-			if ($id)
-			{
-				$self->{ids}{0 + $obj} = $id;
-			}
-			else
-			{
-				delete $self->{ids}{0 + $obj};
-			}
-		};
+      sub
+	{
+	  my ($obj, $id) = @_;
+
+	  if ($id) {
+	    $self->{ids}{0 + $obj} = $id;
+	  } else {
+	    delete $self->{ids}{0 + $obj};
+	  }
+	};
 
     $self->{get_id} = $schema->{get_id}
-		|| sub { $self->{ids}{0 + shift()} };
+      || sub { $self->{ids}{0 + shift()} };
 
     return $self;
-}
+  }
 
 sub alloc_table
 {
@@ -353,7 +362,8 @@ sub _insert
     my ($self, $obj) = @_;
     my $schema = $self->{schema};
 
-    return $self->id($obj) if $self->id($obj);
+    return $self->id($obj)
+      if $self->id($obj);
 
     $done{$obj} = 1;
 
@@ -362,15 +372,14 @@ sub _insert
 
     my $id = $self->make_id($classId);
 
-    $self->{objects}{$id} = $obj;
-    $self->{set_id}->($obj, $id);
-    $self->tx_on_rollback( sub { $self->{set_id}->($obj, undef) } );
+    $self->welcome($obj, $id);
+    $self->tx_on_rollback( sub { $self->goodbye($obj, $id) } );
 
     $schema->visit_up($class,
 	    sub
 		{
 			my ($class) = @_;
-         
+
 			my $classdef = $schema->classdef($class);
 
 			my $table = $classdef->{table};
@@ -537,59 +546,51 @@ sub _save
 # erase
 
 sub erase
-{
+  {
     my ($self, @objs) = @_;
 
-	$self->tx_do(
-        sub
-		{
-			my ($self, @objs) = @_;
-			my $schema = $self->{schema};
-			my $classes = $self->{schema}{classes};
+    $self->tx_do(
+		 sub
+		 {
+		   my ($self, @objs) = @_;
+		   my $schema = $self->{schema};
+		   my $classes = $self->{schema}{classes};
 
-			foreach my $obj (@objs) # causes memory leak??
-			{
-				my $id = $self->id($obj) or confess "object $obj is not persistent";
+		   foreach my $obj (@objs) # causes memory leak??
+		     {
+		       my $id = $self->id($obj) or confess "object $obj is not persistent";
 
-				local $self->{defered} = [];
+		       local $self->{defered} = [];
       
-				$schema->visit_down(ref($obj),
-				    sub
-					{
-						my $class = shift;
-						my $classdef = $classes->{$class};
+		       $schema->visit_down(ref($obj),
+					   sub
+					   {
+					     my $class = shift;
+					     my $classdef = $classes->{$class};
 
-						foreach my $typetag (keys %{$classdef->{members}})
-						{
-							my $members = $classdef->{members}{$typetag};
-							my $type = $schema->{types}{$typetag};
-							$type->erase($self, $obj, $members, $id);
-						}
-					} );
-      
-				$schema->visit_down(ref($obj),
-					sub
-					{
-						my $class = shift;
-						my $classdef = $classes->{$class};
-						$self->sql_do("DELETE FROM $classdef->{table} WHERE id = $id")
-							unless $classdef->{stateless};
-					} );
+					     foreach my $typetag (keys %{$classdef->{members}}) {
+					       my $members = $classdef->{members}{$typetag};
+					       my $type = $schema->{types}{$typetag};
+					       $type->erase($self, $obj, $members, $id);
+					     }
+					   } );
 
-				$self->do_defered;
+		       $schema->visit_down(ref($obj),
+					   sub
+					   {
+					     my $class = shift;
+					     my $classdef = $classes->{$class};
+					     $self->sql_do("DELETE FROM $classdef->{table} WHERE id = $id")
+					       unless $classdef->{stateless};
+					   } );
 
-				delete $self->{objects}{$id};
-				$self->{set_id}->($obj, undef);
+		       $self->do_defered;
 
-				$self->tx_on_rollback(
-				    sub
-					{
-						$self->{objects}{$id} = $obj;
-						$self->{set_id}->($obj, $id);
-					} );
-			}
-		}, $self, @objs );
-}
+		       $self->goodbye($obj, $id);
+		       $self->tx_on_rollback( sub { $self->welcome($obj, $id) } );
+		     }
+		 }, $self, @objs );
+  }
 
 sub do_defered
 {
@@ -618,16 +619,17 @@ sub load
     my $id = shift;
     die if @_;
 
-    return $self->{objects}{$id} if exists $self->{objects}{$id};
+    return $self->{objects}{$id}
+      if exists $self->{objects}{$id} && defined $self->{objects}{$id};
 
     my $class = $self->{id2class}{ int(substr($id, -$self->{cid_size})) };
 
 	my ($row, $alias) = _fetch_object_state($self, $id, $class);
 
     my $obj = $self->read_object($id, $class, $row, $alias->parts);
-   
+
     # ??? $self->{-residue} = \@row;
-   
+
     return $obj;
 }
 
@@ -643,30 +645,58 @@ sub reload
 
 	my ($row, $alias) = _fetch_object_state($self, $id, $class);
     _row_to_object($self, $obj, $id, $class, $row, $alias->parts);
-   
+
     return $obj;
 }
 
+sub welcome
+  {
+    my ($self, $obj, $id) = @_;
+    $self->{set_id}->($obj, $id);
+    Tangram::weaken( $self->{objects}{$id} = $obj );
+  }
+
+sub goodbye
+  {
+    my ($self, $obj, $id) = @_;
+    $self->{set_id}->($obj, undef) if $obj;
+    delete $self->{objects}{$id};
+    delete $self->{PREFETCH}{$id};
+  }
+
+sub shrink
+  {
+    my ($self) = @_;
+
+    my $objects = $self->{objects};
+    my $prefetch = $self->{prefetch};
+
+    for my $id (keys %$objects)
+      {
+	next if $objects->{$id};
+	delete $objects->{$id};
+	delete $prefetch->{$id};
+      }
+  }
+
 sub read_object
-{
+  {
     my ($self, $id, $class, $row, @parts) = @_;
 
     my $schema = $self->{schema};
 
     my $obj = $schema->{make_object}->($class);
 
-    unless (exists	$self->{objects}{$id})
-    {
-		# do this only if object is not loaded yet
-		# otherwise we're just skipping columns in $row
-		$self->{set_id}->($obj, $id);
-		$self->{objects}{$id} = $obj;
+    unless (exists $self->{objects}{$id} && defined $self->{objects}{$id}) {
+      # do this only if object is not loaded yet
+      # otherwise we're just skipping columns in $row
+      $self->welcome($obj, $id);
     }
 
     _row_to_object($self, $obj, $id, $class, $row, @parts);
 
     return $obj;
-}
+  }
 
 sub _row_to_object
 {
@@ -986,50 +1016,24 @@ sub sql_cursor
 }
 
 sub unload
-{
-	my $self = shift;
+  {
+    my $self = shift;
+    my $objects = $self->{objects};
 
-	my $objects = $self->{objects};
-	my $set_id = $self->{set_id};
-
-	if (@_)
-	{
-		my $prefetch = $self->{PREFETCH};
-
-		for my $arg (@_)
-		{
-			my $id;
-
-			if (ref $arg)
-			{
-				$id = $self->id($arg);
-				$set_id->($arg, undef);
-			}
-			else
-			{
-				$id = $arg;
-				$set_id->($objects->{$arg}, undef);
-			}
-
-			delete $objects->{$id};
-			delete $prefetch->{$id};
-		}
+    if (@_) {
+      for my $item (@_) {
+	if (ref $item) {
+	  $self->goodbye($item, $self->{get_id}->($item));
+	} else {
+	  $self->goodbye($objects->{$item}, $item);
 	}
-	else
-	{
-		for my $obj (keys %$objects)
-		{
-			$set_id->($obj, undef);
-			delete $self->{objects}
-		}
-
-		delete $self->{objects};
-		delete $self->{ids};
-		delete $self->{PREFETCH};
-	}
-
-	undef($objects);
-}
+      }
+    } else {
+      for my $id (keys %$objects) {
+	$self->goodbye($objects->{$id}, $id);
+      }
+    }
+  }
 
 *reset = \&unload; # deprecated, use unload() instead
 

@@ -302,6 +302,8 @@ sub optional_tests
 {
 	my ($what, $proceed, $tests) = @_;
 
+	$test ||= 1;
+
 	unless ($proceed)
 	{
 		print STDERR "tests $test-", $test + $tests - 1,
