@@ -5,4 +5,4 @@ Tangram::Deploy - obsolete
 =head1 DESCRIPTION
 
 This module is now obsolete; its functionality has been moved to
-Tangram::Relational. See L<Tangram::Relationa>.
+Tangram::Relational. See L<Tangram::Relational>.
