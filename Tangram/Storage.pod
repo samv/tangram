@@ -250,6 +250,7 @@ Example:
    f(); # 1
    g(); # 2
 
+
 In (1), f() commits the changes to $homer directly to the database.
 
 In (2), f() transparently reuses the transaction opened by g().\
@@ -287,9 +288,11 @@ Example:
 Both $homer and $marge will be updated, or none will, depending on
 whether the anonymous subroutine passed to tx_do() dies.
 
-=head2 reset
+=head2 unload( @objs )
 
-Drops references to persistent objects present in memory.
+Drops references to persistent objects present in memory. @objs may
+contain both objects and object ids. If @objs is empty, unloads all
+the objects loaded by this storage.
 
 Storage keeps track of all the persistent objects that are present in
 memory, in order to make sure that loading the same object twice
@@ -297,7 +300,7 @@ results in a single copy of the object.
 
 As a consequence, these objects will not be reclaimed by Perl's
 automatic memory management mechanism until either disconnect() or
-reset() is called.
+unload() is called.
 
 reset() should be called only when no other references exist to
 persistent objects, otherwise the same object (in the database) may
