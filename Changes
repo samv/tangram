@@ -107,3 +107,4 @@ Revision history for Perl extension Tangram.
 1.18  Jul 28 2000 - experimental version
 	- weakrefs!
 	- tuples
+	- mysql tx acquired lock regardless of tx nesting

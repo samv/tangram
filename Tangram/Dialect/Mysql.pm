@@ -15,7 +15,8 @@ sub tx_start
   {
     shift;
     my $storage = shift;
-    $storage->sql_do(q/SELECT GET_LOCK("tx", 10)/);
+    $storage->sql_do(q/SELECT GET_LOCK("tx", 10)/)
+      if @{ $storage->{tx} };
     $storage->std_tx_start(@_);
   }
 
@@ -24,7 +25,8 @@ sub tx_commit
     shift;
     my $storage = shift;
     $storage->std_tx_commit(@_);
-    $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/);
+    $storage->sql_do(q/SELECT RELEASE_LOCK("tx")/)
+      if @{ $storage->{tx} };
   }
 
 sub tx_rollback
