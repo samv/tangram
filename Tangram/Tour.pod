@@ -1,5 +1,3 @@
-DROP DATABASE
-CREATE DATABASE
 =head1 NAME
 
 Tangram - Guided Tour
