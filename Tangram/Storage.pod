@@ -1,0 +1,242 @@
+=head1 NAME
+
+Tangram::Storage
+
+L<Tangram::Schema>
+
+=head1 SYNOPSIS
+
+   use Tangram;
+   
+   $storage = Tangram::Storage->connect( $schema,
+      $data_source, $username, $password );
+
+   $oid = $storage->insert( $obj );
+   @oids = $storage->insert( @objs );
+
+   $storage->update( $obj );
+   $storage->update( @objs );
+
+   $obj = $storage->load( $oid );
+   @objs = $storage->load( $oids );
+   @objs = $storage->select( $class );
+   $cursor = $storage->select( $query_obj, $filter );
+
+   $storage->disconnect();
+
+=head1 DESCRIPTION
+
+An Tangram::Storage object is a connection to a database configured for use with Tangram.
+
+=head1 CLASS METHODS
+
+=head2 connect( $schema, @dbi_args )
+
+Connects to a storage and return a handle object. Dies in case of failure.
+
+$schema is an L<Tangram::Schema> object consistent with the database.
+
+The other arguments (@dbi_args) are passed directly to DBI::connect.
+
+=head2 connect( $schema, $handle )
+
+Connects an Tangram::Storage object to an already opened DBI data source.
+
+$schema is an Tangram::Schema object compatible with the database content.
+
+$handle is a DBI handle object (or an object supporting the DBI protocol) connected
+to a database.
+
+=head1 INSTANCE METHODS
+
+=head2 SCALAR AND LIST CONTEXTS
+
+Most instance methods in Storage can be called in both scalar and list contexts.
+In scalar context, a single argument is allowed, and a single scalar value is returned.
+In list context, any number of arguments is allowed; the results are returned as a
+list of the same size as the argument list.
+
+When both context types are allowed, the following code:
+
+   @results = $storage->method( @args )
+
+...is equivalent to:
+
+   @results = map { $storage->method( $_ ) } @args
+
+=head2 insert( @objs )
+
+Inserts objects in storage. Returns the ID(s) assigned to the object(s).
+This method is valid in both L<scalar and list contexts>.
+
+The inserted objects must be of a class described in the schema associated to the storage.
+
+Attempting to insert an object that is already persistent in the storage is an error.
+
+Tangram will automatically insert any object that is refered by $obj if it is not
+already present in storage. In the following example:
+
+   my $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson',
+      children => Set::Object->new(
+         NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ),
+         NaturalPerson->new( firstName => 'Lisa', name => 'Simpson' ),
+         NaturalPerson->new( firstName => 'Maggie', name => 'Simpson' ) ) );
+
+   $storage->insert( $homer );
+
+...Tangram automatically inserts the kids along with Homer.
+
+=head2 update( @objs )
+
+Save objects to storage.
+This method is valid in both L<scalar and list contexts>.
+
+The objects must be of a class described in the schema associated to the storage.
+
+Attempting to update an object that is not already present in the storage is an error.
+
+Tangram will automatically insert any object that is refered by an inserted object if it is not
+already present in storage. It will not automatically update the refered objects that are already
+stored. In the following example:
+
+   my $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson' );
+   $storage->insert( $homer );
+
+   my $marge = NaturalPerson->new( firstName => 'Marge', name => 'Simpson', age => 34 );
+   $storage->insert( $marge );
+
+   $marge->{age} = 35;
+
+   $homer->{partner} = $marge;
+
+   $homer->{children} = Set::Object->new(
+      NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ),
+      NaturalPerson->new( firstName => 'Lisa', name => 'Simpson' ),
+      NaturalPerson->new( firstName => 'Maggie', name => 'Simpson' ) );
+
+   $storage->update( $homer );
+
+...Tangram automatically inserts the kids when their father is updated. OTOH, $marge will not be
+automatically inserted nor updated; her age will remain '34' in persistent storage.
+
+=head2 id( @ids )
+
+Returns the IDs of the given objects. If an object is not persistent in storage yet, its
+corresponding ID is undef().
+
+This method is valid in both L<scalar and list contexts>.
+
+=head2 load( @ids )
+
+Returns a list of objects given their IDs.
+Dies if any ID has no corresponding persistent object in storage.
+
+This method is valid in both L<scalar and list contexts>.
+
+=head2 remote( @classes )
+
+Returns a list of L<Tangram::Remote> objects of given classes.
+This method is valid in both L<scalar and list contexts>.
+
+=head2 select( $remote [ , $filter ] )
+
+Returns a list containing all the objects that are type-compatible with $remote, and
+satisfy $filter if it is present (see also: Remote and Filter).
+
+Valid only in list context.
+
+=head2 cursor( $remote [ , $filter ] )
+
+Returns a Cursor on the objects that are type-compatible with $remote, and
+satisfy $filter if it is present (see also: Remote and Filter).
+
+$remote must be an Tangram::Remote object. $filter must be an Tangram::Filter if it is present.
+
+Valid only in scalar context.
+
+=head2 erase( @objs )
+
+Removes objects from persistent storage. The objects remain present in transient storage.
+
+=head2 tx_start
+
+Starts a new Tangram transaction.
+
+Tangram transactions can be nested.
+
+Tangram maintains a transaction nesting count for each storage and commits the operations only
+when that count reaches zero. This scheme makes it easy for a function to collaborate with its caller
+in the management of the L<internal connection>.
+
+Example:
+
+   sub f
+   {
+      $storage->tx_start();
+      $storage->update( $homer );
+      $storage->tx_commit(); # or perhaps rollback()
+   }
+
+   sub g
+   {
+      $storage->tx_start();
+      f();
+      $storage->update( $marge );
+      $storage->tx_commit(); # or perhaps rollback()
+   }
+
+   f(); # 1
+   g(); # 2
+
+In (1), f() commits the changes to $homer directly to the database.
+
+In (2), f() transparently reuses the transaction opened by g().\
+Changes to both $homer and $marge are commited to the database when g() calls tx_commit().
+
+=head2 tx_commit
+
+Commits the current Tangram transaction for this storage.
+If the transaction being commited is the outermost transaction for this storage, the DBI
+transaction is also commited.
+
+=head2 tx_rollback
+
+Rolls back the current Tangram transaction for this storage.
+If the transaction being rolled back is the outermost transaction for this storage, the DBI
+transaction is also rolled back.
+
+=head2 tx_do( CODEREF )
+
+Executes CODEREF under the protection of a Tangram transaction.
+Rolls back the transaction if CODEREF dies; in which case the exception is re-thrown.
+Returns the results of CODEREF, either as a scalar or as a list depending on the
+context in which tx_do was called.
+
+Example:
+
+   $storage->tx_do(
+      sub
+      {
+         $storage->update( $homer );
+         # do things, die perhaps
+         $storage->update( $marge );
+      } );
+
+Both $homer and $marge will be updated, or none will, depending on whether the anonymous
+subroutine passed to tx_do() dies.
+
+=head2 disconnect
+
+Disconnects from the database.
+Storages I<must> be explicitly disconnected or objects will be leaked.
+
+=head1 INTERNAL CONNECTION
+
+Except in the implementation of cursor(), Tangram uses a single DBI connection in its operations.
+That connection is called the 'internal' connection. Since, in general, database managers
+do not allow multiple result sets on the same connection, the internal connection can be used
+only to carray a single task at a time.
+
+L<Tangram::Cursor>s returned by cursor() do not suffer from this limitation
+because they use a separate DBI connection.
+

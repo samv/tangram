@@ -1,0 +1,65 @@
+=head1 NAME
+
+Tangram::IntrSet - map Set::Object without link table
+
+=head1 SYNOPSIS
+
+	use Tangram;
+
+	# or
+	use Tangram::Core;
+	use Tangram::IntrSet;
+
+	$schema = Tangram::Schema->new(
+
+		classes => { Basket => { members => {
+
+		iset =>
+		{
+			# long form
+			fruits =>
+			{
+				class => 'Fruit',
+				coll => 'basket',
+			},
+
+			# or (short form)
+			fruits => 'Fruit',
+		}
+
+=head1 DESCRIPTION
+
+This class maps references to Set::Object collections in an intrusive
+fashion.
+
+The set may contain only objects of persistent classes. These classes
+must have a common persistent base class.
+
+Tangram uses a column on the element's table to store the id of the
+object containing the collection.
+
+CAUTION: the same object may not be an element of the same collection,
+in two different objects. This mapping may be used only for
+one-to-many relationships.
+
+The field names are passed in a hash that associates a field name with
+a field descriptor. The field descriptor may be either a hash or a
+string. The hash uses the following fields:
+
+=over 4
+
+=item * class
+
+=item * coll
+
+=back
+
+Mandatory field C<class> specifies the class of the elements.
+
+Optional field C<coll> sets the name the column containing the id of
+the containing object. This defaults to 'C_m', where 'C' is the class
+of the containing object, and 'm' is the field name.
+
+If the descriptor is a string, it is interpreted as the name of the
+element's class. This is equivalent to specifying only the C<class>
+field in the hash variant.

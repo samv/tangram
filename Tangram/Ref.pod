@@ -1,0 +1,136 @@
+=head1 NAME
+
+Tangram::Ref
+
+=head1 SYNOPSIS
+
+	use Tangram;
+
+	# or
+	use Tangram::Core;
+	use Tangram::Ref;
+
+	$schema = Tangram::Schema->new(
+	    classes => { Company => { members => {
+			ref => [ qw( ceo vice_ceo ) ]
+
+	# or
+
+	$schema = Tangram::Schema->new(
+	    classes => { Company => { members => {
+			ref =>
+			{
+				ceo =>
+				{
+					col => 'ceo',
+					null => 0
+				},
+
+				vice_ceo =>
+				{
+					...
+				}
+		
+=head1 DESCRIPTION
+
+This class is responsible for mapping fields that contain a reference
+to a Perl object. The target object must belong to a persistent class.
+
+Tangram uses a column on the source object to store the id of the
+target object.
+
+The persistent fields may be specified either as a hash or as an array
+of field names.
+
+In the hash form, each entry consists in a field name and an
+associated option hash. The option hash may contain the following
+fields:
+
+=over 4
+
+=item *
+
+col
+
+=item *
+
+null
+
+=back
+
+C<col> sets the name of the column that contains the target object's
+id. This field is optional, it default to the persistent field
+name. You need to specify a column name if the field name is not an
+allowed SQL column identifier.
+
+C<null>, if present and set to true, directs deploy() to generate SQL
+code that allows NULL values for that column.
+
+You may also pass the names of the persistent fields in an array, in
+which case Tangram uses the field names as column names and allows
+NULL values.
+
+=head1 IMPLEMENTATION NOTES
+
+=head2 INHERITANCE
+
+Ref directly inherits from Tangram::Scalar, and indirectly from Type.
+
+=head2 STORING REFERENCES
+
+When Tangram stores a reference to another object, it stores the
+target object's OID in the source object's table, just like what
+happens with other scalar types like String and Number.
+
+At least that's what I<basically> happens, but there can be
+complications.
+
+Complication #1: the target object is not persistent yet. Thus it
+doesn't have an OID yet. Tangram will attempt to store the target
+object; if this succeeds, the target object gets an OID too and
+Tangram can proceed.
+
+Complication #2: Tangram may detect that the target object is already
+being saved; this happens in presence of cycles. Let's take an
+example:
+
+        $homer = Person->new();
+        $marge = Person->new();
+        $homer->{partner} = $marge;
+        $marge->{partner} = $homer;
+
+        $storage->insert( $homer );
+
+What happens here? Tangram detects that $homer refers to $marge, and
+that $marge is not yet persistent. So it ignores $homer for a while,
+and proceeds to storing $marge.
+
+In the process, Tangram sees that $marge refers to $homer - which is
+not persistent yet! its insert() is suspended. Fortunately Tangram
+realizes that, and doesn't attempt to store $homer again. Instead it
+stores a NULL in the 'partner' column of Marge's row.
+
+Tangram also schedules an UPDATE statement that will be executed just
+before returning from the call to insert(). That statement will patch
+Marge's 'partner' column with the proper OID.
+
+=head2 LOADING REFERENCES
+
+Tangram never loads the target object in the process of retrieving the
+source object. Doing so could have disastrous consequences. For
+example, consider a family tree, where each Person has a reference to
+Mom and Dad. Pulling any single Person would eventually retrieve
+everybody up to Adam and Eve! If Tangram did work that way, that is...
+
+Instead, Tangram ties all the fields that are declared as outgoing
+references to a package (Tangram::RefOnDemand). The underlying object
+keeps track of the source object's OID, the Storage object, and the
+name of the persistent field.
+
+When - if - a reference field is accessed, the target object is pulled
+from the database (if it's not already present in memory), and the
+field is untied and its value is replaced with a reference to the
+target object. As a result, the target object is loaded on demand, but
+in an almost transparent fashion (why almost? because you can always
+use tied() on the field and detect that strange things are taking place).
+

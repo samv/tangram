@@ -1,0 +1,67 @@
+=head1 NAME
+
+Tangram::Ref
+
+=head1 SYNOPSIS
+
+	use Tangram;
+
+	# or
+	use Tangram::Core;
+
+	$schema = Tangram::Schema->new(
+	    classes => { NaturalPerson => { members => {
+			string => [ qw( name firstName gender ) ],
+			int => [ qw( age ) ],
+			real => [ qw( height weight ) ],
+
+	# or
+
+	    classes => { NaturalPerson => { members => {
+			string =>
+			{
+				name 	=> { sql => 'VARCHAR(100)' },
+				1stname => { col => 'firstName', sql => 'VARCHAR(100) NULL' },
+				gender 	=> undef()
+			},
+
+			# etc etc etc
+		
+=head1 DESCRIPTION
+
+Classes Tangram::String, ::Int and ::Real and ::Ref are responsible
+for mapping the various subtypes of scalars. The first three mappings
+are documented here since they differ very little. See L<Tangram::Ref>
+for information on mapping references.
+
+Each scalar field is stored in a single column of the table associated
+to the class.
+
+The three predefined typetags are: C<string>, C<int> and
+C<real>. Their meaning should be obvious.
+
+The persistent fields may be specified either as a hash or as an array
+of field names.
+
+In the hash form, each entry consists in a field name and an
+associated option hash. The option hash may contain the following
+fields:
+
+=over 4
+
+=item * col
+
+=item * sql
+
+=back
+
+C<col> sets the name of the column used to store the field's
+value. This field is optional, it defaults to the persistent field
+name. Override if the field name is not an acceptable SQL column name.
+
+C<sql> sets the SQL type of the column. Used by Schema::deploy() when
+initializing a database. Defaults to 'VARCHAR(255) NULL' for strings,
+'INT NULL' for ints and 'REAL NULL' for reals.
+
+The persistent fields may also be specified as an array of strings, in
+which case the defaults are used.

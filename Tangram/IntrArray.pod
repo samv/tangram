@@ -1,0 +1,77 @@
+=head1 NAME
+
+Tangram::IntrArray - map Set::Object without link table
+
+=head1 SYNOPSIS
+
+	use Tangram;
+
+	# or
+	use Tangram::Core;
+	use Tangram::IntrArray;
+
+	$schema = Tangram::Schema->new(
+
+		classes => { Agenda => { members => {
+
+		iarray =>
+		{
+			# long form
+			entries =>
+			{
+				class => 'Entry',
+				coll => 'agenda',
+			},
+
+			# or (short form)
+			entries => 'Entry',
+		}
+
+=head1 DESCRIPTION
+
+This class maps references to a Perl array in an intrusive fashion.
+
+The array may contain only objects of persistent classes. These classes
+must have a common persistent base class.
+
+Tangram uses two columns on the element's table to store:
+
+=over 4
+
+=item * the id of the object containing the collection
+
+=item * the position of the element in the collection
+
+=back
+
+CAUTION: the same object may not be an element of the same collection,
+in two different objects. This mapping may be used only for
+one-to-many relationships.
+
+The field names are passed in a hash that associates a field name with
+a field descriptor. The field descriptor may be either a hash or a
+string. The hash uses the following fields:
+
+=over 4
+
+=item * class
+
+=item * coll
+
+=item * slot
+
+=back
+
+Mandatory field C<class> specifies the class of the elements.
+
+Optional field C<coll> sets the name the column containing the id of
+the containing object. This defaults to 'C_m', where 'C' is the class
+of the containing object, and 'm' is the field name.
+
+Optional field C<slot> sets the name the column containing the id of
+the containing object. This defaults to 'C_m_slot', where 'C' is the
+class of the containing object, and 'm' is the field name.
+
+If the descriptor is a string, it is interpreted as the name of the
+element's class. This is equivalent to specifying only the C<class>
+field in the hash variant.

@@ -1,0 +1,214 @@
+=head1 NAME
+
+Tangram::Schema - defines the persistent aspects of a system
+
+=head1 SYNOPSIS
+
+	use Tangram;
+
+	$schema = Tangram::Schema->new( $hashref );
+
+	$schema = Tangram::Schema->new( %hash ); # only for compatibility
+
+	$storage->connect( $schema, ... );
+
+	use Tangram::Deploy;
+	$schema->deploy( \*FILE );
+   
+=head1 DESCRIPTION
+
+A Schema contains all the information about the persistent aspects of
+a system of classes. That information is used to perform the mapping
+between OO constructs and a reational database.
+
+Schema objects are initialized from a nested data structure called a
+schema hash. The general structure of the schema hash is described
+below.
+
+The resulting Schema object becomes the owner of the schema hash that
+was passed to new(). The hash may not be modified afterwards, and no
+assumptions can be made regarding its content.
+
+=head1 CLASS METHODS
+
+=head2 new( \%schema_hash )
+
+Returns a new Schema object.
+
+The newly created Schema object becomes the owner of the hash,
+which can no longer be modified nor reused by client code.
+
+=head1 INSTANCE METHODS
+
+=head2 deploy( HANDLE )
+
+Writes SQL statements to HANDLE. The SQL code prepares a database for
+use with this Schema, and consists mostly in a series of CREATE TABLE
+instructions.
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against an empty database.
+
+=head2 retreat( HANDLE )
+
+Writes SQL statements to HANDLE. The SQL code removes whatever was set
+up by deploy().
+
+HANDLE may be a DBI connection handle, a file handle or undef (in
+which case the SQL code is sent to STDOUT).
+
+The SQL code is only guaranteed to work against a database that was
+deployed using exactly the same schema.
+
+=head1 SCHEMA HASH
+
+The schema hash describes the persistent aspects of a system of
+classes. It is a multilevel data structure.
+
+=over 4
+
+=item 1
+
+The first level of the hash contains information that is relevant to
+the system as a whole.
+
+=item 2
+
+The second level contains information on a per-class basis.
+
+=item 3
+
+The third level contains information about the individual fields in a
+class. That information depends on the type of the field and is not
+documented here; see L<member hash> for a list of predefined
+persistent types.
+
+=back
+
+=head2 Global properties
+
+The first level of the schema hash describes aspects that are global
+to a system of persistent classes. It has the following aspect:
+
+	{
+		classes =>
+		{
+			Identity =>
+			{
+				table => 'IdentityState',
+				abstract => 1
+			},
+
+			NaturalPerson =>
+			{
+				bases => [ qw( Identity ) ],
+			},
+
+			LegalPerson =>
+			{
+				bases => [ qw( Identity ) ],
+			},
+		},
+
+		make_object => sub { ... },
+
+		set_id => sub { ... }
+
+		get_id => sub { ... }
+
+		class_table => '...'
+	}
+
+C<classes> is a hash called the L<class registry>. It contains a
+description of each persistent class.
+
+C<make_object> contains a reference to a closure that returns a
+new object of a given class. This field is optional: by default,
+Tangram calls class method new().
+
+C<set_id> and C<get_id> are used together to associate an object ID
+with a persistent object. By default, Tangram converts a reference to
+an object into a unique integer value by evaluating the expression C<0
++ $obj>. The result is used as a key in a hash contained in the
+Storage object. The values in that hash are the object IDs.
+
+If any of your classes uses overloading, this approach will not work
+and you will need to supply your own get/set_id methods.
+
+C<class_table> contains the name of a database table that
+Tangram uses for internal bookkeeping. It defaults to 'OpalClass'
+(Opal is Tangram's real name).
+
+=head2 class registry
+
+The class registry is a hash containing one entry per persistent
+class. The key is the class name, the value is a reference to a hash
+called the class hash. It contains information on how to map the
+class.
+
+The class hash has the following fields:
+
+=over 4
+
+=item * table
+
+=item * abstract
+
+=item * bases
+
+=item * members
+
+=back
+
+Field C<table> sets the name of the table that Tangram should use to store
+the state of objects pertaining to this class. This field is optional:
+it defaults to the class name. If the class name is not an acceptable
+SQL table identifier, you will need to set this field.
+
+Field C<abstract> contains a boolean that should be true if the class
+is abstract. If this field is not present, the class is considered to
+be concrete.
+
+Field C<bases> contains a reference to an array of base classes.
+
+Field C<members> contains a reference to the L<member hash>.
+
+=head2 member hash
+
+Each persistent type is identified by a 'typetag', e.g. C<int>, C<string>
+or C<array>.
+
+All the persistent fields of a given type are grouped
+together inside the member hash, where the typetag is used as a
+key. The individual fields are specified in an array or a hash, whose
+layout is type-dependant. For example:
+
+	members =>
+	{
+	   	string   => [ qw( firstName name ) ],
+	   	int      => [ qw( age ) ],
+	   	ref      => { partner => { null => 1 } },
+	   	array    => { children => 'NaturalPerson' },
+	},
+
+The typetag not only specifies the type of a field, but also the way
+in which it should be mapped to SQL constructs. Sometimes the same
+Perl type lends itself to more than one mapping, for example there are
+at least two plausible ways of mapping a Perl array
+(see L<Tangram::Array> and L<Tangram::IntrArray>).
+
+Tangram's persistent type system is extensible, allowing you to mount
+your own types and make them persistent. All you have to do is to
+register your type and provide mapping code. See L<Tangram::Type>.
+
+Tangram comes with built-in support for the following types:
+
+* string, int, real: see L<Tangram::Scalar>
+
+* reference : see L<Tangram::Ref>
+
+* array : see L<Tangram::Array>, L<Tangram::IntrArray>
+
+* Set::Object : see L<Tangram::Set>, L<Tangram::IntrSet>

@@ -1,0 +1,38 @@
+Tangram is an object-relational mapper. It makes objects persist in
+relational databases, and provides powerful facilities for retrieving
+and filtering them. Tangram fully supports object-oriented programming,
+including polymorphism, multiple inheritance and collections.
+It does so in an orthogonal fashion, that is, it doesn't require
+your classes to implement support functions nor inherit from a utility class.
+
+Tangram builds upon DBI, so you'll need to install DBI and at least
+one DBD driver if that is not done already. You will also need
+Set::Object. These modules are available from CPAN.
+
+If you intend to run the regression tests (recommended), you will
+also need to prepare an empty database before starting the installation
+procedure.
+
+For more information, see the included POD files.
+
+RELEASE NOTES
+
+0.09
+
+   - split Tangram.pm into several modules
+   
+   - replaced @ISA with 'use base'
+
+   - replaced default typetags with automounting
+   
+   - prefetch now takes either class or remote
+   
+   - implemented prefetch for IntrArray and IntrSet
+      *::prefetch still need real-life testing,
+      especially when class(coll) <> class(item)
+
+0.08 - second public alpha release
+
+0.03 - first public alpha release
+
+Jean-Louis Leroy - jll@skynet.be
