@@ -1202,18 +1202,15 @@ sub get_table_set
 	};
   }
 
-sub get_grouped_fields
+sub get_parts
   {
 	my ($self, $class) = @_;
 
-	my $cache = $self->{CLASSES}{$class->{name}};
-
-	@{ $self->{CLASSES}{$class->{name}}{grouped_fields} ||= do {
+	@{ $self->{CLASSES}{$class->{name}}{PARTS} ||= do {
 	  my %seen;
-	  [ grep { !$seen{$_->[0]{name}}++ }
-		(map { $self->get_grouped_fields($_) } $class->direct_bases()),
-		[ $class, [ $class->direct_fields() ] ]
-
+	  [ grep { !$seen{ $_->{name} }++ }
+		(map { $self->get_parts($_) } $class->direct_bases()),
+		$class
 	  ]
 	} }
   }
@@ -1235,15 +1232,14 @@ sub get_save_cache
 
 	  my $field_index = 2;
 
-	  for my $group ($self->get_grouped_fields($class)) {
-		my ($part, $fields) = @$group;
+	  for my $part ($self->get_parts($class)) {
 		my $table_name = $part->{table};
 
 		$context->{class} = $part;
 
 		my $table = $tables{$table_name} ||= do { push @tables, my $table = [ $table_name, [], [] ]; $table };
 		
-		for my $field (@$fields) {
+		for my $field ($part->direct_fields()) {
 		  
 		  my $exporter = $field->get_exporter($context)
 			or next;
@@ -1322,11 +1318,10 @@ sub get_instance_select
 	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
 	  my @cols;
 	  
-	  for my $group ($self->get_grouped_fields($class)) {
-		my ($part, $fields) = @$group;
+	  for my $part ($self->get_parts($class)) {
 		my $table = $part->{table};
 		$context->{class} = $part;
-		push @cols, map { "$table.$_" } map { $_->get_import_cols($context) } @$fields;
+		push @cols, map { "$table.$_" } map { $_->get_import_cols($context) } $part->direct_fields()
 	  }
 
 	  my ($first_table, @other_tables) = $self->get_table_set($class)->tables();
@@ -1382,18 +1377,22 @@ sub get_polymorphic_select
 		for my $class (@$mates) {
 		  my @slice;
 		  
-		  for my $group ($self->get_grouped_fields($class)) {
-			my ($part, $fields) = @$group;
+		  for my $part ($self->get_parts($class)) {
 			my $table = $part->{table};
 			$context->{class} = $part;
 			
-			for my $field (@$fields) {
+			for my $field ($part->direct_fields()) {
 			  my @import_cols = $field->get_import_cols($context);
 			  $used{$table} += @import_cols;
 
 			  for my $col (@import_cols) {
-				push @slice, $col_index{$col} ||= $col_mark++;
-				push @cols, qualify($col, $table, \%base_tables, \@expand);
+				my $qualified_col = "$table.$col";
+				unless (exists $col_index{$qualified_col}) {
+				  push @cols, qualify($col, $table, \%base_tables, \@expand);
+				  $col_index{$qualified_col} = $col_mark++;
+				}
+
+				push @slice, $col_index{$qualified_col};
 			  }
 			}
 		  }
@@ -1457,13 +1456,12 @@ sub get_import_cache
 		
 		my (@import_sources, @import_closures);
 		
-		for my $group ($self->get_grouped_fields($class)) {
-		  my ($part, $fields) = @$group;
+		for my $part ($self->get_parts($class)) {
 		  my $table_name = $part->{table};
 		  
 		  $context->{class} = $part;
-		  
-		  for my $field (@$fields) {
+
+		  for my $field ($part->direct_fields) {
 			
 			my $importer = $field->get_importer($context)
 			  or next;
