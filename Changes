@@ -220,4 +220,6 @@ Revision history for Perl extension Tangram.
 	  DBI::execute() is called internally, rather than being
 	  largely ignored.
 	- Cosmetic Test Suite changes
+	- ID column name wasn't being used for the index in
+          Tangram::Relational::Engine (Kurt Stephens)
 

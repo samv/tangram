@@ -316,7 +316,7 @@ sub deploy
 		my $id_col = $schema->{sql}{id_col};
 		my $class_col = $schema->{sql}{class_col} || 'type';
 
-		push @base_cols, "$id_col $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( id )" if exists $cols->{$id_col};
+		push @base_cols, "$id_col $schema->{sql}{id} NOT NULL,\n  PRIMARY KEY( $id_col )" if exists $cols->{$id_col};
 		push @base_cols, "$class_col $schema->{sql}{cid} NOT NULL" if exists $cols->{$class_col};
 
 		delete @$cols{$id_col};
