@@ -329,7 +329,7 @@ $schema = Tangram::Schema->new
 sub connect
   {
 	my $schema = shift || $Springfield::schema;
-	my $opts = {};
+	my $opts = shift || {};
 	my $storage = $dialect->connect($schema, $cs, $user, $passwd, $opts) || die;
 	$no_tx = $storage->{no_tx} unless defined $no_tx;
 	$no_subselects = $storage->{no_subselects};

@@ -31,7 +31,7 @@ Tangram/mysql.pm
 Tangram/mysql.pod
 
 Tangram/Ref.pm
-#Tangram/IntrRef.pm
+Tangram/IntrRef.pm
 
 Tangram/Coll.pm
 

@@ -7,7 +7,7 @@ use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 {
    my $storage = Springfield::connect_empty;
@@ -101,8 +101,11 @@ is(&leaked, 0, "leaktest");
 
 is(&leaked, 0, "leaktest");
 
+my $dbh = DBI->connect($cs, $user, $passwd)
+    or die "DBI->connect failed; $DBI::errstr";
+
 {
-   my $storage = Springfield::connect;
+   my $storage = Springfield::connect(undef, { dbh => $dbh });
 
    my ($person) = $storage->remote(qw( NaturalPerson ));
 
@@ -113,6 +116,19 @@ is(&leaked, 0, "leaktest");
       "!= undef test");
 
    $storage->disconnect();
-}      
+}
+
+eval {
+    my $sth = $dbh->prepare("select count(*) from Tangram")
+	or die $DBI::errstr;
+
+    $sth->execute();
+    my @res = $sth->fetchall_arrayref;
+};
+
+is($@||$DBI::errstr||"", "",
+   "Disconnect didn't disconnect a supplied DBI handle");
+
+$dbh->disconnect();
 
 is(&leaked, 0, "leaktest");
