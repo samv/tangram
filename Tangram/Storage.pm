@@ -903,8 +903,9 @@ sub sum
 
 sub id
 {
-    my ($self, $obj) = @_;
-    return $self->{get_id}->($obj);
+    my $self = shift;
+	return map { $self->{get_id}->($_) } @_ if wantarray;
+    $self->{get_id}->(shift());
 }
 
 sub disconnect
