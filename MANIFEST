@@ -26,7 +26,9 @@ Tangram/Core.pm
 Tangram/Deploy.pm
 
 Tangram/Sybase.pm
+Tangram/Sybase.pod
 Tangram/mysql.pm
+Tangram/mysql.pod
 
 Tangram/Ref.pm
 
