@@ -97,7 +97,7 @@ In effect, the database looks like this:
 
          +-------------+
          | LegalPerson |
-         +------+----------------+------+
+         +------+------+---------+------+
          |  id  |  name          | form |
          ================================
          |  36  |  Microsoft     |  Inc |
@@ -119,7 +119,7 @@ In effect, the database looks like this:
 
          +-------+
          | Plane |
-         +------+------+----------------+--------+
+         +------++-----+----------------+--------+
          |  id  | owner|  make          | ident  |
          =========================================
          |  29  |  23  |  Boeing        | AF-001 |
@@ -190,7 +190,7 @@ For example:
 
          +---------------+     +-------------+ 
          | NaturalPerson |     | LegalPerson | 
-         +------+--------+     +-------+------+
+         +------+--------+     +-------+-----++
          |  id  | age    |     |  id   | form |
          =================     ================
          |  17  |  46    |     |  36   |  Inc |
@@ -201,20 +201,20 @@ For example:
          +---------+
          | Vehicle |
          +------+--+----+----------------+
-         |  id  | owner	|  make          |
+         |  id  | owner |  make          |
          =================================
-         |  12  | 17  	| Saab           |
+         |  12  | 17    | Saab           |
          +------+-------+----------------+
          |  29  | 23    | AF-001         |
          +------+-------+----------------+
-         |  50  | 36  	| Miata          |
+         |  50  | 36    | Miata          |
          +------+-------+----------------+
-         |  51  | 36  	| Miata          |
+         |  51  | 36    | Miata          |
          +------+-------+----------------+
 
          +------+              +-------+         
          | Car  |              | Plane |         
-         +-------+--------+    +-------+--------+
+         +------++--------+    +-------+--------+
          |  id   | plate  |    |  id   | ident  |
          ==================    ==================
          |  12   | BILL-1 |    |  29   | AF-001 |
@@ -310,7 +310,7 @@ In our example, the database may look either like this:
 
          +---------+
          | Persons |
-         +-----+------+----------------+------+------+
+         +-----+---+--+----------------+------+------+
          | id  | type |  name          | age  | form |
          =============================================
          | 17  |  1   | Bill Gates     |  46  | NULL |
@@ -322,7 +322,7 @@ In our example, the database may look either like this:
 
          +---------+
          | Persons |
-         +-----+------+----------------+------+------+
+         +-----+---+--+----------------+------+------+
          | id  | type |  name          | age  | form |
          =============================================
          | 17  |  1   | Bill Gates     |  46  | NULL |
@@ -388,7 +388,7 @@ efficient.
 =head2 disadvantages
 
 This mapping is very questionable according to relational
-orthodoxy. Even if one decides to gorgo these rules, using such a
+orthodoxy. Even if one decides to forgo these rules, using such a
 mapping takes away many of the interesting features offered by modern
 RDBM systems. Because nearly all the columns must allow NULL values,
 we cannot take advantage of features like referential integrity
@@ -401,3 +401,90 @@ in a sea of NULLs.
 
 In effect, this mapping may end up hindering performance instead of
 improving it in presence of deep hierarchies with many attributes.
+
+=head1 MAPPINGS SUPPORTED BY TANGRAM
+
+Tangram supports both vertical mapping and filtered mapping, and any
+hybrid of the two.
+
+The 'table' attribute in the class description in the Schema can be
+used to put the state of several classes on the same table. The table
+name defaults to the class name, resulting in a vertical mapping.
+
+For example, the following schema:
+
+   Tangram::Relational->schema( {
+        classes =>
+          [ Person =>
+            {
+             table => 'Persons',
+             fields => { string => [ qw( name ) ] }
+            },
+            
+            NaturalPerson =>
+            {
+             table => 'Persons',
+             fields => { int => [ qw( age ) ] }
+            },
+            
+            LegalPerson =>
+            {
+             table => 'Persons',
+             fields => { string => [ qw( form ) ] }
+            }
+          ] } );
+
+...specifies a pure filtered mapping for the Person hierarchy:
+
+   CREATE TABLE Persons
+   (
+     id INTEGER NOT NULL,
+     PRIMARY KEY( id ),
+     type INTEGER NOT NULL,
+     form VARCHAR(255) NULL,
+     age INT NULL,
+     name VARCHAR(255) NULL
+   );
+
+The following schema:
+   
+   Tangram::Relational->schema( {
+        classes =>
+          [ Person =>
+            {
+             table => 'Person',
+             fields => { string => [ qw( name ) ] }
+            },
+            
+            NaturalPerson =>
+            {
+             table => 'NaturalPerson',
+             fields => { int => [ qw( age ) ] }
+            },
+            
+            LegalPerson =>
+            {
+             table => 'Person',
+             fields => { string => [ qw( form ) ] }
+            }
+          ] } );
+
+...gives NaturalPerson its own table, but LegalPerson shares the
+Person table:
+
+   CREATE TABLE Person
+   (
+     id INTEGER NOT NULL,
+     PRIMARY KEY( id ),
+     type INTEGER NOT NULL,
+     form VARCHAR(255) NULL,
+     name VARCHAR(255) NULL
+   );
+
+   CREATE TABLE NaturalPerson
+   (
+     id INTEGER NOT NULL,
+     PRIMARY KEY( id ),
+     type INTEGER NOT NULL,
+     age INT NULL
+   );
