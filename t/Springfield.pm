@@ -167,8 +167,8 @@ $schema = Tangram::Schema->new( {
 	{
 	 fields =>
 	 {
-	  #int => { limit => { col => '_limit' } },
-	  int => { limit => '_limit' },
+	  #int => { limit => { col => 'theLimit' } },
+	  int => { limit => 'theLimit' },
 	 }
 	},
 
