@@ -346,6 +346,15 @@ To retrieve all the objects of a given class, we use C<select>:
 
    	my @people = $storage->select( 'NaturalPerson' );
 
+We can also retrieve tuples of objects:
+
+	my ($parent, $child) = $storage->remote('NaturalPerson', 'NaturalPerson');
+
+	@pairs = $storage->select( [ $parent, $child ],
+		$parent->{children}->includes($child) );
+
+@pairs contains a list of references to arrays of size two; each array
+contains a pair of parent and child.
 
 For more information on select(), see L<Tangram::Storage>.
 

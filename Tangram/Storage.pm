@@ -785,9 +785,34 @@ sub _fetch_object_state
 sub select
 {
     croak "valid only in list context" unless wantarray;
-    my ($self, $class, @args) = @_;
-    my $cursor = Tangram::Cursor->new($self, $class, $self->{db});
-    $cursor->select(@args);
+
+    my ($self, $target, @args) = @_;
+
+    if (ref($target) eq 'ARRAY')
+      {
+	my ($first, @others) = @$target;
+
+	my @cache = map { $self->select( $_, @args ) } @others;
+
+	my $cursor = Tangram::Cursor->new($self, $first, $self->{db});
+	$cursor->retrieve( map { $_->{id} } @others );
+	
+	my $obj = $cursor->select( @args );
+	my @results;
+
+	while ($obj)
+	  {
+	    push @results, [ $obj, map { $self->load($_) } $cursor->residue() ];
+	    $obj = $cursor->next();
+	  }
+
+	return @results;
+      }
+    else
+      {
+	my $cursor = Tangram::Cursor->new($self, $target, $self->{db});
+	$cursor->select(@args);
+      }
 }
 
 sub cursor_object

@@ -176,18 +176,29 @@ This method is valid in both L<scalar and list contexts>.
 
 =head2 select( $remote [ , $filter ] )
 
-Returns a list containing all the objects that are type-compatible with $remote, and
-satisfy $filter if it is present (see also: Remote and Filter).
+Valid only in list context. Returns a list containing all the objects
+that satisfy $filter.
 
-Valid only in list context.
+$remote can be either a Remote object of an array of Remote
+objects. If it is a single Remote, a list of objects is returned. If
+it is an array, a list of array of objects is returned.
+
+In either case, the retrieved objects satisfy $filter and are
+type-compatible with the corresponding Remote.
+
+If $filter is not present or is undef(), return all the objects.
 
 =head2 select( $remote, opt1 => val1 [, op2 => val2 ... ] )
 
-Returns a list containing all the objects that are type-compatible
-with $remote.
+Valid only in list context. Returns a list containing all the objects
+that satisfy $filter.
 
-A series of optional directives can be passed as key/value
-pairs. Currently Tangram recognizes the following directives:
+$remote can be either a Remote object of an array of Remote
+objects. If it is a single Remote, a list of objects is returned. If
+it is an array, a list of array of objects is returned.
+
+Directives can be passed as key/value pairs. Currently Tangram
+recognizes the following directives:
 
 =over 4
 
@@ -201,17 +212,16 @@ pairs. Currently Tangram recognizes the following directives:
 
 =back
 
-Option C<filter> specifies a Filter that can be used to restrict the
-result set.
+C<filter> specifies a Filter that can be used to restrict the result
+set.
 
-Option C<distinct> specifies that each object in the result set must
-be unique (Tangram generates a SELECT DISTINCT).
+C<distinct> specifies that each object in the result set must be
+unique (Tangram generates a SELECT DISTINCT).
 
-Option C<order> is an array of Expr; order result set by increasing
-value of Exprs.
+C<order> is an array of Expr; order result set by increasing value of Exprs.
 
-Option C<desc> is a boolean; a true value reverses the order specified
-by the C<order> option.
+C<desc> is a boolean; a true value reverses the order specified by the
+C<order> option.
 
 Valid only in list context.
 
