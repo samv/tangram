@@ -45,8 +45,8 @@ for mapping the various subtypes of scalars. The first three mappings
 are documented here since they differ very little. See L<Tangram::Ref>
 for information on mapping references.
 
-Classes Tangram::Date, ::Time and ::DateTime are responsible for
-mapping strings to SQL date or time types. These classes are not
+Classes Tangram::RawDate, ::RawTime and ::RawDateTime are responsible
+for mapping strings to SQL date or time types. These classes are not
 imported by Tangram.pm, thus they must be explicitly imported via a
 C<use> directive.
 
