@@ -33,80 +33,74 @@ sub reschema
     return keys %$members;
 }
 
-sub defered_save
-{
-    my ($self, $storage, $obj, $members, $coll_id) = @_;
-
-    foreach my $member (keys %$members)
-    {
-		next if tied($obj->{$member});
-		next unless exists $obj->{$member} && defined $obj->{$member};
-
-		my $def = $members->{$member};
-		my ($table, $coll_col, $item_col, $slot_col) = @{ $def }{ qw( table coll item slot ) };
-		my $Q = $def->{quote};
-	
-		my $coll = $obj->{$member};
-
-		my $old_state = $self->get_load_state($storage, $obj, $member) || {};
-
-		my %removed = %$old_state;
-		delete @removed{ keys %$coll };
-		my @free = keys %removed;
-
-		my %new_state;
-
-		foreach my $slot (keys %$coll)
+sub defered_save {
+  my ($self, $obj, $field, $storage) = @_;
+  
+  my $coll_id = $storage->export_object($obj);
+  
+  my ($table, $coll_col, $item_col, $slot_col) = @{ $self }{ qw( table coll item slot ) };
+  my $Q = $self->{quote};
+  
+  my $coll = $obj->{$field};
+  
+  my $old_state = $self->get_load_state($storage, $obj, $field) || {};
+  
+  my %removed = %$old_state;
+  delete @removed{ keys %$coll };
+  my @free = keys %removed;
+  
+  my %new_state;
+  
+  foreach my $slot (keys %$coll)
+	{
+	  my $item_id = $storage->export_object($coll->{$slot});
+	  
+	  if (exists $old_state->{$slot})
 		{
-			my $item_id = $storage->id($coll->{$slot});
-
-			if (exists $old_state->{$slot})
+		  # key already exists
+		  
+		  if ($item_id != $old_state->{$slot})
 			{
-				# key already exists
-
-				if ($item_id != $old_state->{$slot})
-				{
-					# val has changed
-					$storage->sql_do(
-									 "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$slot$Q" );
-				}
+			  # val has changed
+			  $storage->sql_do(
+							   "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$slot$Q" );
 			}
-			else
-			{
-				# key does not exist
-
-				if (@free)
-				{
-					# recycle an existing line
-					my $rslot = shift @free;
-					$storage->sql_do(
-									 "UPDATE $table SET $slot_col = $Q$slot$Q, $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$rslot$Q" );
-				}
-				else
-				{
-					# insert a new line
-					$storage->sql_do(
-									 "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $Q$slot$Q)" );
-				}
-			}
-
-			$new_state{$slot} = $item_id;
-
-		}						# foreach my $slot (keys %$coll)
-
-		# remove lines in excess
-
-		if (@free)
-		{
-			@free = map { "$Q$_$Q" } @free if $Q;
-			$storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
 		}
-
-		$self->set_load_state($storage, $obj, $member, \%new_state );	
-		$storage->tx_on_rollback(
-            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
-    }
+	  else
+		{
+		  # key does not exist
+		  
+		  if (@free)
+			{
+			  # recycle an existing line
+			  my $rslot = shift @free;
+			  $storage->sql_do(
+							   "UPDATE $table SET $slot_col = $Q$slot$Q, $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $Q$rslot$Q" );
+			}
+		  else
+			{
+			  # insert a new line
+			  $storage->sql_do(
+							   "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $Q$slot$Q)" );
+			}
+		}
+	  
+	  $new_state{$slot} = $item_id;
+	  
+	}							# foreach my $slot (keys %$coll)
+  
+  # remove lines in excess
+  
+  if (@free)
+	{
+	  @free = map { "$Q$_$Q" } @free if $Q;
+	  $storage->sql_do( "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col IN (@free)" );
+	}
+  
+  $self->set_load_state($storage, $obj, $field, \%new_state );	
+  $storage->tx_on_rollback( sub { $self->set_load_state($storage, $obj, $field, $old_state) } );
 }
+
 
 sub erase
 {
@@ -130,10 +124,10 @@ sub cursor						# ?? factorize ??
 
     my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
 
-    my $coll_id = $storage->id($obj);
+    my $coll_id = $storage->export_object($obj);
     my $coll_tid = $storage->alloc_table;
     my $table = $def->{table};
-    my $item_tid = $cursor->{-stored}->root_table;
+	my $item_tid = $cursor->{TARGET}->object->root_table;
     my $coll_col = $def->{coll};
     my $item_col = $def->{item};
     my $slot_col = $def->{slot};

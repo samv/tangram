@@ -38,10 +38,49 @@ sub demand
 		}
     }
 
-    $storage->{scratch}{ref($self)}{$storage->id($obj)}{$member} = {
-																	map { $_ => ($coll{$_} && $storage->id( $coll{$_} ) ) } keys %coll };
+	$self->set_load_state($storage, $obj, $member, map { $_ => ($coll{$_} && $storage->id( $coll{$_} ) ) } keys %coll );
 
     return \%coll;
 }
+
+sub save_content
+  {
+	my ($obj, $field, $context) = @_;
+
+	# has collection been loaded? if not, then it hasn't been modified
+	return if tied $obj->{$field};
+	return unless exists $obj->{$field} && defined $obj->{$field};
+	
+	my $storage = $context->{storage};
+
+	foreach my $item (values %{ $obj->{$field} }) {
+	  $storage->insert($item)
+		unless $storage->id($item);
+	}
+  }
+
+sub get_exporter
+  {
+	my ($self, $context) = @_;
+	my $field = $self->{name};
+
+	return sub {
+	  my ($obj, $context) = @_;
+
+	  return if tied $obj->{$field};
+	  return unless exists $obj->{$field} && defined $obj->{$field};
+	
+	  my $storage = $context->{storage};
+
+	  foreach my $item (values %{ $obj->{$field} }) {
+		$storage->insert($item)
+		  unless $storage->id($item);
+	  }
+
+	  $context->{storage}->defer(sub { $self->defered_save($obj, $field, $storage) } );
+	  ();
+	}
+  }
+
 
 1;
