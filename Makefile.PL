@@ -1,16 +1,36 @@
 use ExtUtils::MakeMaker;
 
-eval {use DBI;};
-if($@) {
-  warn "Couldn't load DBI... Skipping tests.";
-  goto NOTESTS;
+my %required =
+    (
+     'Set::Object' => 1.04,
+     "Test::More" => 0,
+     "Date::Manip" => 0,
+     "Scalar::Util" => 0,
+     DBI => 0,
+    );
+
+my %required_soft = map{$_=>1} qw( Scalar::Util Date::Manip );
+my %required_hard = map{$_=>1} qw( Set::Object  DBI );
+
+my ($skip_tests, $bomb_out);
+while (my ($module, $min_ver) = each %required) {
+
+    eval "use $module".($min_ver ? " $min_ver" : "");
+    if($@) {
+	if (exists $required_hard{$module}) {
+	    $bomb_out = 1;
+	} elsif ( exists $required_soft{$module} ) {
+	    print STDERR ("$module not found.  Some tests and/or "
+			  ."functionality may be missing.\n");
+	} else {
+	    $skip_tests = 1;
+	    print STDERR ("$module not found.  You will not be able "
+			  ."to run the test suite.\n");
+	}
+    }
 }
 
-eval {use Set::Object;};
-if($@) {
-  warn "Couldn't load Set::Object... Skipping tests.";
-  goto NOTESTS;
-}
+goto NOTESTS if $skip_tests or $bomb_out;
 
 use lib '.';
 use Tangram::Deploy;
@@ -140,5 +160,5 @@ NOTESTS:
 WriteMakefile(
     'NAME'	=> 'Tangram',
     'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
-    PREREQ_PM => { 'Set::Object' => 1.04, DBI => 0, "Test::More" => 0 }
+    PREREQ_PM => \%required,
 );

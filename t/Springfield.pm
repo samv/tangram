@@ -5,7 +5,6 @@ use Tangram;
 use Tangram::RawDate;
 use Tangram::RawTime;
 use Tangram::RawDateTime;
-use Tangram::DMDateTime;
 
 use Tangram::FlatArray;
 use Tangram::FlatHash;
@@ -13,7 +12,12 @@ use Tangram::PerlDump;
 
 package Springfield;
 use Exporter;
-use vars qw(@ISA @EXPORT @EXPORT_OK %id @kids @opinions);
+use vars qw(@ISA @EXPORT @EXPORT_OK %id @kids @opinions $no_date_manip);
+
+eval 'use Tangram::DMDateTime';
+
+$no_date_manip = $@;
+
 @ISA = qw( Exporter );
 
 @EXPORT = qw( &optional_tests $schema testcase &leaktest &leaked &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd stdpop %id @kids @opinions);
@@ -101,7 +105,9 @@ $schema = Tangram::Schema->new
 				 rawdate => [ qw( birthDate ) ],
 				 rawtime => [ qw( birthTime ) ],
 				 rawdatetime => [ qw( birth ) ],
+			 ($no_date_manip ? () : (
 				 dmdatetime => [ qw( incarnation ) ]
+					   ))
 			   ),
 
 		array =>

@@ -4,13 +4,6 @@ use strict;
 
 package Tangram::Cursor;
 
-BEGIN {
-    eval "use Scalar::Util qw(blessed);";
-    if ($@) {
-	eval "use Set::Object qw(blessed);";
-	die "Can't find `blessed' function" if $@;
-    }
-}
 use vars qw( $stored %done );
 use Carp;
 

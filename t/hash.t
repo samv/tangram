@@ -1,20 +1,20 @@
+#  -*- perl -*-
 # (c) Sound Object Logic 2000-2001
 
 use strict;
 use lib 't';
 use Springfield;
-use Data::Dumper;
-
-Springfield::begin_tests(3);
+use Test::More tests => 3;
 
 #$Tangram::TRACE = \*STDOUT;
 
 sub graph {
-  NaturalPerson->new( firstName => 'Homer',
-					  name => 'Simpson',
-					  h_opinions => { work => Opinion->new(statement => 'bad'),
-									  food => Opinion->new(statement => 'good'),
-									  beer => Opinion->new(statement => 'better') } );
+    NaturalPerson->new( firstName => 'Homer',
+			name => 'Simpson',
+			h_opinions =>
+			{ work => Opinion->new(statement => 'bad'),
+			  food => Opinion->new(statement => 'good'),
+			  beer => Opinion->new(statement => 'better') } );
 }
 
 {
@@ -27,15 +27,16 @@ sub graph {
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "leaktest");
 
 {
 	my $storage = Springfield::connect();
 	my ($homer) = $storage->select('NaturalPerson');
 
-	testcase(Dumper($homer->{h_opinions}) eq Dumper(graph()->{h_opinions}));
+	is_deeply($homer->{h_opinions}, graph()->{h_opinions},
+		  "Hash returned intact");
 
 	$storage->disconnect();
 }
 
-leaktest();
+is(leaked, 0, "leaktest");

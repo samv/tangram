@@ -233,3 +233,5 @@ Revision history for Perl extension Tangram.
 	  "<".
         - Fixed export problem with 5.6.1 (reported by Kate Pugh)
 	- deep_update with Tangram::Ref bug fix (reported by Aaron Mackey)
+	- Makefile.PL should now hopefully be more informative about
+	  which modules are needed for what.

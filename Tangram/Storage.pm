@@ -5,18 +5,25 @@ use strict;
 package Tangram::Storage;
 use DBI;
 use Carp;
-use Tangram::Core qw(pretty);
+use Tangram::Core;
 
 use vars qw( %storage_class );
 
 BEGIN {
-
-    eval 'use Scalar::Util qw(refaddr)';
+    eval 'use Scalar::Util qw()';
     if ($@) {
-	*Tangram::weaken = sub { };
-	$Tangram::no_weakrefs = 1;
+	*Tangram::refaddr = sub { (shift) + 0 };
+	eval 'use WeakRef';
+	if ($@) {
+	    *Tangram::weaken = sub { };
+	    $Tangram::no_weakrefs = 1;
+	} else {
+	    *Tangram::weaken = \&WeakRef::weaken;
+	    $Tangram::no_weakrefs = 0;
+	}
     } else {
 	*Tangram::weaken = \&Scalar::Util::weaken;
+	*Tangram::refaddr = \&Scalar::Util::refaddr;
 	$Tangram::no_weakrefs = 0;
     }
 }
@@ -102,14 +109,14 @@ sub _open
 	  my ($obj, $id) = @_;
 
 	  if ($id) {
-	    $self->{ids}{refaddr($obj)} = $id;
+	    $self->{ids}{Tangram::refaddr($obj)} = $id;
 	  } else {
-	    delete $self->{ids}{refaddr($obj)};
+	    delete $self->{ids}{Tangram::refaddr($obj)};
 	  }
 	};
 
     $self->{get_id} = $schema->{get_id} || sub {
-	  my $address = refaddr(shift());
+	  my $address = Tangram::refaddr(shift());
 	  my $id = $self->{ids}{$address};
 	  return undef unless $id;
 	  return $id if exists $self->{objects}{$id};
