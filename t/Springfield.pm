@@ -5,6 +5,7 @@ use Tangram;
 use Tangram::RawDate;
 use Tangram::RawTime;
 use Tangram::RawDateTime;
+use Tangram::DMDateTime;
 
 use Tangram::FlatArray;
 use Tangram::FlatHash;
@@ -17,6 +18,32 @@ use base qw( Exporter );
 use vars qw( $schema @ISA @EXPORT @EXPORT_OK );
 @EXPORT = qw( &optional_tests $schema testcase &leaktest &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd );
 @EXPORT_OK = @EXPORT;
+
+use vars qw( $cs $user $passwd $dialect $vendor );
+
+{
+  local $/;
+  
+  my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
+  
+  open CONFIG, $config
+	or open CONFIG, "t/$config"
+	  or open CONFIG, "../t/$config"
+		or die "Cannot open t/$config, reason: $!";
+  
+  ($cs, $user, $passwd) = split "\n", <CONFIG>;
+  
+  $vendor = (split ':', $cs)[1];;
+  $dialect = "Tangram::$vendor";  # deduce dialect from DBI driver
+  eval "use $dialect";
+  $dialect = 'Tangram::Relational' if $@;
+}
+
+sub list_if {
+  shift() ? @_ : ()
+}
+
+my $no_tx;
 
 $schema = Tangram::Schema->new( {
 
@@ -59,9 +86,12 @@ $schema = Tangram::Schema->new( {
 		 credit => { aggreg => 1 },
 		},
 
-		#rawdate => [ qw( birthDate ) ],
-		#rawtime => [ qw( birthTime ) ],
-		#rawdatetime => [ qw( birth ) ],
+		list_if( $vendor ne 'Sybase',
+				 rawdate => [ qw( birthDate ) ],
+				 rawtime => [ qw( birthTime ) ],
+				 rawdatetime => [ qw( birth ) ],
+				 dmdatetime => [ qw( incarnation ) ]
+			   ),
 
 		array =>
 		{
@@ -204,27 +234,6 @@ $schema = Tangram::Schema->new( {
 
    ] } );
 
-use vars qw( $cs $user $passwd $dialect );
-
-{
-  local $/;
-  
-  my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
-  
-  open CONFIG, $config
-	or open CONFIG, "t/$config"
-	  or open CONFIG, "../t/$config"
-		or die "Cannot open t/$config, reason: $!";
-  
-  ($cs, $user, $passwd) = split "\n", <CONFIG>;
-  
-  $dialect = 'Tangram::' . (split ':', $cs)[1]; # deduce dialect from DBI driver
-  eval "use $dialect";
-  $dialect = 'Tangram::Relational' if $@;
-}
-
-my $no_tx;
-
 sub connect
   {
 	my $schema = shift || $Springfield::schema;
@@ -328,10 +337,10 @@ sub optional_tests
 	return $proceed;
 }
 
-sub tests_for_dialect
-  {
-	my ($dialect) = @_;
-	return if (split ':', $cs)[1] eq $dialect;
+sub tests_for_dialect {
+	my %dialect;
+	@dialect{@_} = ();
+	return if exists $dialect{ (split ':', $cs)[1] };
 
 	begin_tests(1);
 	optional_tests($dialect, 0, 1);
