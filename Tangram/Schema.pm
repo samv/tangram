@@ -76,6 +76,8 @@ sub new
     bless $self, $pkg;
 
     $self->{make_object} ||= sub { shift()->new() };
+
+    $self->{normalize} ||= sub { shift() };
     $self->{class_table} ||= 'OpalClass';
 
 	$self->{control} ||= 'Tangram';
@@ -113,7 +115,7 @@ sub new
 		bless $classdef, 'Tangram::Class';
 
 		$classdef->{name} = $class;
-		$classdef->{table} ||= $class;
+		$classdef->{table} ||= $self->{normalize}->($class, 'tablename');
 
 		$classdef->{fields} ||= $classdef->{members};
 		$classdef->{members} = $classdef->{fields};

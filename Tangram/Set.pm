@@ -24,7 +24,7 @@ sub reschema
 			$members->{$member} = $def;
 		}
 
-		$def->{table} ||= $def->{class} . "_$member";
+		$def->{table} ||= $schema->{normalize}->($def->{class} . "_$member", 'tablename');
 		$def->{coll} ||= 'coll';
 		$def->{item} ||= 'item';
 	}

@@ -11,7 +11,7 @@ use Carp;
 
 sub reschema
 {
-    my ($self, $members) = @_;
+    my ($self, $members, $class, $schema) = @_;
 
     foreach my $member (keys %$members)
     {
@@ -23,7 +23,7 @@ sub reschema
 			$members->{$member} = $def;
 		}
 
-		$def->{table} ||= $def->{class} . "_$member";
+		$def->{table} ||= $schema->{normalize}->($def->{class} . "_$member", 'tablename');
 		$def->{coll} ||= 'coll';
 		$def->{item} ||= 'item';
 		$def->{slot} ||= 'slot';

@@ -64,7 +64,7 @@ $Tangram::Schema::TYPES{flat_array} = Tangram::FlatArray->new;
 
 sub reschema
 {
-    my ($self, $members, $class) = @_;
+    my ($self, $members, $class, $schema) = @_;
     
     for my $field (keys %$members)
     {
@@ -77,7 +77,7 @@ sub reschema
 			$def = $members->{$field} = { type => 'string' };
 		}
 
-		$def->{table} ||= $class . "_$field";
+		$def->{table} ||= $schema->{normalize}->($class . "_$field", 'tablename');
 		$def->{type} ||= 'string';
 		$def->{string_type} = $def->{type} eq 'string';
 		$def->{sql} ||= $def->{string_type} ? 'VARCHAR(255)' : uc($def->{type});

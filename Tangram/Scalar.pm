@@ -10,13 +10,13 @@ use base qw( Tangram::Type );
 
 sub reschema
 {
-    my ($self, $members, $class) = @_;
+    my ($self, $members, $class, $schema) = @_;
 
     if (ref($members) eq 'ARRAY')
     {
 		# short form
 		# transform into hash: { fieldname => { col => fieldname }, ... }
-		$members = $_[1] = map { $_ => { col => $_ } } @$members;
+		$members = $_[1] = map { $_ => { col => $schema->{normalize}->($_, 'colname') } } @$members;
     }
     
     for my $field (keys %$members)
@@ -26,7 +26,7 @@ sub reschema
 		unless (ref($def))
 		{
 			# not a reference: field => field
-			$def = $members->{$field} = { col => $def || $field };
+			$def = $members->{$field} = { col => $schema->{normalize}->(($def || $field), 'fieldname') };
 		}
 
 		$self->field_reschema($field, $def);

@@ -22,12 +22,12 @@ $Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;
 my $DumpMeth = (defined &Data::Dumper::Dumpxs) ? 'Dumpxs' : 'Dump';
 
 sub reschema {
-  my ($self, $members, $class) = @_;
+  my ($self, $members, $class, $schema) = @_;
 
   if (ref($members) eq 'ARRAY') {
     # short form
     # transform into hash: { fieldname => { col => fieldname }, ... }
-    $_[1] = map { $_ => { col => $_ } } @$members;
+    $_[1] = map { $_ => { col => $schema->{normalize}->($_, 'colname') } } @$members;
   }
     
   for my $field (keys %$members) {
@@ -36,14 +36,14 @@ sub reschema {
     
     unless ($refdef) {
       # not a reference: field => field
-      $def = $members->{$field} = { col => $def || $field };
+      $def = $members->{$field} = { col => $schema->{normalize}->(($def || $field), 'colname') };
 	  $refdef = ref($def);
     }
 
     die ref($self), ": $class\:\:$field: unexpected $refdef"
       unless $refdef eq 'HASH';
 	
-    $def->{col} ||= $field;
+    $def->{col} ||= $schema->normalize->($field, 'colname');
     $def->{sql} ||= 'VARCHAR(255)';
     $def->{indent} ||= 0;
     $def->{terse} ||= 1;
