@@ -31,7 +31,10 @@ implement persistence in XML documents, pure object databases etc.
 
 Returns a new Schema object. See L<Tangram::Schema>. 
 
-=head2 deploy( HANDLE )
+=head2 deploy
+
+   Tangram::Relational->deploy();
+   Tangram::Relational->deploy(HANDLE);
 
 Writes SQL statements to HANDLE. The SQL code prepares a database for
 use with this Schema, and consists mostly in a series of CREATE TABLE
@@ -59,7 +62,10 @@ DBI::connect().
 \%options is a reference to a hash containing connection options. See
 L<Tangram::Storage> for a description of available options.
 
-=head2 retreat( HANDLE )
+=head2 retreat
+
+   Tangram::Relational->retreat();
+   Tangram::Relational->retreat(HANDLE);
 
 Writes SQL statements to HANDLE. The SQL code removes whatever was set
 up by deploy().
