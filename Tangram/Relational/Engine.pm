@@ -199,10 +199,10 @@ sub get_save_cache
 		push @insert_fields, [ @meta_fields, @$fields ];
 
 		if (@$cols) {
-		  push @updates, sprintf('UPDATE %s SET %s WHERE %s = %s',
+		  push @updates, sprintf('UPDATE %s SET %s WHERE %s = ?',
 								 $table_name,
 								 join(', ', map { "$_ = ?" } @$cols),
-								 $id_col, '?');
+								 $id_col);
 		  push @update_fields, [ @$fields, 0 ];
 		}
 	  }
