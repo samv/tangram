@@ -313,7 +313,7 @@ As a consequence, these objects will not be reclaimed by Perl's
 automatic memory management mechanism until either disconnect() or
 unload() is called.
 
-reset() should be called only when no other references exist to
+unload() should be called only when no other references exist to
 persistent objects, otherwise the same object (in the database) may
 end up having two copies in transient storage.
 
