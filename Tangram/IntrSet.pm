@@ -164,6 +164,11 @@ sub prefetch
 	return $prefetch;
 }
 
+sub get_intrusions {
+  my ($self, $context) = @_;
+  return [ $self->{class}, $context->{mapping}->get_home_table($self->{class}) ];
+}
+
 $Tangram::Schema::TYPES{iset} = Tangram::IntrSet->new;
 
 1;

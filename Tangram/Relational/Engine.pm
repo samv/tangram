@@ -87,7 +87,7 @@ sub new
 sub get_heterogeneity {
   my ($self, $table_set) = @_;
   my $key = $table_set->key();
-  
+
   return $self->{HETEROGENEITY}{$key} ||= do {
 	
 	my $heterogeneity = 0;
@@ -100,32 +100,6 @@ sub get_heterogeneity {
   };
 }
 
-sub _get_table_set
-  {
-	my ($self, $class) = @_;
-
-	return $self->{CLASSES}{$class->{name}}{table_set} ||= do {
-
-	  my @table;
-
-	  if ($self->{ROOT_TABLES}{$class->{table}}) {
-		push @table, $class->{table};
-	  } else {
-		my $context = { layout1 => $self->{layout1} };
-		
-		for my $field ($class->direct_fields()) {
-		  if ($field->get_export_cols($context)) {
-			push @table, $class->{table};
-			last;
-		  }
-		}
-	  }
-
-	  Tangram::Relational::TableSet
-		->new((map { $self->get_table_set($_)->tables } $class->direct_bases()), @table );
-	};
-  }
-
 sub get_parts
   {
 	my ($self, $class) = @_;
@@ -137,117 +111,6 @@ sub get_parts
 		$class
 	  ]
 	} }
-  }
-
-sub get_polymorphic_select
-  {
-	my ($self, $class, $storage) = @_;
-	
-	my $selects = $self->{CLASSES}{$class}{POLYMORPHIC_SELECT} ||= do {
-	  my $schema = $self->{SCHEMA};
-	  my $id_col = $schema->{sql}{id_col};
-	  my $type_col = $self->{TYPE_COL};
-	  my $context = { engine => $self, schema => $schema, layout1 => $self->{layout1} };
-	  
-	  my $table_set = $self->get_table_set($class);
-	  my %base_tables = do { my $ph = 0; map { $_ => $ph++ } $table_set->tables() };
-	  
-	  my %partition;
-	  
-	  $class->for_conforming(sub {
-							   my $class = shift;
-							   push @{ $partition{ $self->get_table_set($class)->key } }, $class
-								 unless $class->{abstract};
-							 } );
-	  
-	  my @selects;
-	  
-	  for my $table_set_key (keys %partition) {
-
-		my $mates = $partition{$table_set_key};
-		
-		my %slice;
-		my %col_index;
-		my $col_mark = 0;
-		my (@cols, @expand);
-		
-		my @tables = $self->get_table_set($mates->[0])->tables();
-		
-		my $root_table = $tables[0];
-		push @cols, qualify($id_col, $root_table, \%base_tables, \@expand);
-		push @cols, qualify($type_col, $root_table, \%base_tables, \@expand);
-		
-		my %used;
-		$used{$root_table} += 2;
-
-		for my $class (@$mates) {
-		  my @slice;
-		  
-		  for my $part ($self->get_parts($class)) {
-			my $table = $part->{table};
-			$context->{class} = $part;
-			
-			for my $field ($part->direct_fields()) {
-			  my @import_cols = $field->get_import_cols($context);
-			  $used{$table} += @import_cols;
-
-			  for my $col (@import_cols) {
-				my $qualified_col = "$table.$col";
-				unless (exists $col_index{$qualified_col}) {
-				  push @cols, qualify($col, $table, \%base_tables, \@expand);
-				  $col_index{$qualified_col} = $col_mark++;
-				}
-
-				push @slice, $col_index{$qualified_col};
-			  }
-			}
-		  }
-		  
-		  $slice{ $storage->{class2id}{$class->{name}} || $class->{id} } = \@slice; # should be $class->{id} (compat)
-		}
-		
-		my @from;
-		
-		for my $table (@tables) {
-		  next unless $used{$table};
-		  if (exists $base_tables{$table}) {
-			push @expand, $base_tables{$table};
-			push @from, "$table t%d";
-		  } else {
-			push @from, $table;
-		  }
-		}
-		
-		my @where = map {
-		  qualify($id_col, $root_table, \%base_tables, \@expand) . ' = ' . qualify($id_col, $_, \%base_tables, \@expand)
-		} grep { $used{$_} } @tables[1..$#tables];
-
-		unless (@$mates == $self->{HETEROGENEITY}{$table_set_key}) {
-		  push @where, sprintf "%s IN (%s)", qualify($type_col, $root_table, \%base_tables, \@expand),
-		  join ', ', map {
-			$storage->{class2id}{$_->{name}} or $_->{id} # try $storage first for compatibility with layout1
-		  } @$mates
-		}
-		
-		push @selects, Tangram::Relational::PolySelectTemplate->new(\@expand, \@cols, \@from, \@where, \%slice);
-	  }
-
-	  \@selects;
-	};
-
-	return @$selects;
-  }
-
-sub qualify
-  {
-	my ($col, $table, $ph, $expand) = @_;
-	
-	if (exists $ph->{$table}) {
-	  push @$expand, $ph->{$table};
-	  return "t%d.$col";
-	} else {
-	  return "$table.$col";
-	}
   }
 
 sub deploy
@@ -582,19 +445,29 @@ for my $method (qw( get_instance_select
 					get_insert_statements get_insert_fields
 					get_update_statements get_update_fields
 					get_deletes
-					get_table_set
+					get_polymorphic_select get_table_set
 				  )) {
   eval qq{
 	sub $method {
-				 my (\$self, \$class) = \@_;
-				 return \$self->get_class_engine(\$class)->$method(\$self);
+				 my (\$self, \$class, \@args) = \@_;
+				 return \$self->get_class_engine(\$class)->$method(\$self, \@args);
 				}
   }
 }
 
+sub get_exporter {
+  my ($self, $class) = @_;
+  return $self->get_class_engine($class)->get_exporter( { layout1 => $self->{layout1} } );
+}
+
+sub get_importer {
+  my ($self, $class) = @_;
+  return $self->get_class_engine($class)->get_importer( { layout1 => $self->{layout1} } );
+}
+
 sub DESTROY {
   my ($self) = @_;
-  
+
   for my $class (values %{ $self->{CLASS} }) {
 	$class->fracture()
 	  if $class;
@@ -794,6 +667,200 @@ sub get_table_set {
 	
 	Tangram::Relational::TableSet
 	  ->new((map { $_->get_table_set($engine)->tables } $self->direct_bases()), @table );
+  };
+}
+
+sub get_polymorphic_select
+  {
+	my ($self, $engine, $storage) = @_;
+	
+	my $selects = $self->{POLYMORPHIC_SELECT} ||= do {
+
+	  my $schema = $engine->{SCHEMA};
+	  my $id_col = $schema->{sql}{id_col};
+	  my $type_col = $engine->{TYPE_COL};
+	  my $context = { engine => $engine, schema => $schema, layout1 => $engine->{layout1} };
+
+	  my $table_set = $self->get_table_set($engine);
+	  my %base_tables = do { my $ph = 0; map { $_ => $ph++ } $table_set->tables() };
+
+	  my %partition;
+
+	  $self->for_conforming(sub {
+							   my $conforming = shift;
+							   push @{ $partition{ $conforming->get_table_set($engine)->key } }, $conforming
+								 unless $conforming->{CLASS}{abstract};
+							 } );
+
+	  my @selects;
+
+	  for my $table_set_key (keys %partition) {
+
+		my $mates = $partition{$table_set_key};
+		my $table_set = $mates->[0]->get_table_set($engine);
+		my @tables = $table_set->tables();
+		
+		my %slice;
+		my %col_index;
+		my $col_mark = 0;
+		my (@cols, @expand);
+		
+		
+		my $root_table = $tables[0];
+		push @cols, qualify($id_col, $root_table, \%base_tables, \@expand);
+		push @cols, qualify($type_col, $root_table, \%base_tables, \@expand);
+		
+		my %used;
+		$used{$root_table} += 2;
+
+		for my $mate (@$mates) {
+		  my @slice;
+
+		  $mate->for_composing( sub {
+			my ($composing) = @_;
+			my $table = $composing->{MAPPING}{table};
+			$context->{class} = $composing;
+			
+			for my $field ($composing->{MAPPING}->get_direct_fields()) {
+			  my @import_cols = $field->get_import_cols($context);
+			  $used{$table} += @import_cols;
+
+			  for my $col (@import_cols) {
+				my $qualified_col = "$table.$col";
+				unless (exists $col_index{$qualified_col}) {
+				  push @cols, qualify($col, $table, \%base_tables, \@expand);
+				  $col_index{$qualified_col} = $col_mark++;
+				}
+
+				push @slice, $col_index{$qualified_col};
+			  }
+			}
+		  } );
+
+		  $slice{ $storage->{class2id}{$mate->{CLASS}{name}} || $mate->{MAPPING}{id} } = \@slice; # should be $mate->{id} (compat)
+		}
+		
+		my @from;
+		
+		for my $table (@tables) {
+		  next unless $used{$table};
+		  if (exists $base_tables{$table}) {
+			push @expand, $base_tables{$table};
+			push @from, "$table t%d";
+		  } else {
+			push @from, $table;
+		  }
+		}
+		
+		my @where = map {
+		  qualify($id_col, $root_table, \%base_tables, \@expand) . ' = ' . qualify($id_col, $_, \%base_tables, \@expand)
+		} grep { $used{$_} } @tables[1..$#tables];
+
+		unless (@$mates == $engine->get_heterogeneity($table_set)) {
+		  push @where, sprintf "%s IN (%s)", qualify($type_col, $root_table, \%base_tables, \@expand),
+		  join ', ', map {
+			$storage->{class2id}{$_->{CLASS}{name}} or $_->{MAPPING}{id} # try $storage first for compatibility with layout1
+		  } @$mates
+		}
+		
+		push @selects, Tangram::Relational::PolySelectTemplate->new(\@expand, \@cols, \@from, \@where, \%slice);
+	  }
+
+	  \@selects;
+	};
+
+	return @$selects;
+  }
+
+sub qualify
+  {
+	my ($col, $table, $ph, $expand) = @_;
+	
+	if (exists $ph->{$table}) {
+	  push @$expand, $ph->{$table};
+	  return "t%d.$col";
+	} else {
+	  return "$table.$col";
+	}
+  }
+
+sub get_exporter {
+  my ($self, $context) = @_;
+
+  return $self->{EXPORTER} ||= do {
+	
+	my (@export_sources, @export_closures);
+	
+	$self->for_composing( sub {
+							my ($composing) = @_;
+
+							my $class = $composing->{CLASS};
+							$context->{class} = $class;
+							
+							for my $field ($composing->{MAPPING}->get_direct_fields()) {
+							  if (my $exporter = $field->get_exporter($context)) {
+								if (ref $exporter) {
+								  push @export_closures, $exporter;
+								  push @export_sources, 'shift(@closures)->($obj, $context)';
+								} else {
+								  push @export_sources, $exporter;
+								}
+							  }
+							}
+						  } );
+	
+	my $export_source = join ",\n", @export_sources;
+	my $copy_closures = @export_closures ? ' my @closures = @export_closures;' : '';
+	
+	# $Tangram::TRACE = \*STDOUT;
+	
+	$export_source = "sub { my (\$obj, \$context) = \@_;$copy_closures\n$export_source }";
+	
+	print $Tangram::TRACE "Compiling exporter for $self->{name}...\n$export_source\n"
+	  if $Tangram::TRACE;
+	
+	eval $export_source or die;
+	}
+  }
+
+sub get_importer {
+  my ($self, $context) = @_;
+
+  return $self->{IMPORTER} ||= do {
+	my (@import_sources, @import_closures);
+	
+	$self->for_composing( sub {
+							my ($composing) = @_;
+							
+							my $class = $composing->{CLASS};
+							$context->{class} = $class;
+							
+							for my $field ($composing->{MAPPING}->get_direct_fields()) {
+							
+							  my $importer = $field->get_importer($context)
+								or next;
+							
+							  if (ref $importer) {
+								push @import_closures, $importer;
+								push @import_sources, 'shift(@closures)->($obj, $row, $context)';
+							  } else {
+								push @import_sources, $importer;
+							  }
+							}
+						  } );
+	
+	my $import_source = join ";\n", @import_sources;
+	my $copy_closures = @import_closures ? ' my @closures = @import_closures;' : '';
+	
+	# $Tangram::TRACE = \*STDOUT;
+	
+	$import_source = "sub { my (\$obj, \$row, \$context) = \@_;$copy_closures\n$import_source }";
+	
+	print $Tangram::TRACE "Compiling importer for $self->{name}...\n$import_source\n"
+	  if $Tangram::TRACE;
+	
+	# use Data::Dumper; print Dumper \@cols;
+	eval $import_source or die;
   };
 }
 

@@ -334,6 +334,7 @@ sub objects
 }
 
 package Tangram::Expr;
+use Carp;
 
 sub new
 {
@@ -350,7 +351,7 @@ sub expr
 
 sub storage
 {
-	return shift->{objects}[0]->{storage};
+	return ((shift->{objects}->members)[0] or confess 'no storage')->storage;
 }
 
 sub type

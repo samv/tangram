@@ -473,7 +473,7 @@ sub _insert
 	  [ map { $self->prepare($_) } $engine->get_insert_statements($class) ];
 
 	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
-	my @state = ( $self->{export_id}->($id), $classId, $class->get_exporter({layout1 => $self->{layout1} })->($obj, $context) );
+	my @state = ( $self->{export_id}->($id), $classId, $engine->get_exporter($class)->($obj, $context) );
 
 	my @fields = $engine->get_insert_fields($class);
 
@@ -534,7 +534,7 @@ sub _update
 	my $dbh = $self->{db};
 	my $context = { storage => $self, dbh => $dbh, id => $id, SAVING => $saving };
 
-	my @state = ( $self->{export_id}->($id), substr($id, -$self->{cid_size}), $class->get_exporter({ layout1 => $self->{layout1} })->($obj, $context) );
+	my @state = ( $self->{export_id}->($id), substr($id, -$self->{cid_size}), $engine->get_exporter($class)->($obj, $context) );
 	my @fields = $engine->get_update_fields($class);
 
 	my $sths = $self->{UPDATE_STHS}{$class->{name}} ||=
@@ -750,7 +750,7 @@ sub _row_to_object
   {
     my ($self, $obj, $id, $class, $row) = @_;
 	my $context = { storage => $self, id => $id, layout1 => $self->{layout1} };
-	$self->{schema}->classdef($class)->get_importer($context)->($obj, $row, $context);
+	$self->{engine}->get_importer($self->{schema}->classdef($class))->($obj, $row, $context);
 	return $obj;
 }
 
