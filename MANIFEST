@@ -2,6 +2,9 @@ Changes
 Makefile.PL
 MANIFEST
 README
+tour.pl
+metatest.pl
+#supported.pl
 Tangram.pm
 Tangram.pod
 
@@ -46,6 +49,9 @@ Tangram/DMDateTime.pm
 Tangram/PerlDump.pm
 Tangram/PerlDump.pod
 
+Tangram/Springfield.pm
+Tangram/Springfield.pod
+
 Tangram/Core.pod
 Tangram/Schema.pod
 Tangram/Deploy.pod
@@ -69,6 +75,7 @@ Tangram/Dialect.pod
 t/Springfield.pm
 
 # core
+t/save.t
 t/cursor.t
 t/poly.t
 t/mi.t
@@ -77,7 +84,6 @@ t/stateless.t
 t/tx.t
 t/reload.t
 t/unload.t
-t/deep_update.t
 t/weakref.t
 
 # mappings
