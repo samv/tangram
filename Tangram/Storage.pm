@@ -72,7 +72,7 @@ sub _open
 	  $self->{id_col} = $schema->{sql}{id_col};
 
 	  if ($control) {
-		$self->{class_col} = $schema->{sql}{class_col};
+		$self->{class_col} = $schema->{sql}{class_col} || 'type';
 		$self->{import_id} = sub { shift() . sprintf("%0$self->{cid_size}d", shift()) };
 		$self->{export_id} = sub { substr shift(), 0, -$self->{cid_size} };
 	  } else {
