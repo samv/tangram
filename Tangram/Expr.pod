@@ -52,6 +52,10 @@ any Perl scalar value.  Tangram will automatically quote the operand
 as required by the SQL syntax.  The result of the comparison is a
 Tangram::Filter.
 
+StringExpr objects also support the method like($str), where $str is a
+string that probably contains SQL wildcards. The result is a
+Tangram::Filter that translates to a SQL C<LIKE $str> predicate.
+
 =head1 RefExpr
 
 RefExpr objects can be compared for equality using the usual operators
@@ -78,6 +82,10 @@ or vertical bar must be used.  The result is a L<Filter>.
 $person is called 'Homer'
 
    	$person->{name} eq 'Homer'
+
+$person's name ends with 'mer'
+
+   	$person->{name}->like('%mer');
 
 $person is older than 35
 
