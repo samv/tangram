@@ -18,7 +18,7 @@ sub relational_schema
     foreach my $class (keys %{$self->{classes}})
     {
 		my $classdef = $classes->{$class};
-		my $tabledef = $tables->{$class} ||= {};
+		my $tabledef = $tables->{ $classdef->{table} } ||= {};
 		my $cols = $tabledef->{COLS} ||= {};
 
 		$cols->{id} = $self->{sql}{id};

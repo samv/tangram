@@ -39,11 +39,8 @@ sub _open
 
     while (($classId, $className) = $cursor->fetchrow())
     {
-	if ($className = $table2class{$className})
-	{
-	    $id2class->{$classId} = $className;
-	    $class2id->{$className} = $classId;
-	}
+		$id2class->{$classId} = $className;
+		$class2id->{$className} = $classId;
     }
 
     $cursor->close();
@@ -53,8 +50,8 @@ sub _open
 
     foreach my $class (keys %$classes)
     {
-	warn "no class id for '$class'\n"
-	    if $classes->{$class}{concrete} && !exists $self->{class2id}{$class};
+		warn "no class id for '$class'\n"
+			if $classes->{$class}{concrete} && !exists $self->{class2id}{$class};
     }
 
     $self->{set_id} = $schema->{set_id} ||
@@ -73,7 +70,7 @@ sub _open
 		};
 
     $self->{get_id} = $schema->{get_id}
-	|| sub { $self->{ids}{0 + shift()} };
+		|| sub { $self->{ids}{0 + shift()} };
 
     return $self;
 }

@@ -39,7 +39,6 @@ Revision history for Perl extension Tangram.
 	- fixed bug: erase() failed in presence of stateless leaf classes
 	- temporarily removed RawDate and RawTime tests because M$ SQL
 	  cannot handle them; those modules are still present though
-		
 
-
-
+1.04  Jan 03 2000 - interim version
+	- fixed two bugs related to explicit tables

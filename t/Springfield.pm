@@ -33,6 +33,8 @@ $schema = Tangram::Schema->new( {
 
       NaturalPerson =>
       {
+	   table => 'NP',
+
 	   bases => [ qw( Person ) ],
 
 	   fields =>
@@ -172,7 +174,7 @@ $schema = Tangram::Schema->new( {
 
    } } );
 
-my ($cs, $user, $passwd);
+use vars qw( $cs $user $passwd);
 
 {
    local $/;
