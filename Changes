@@ -246,3 +246,6 @@ Revision history for Perl extension Tangram.
 	  via dclone())
 	- some reformatting, as I grasp more of the code.
 	- fix for Postgres sub-select detection (Pedro Alves)
+	- make_1st_id_in_tx now only called for 1st insert
+	  (Chengzhi Liang)
+
