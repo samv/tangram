@@ -84,7 +84,7 @@ sub defered_save
 
 		if (keys %removed)
 		{
-			my $removed = join(' ', keys %removed);
+			my $removed = join(', ', keys %removed);
 			$storage->sql_do("UPDATE $table SET $item_col = NULL, $slot_col = NULL WHERE id IN ($removed)");
 		}
 
