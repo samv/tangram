@@ -138,7 +138,7 @@ sub build_select
 	{
            # add the fields that we're ordering by to the select part
            # of the query
-           my @not_in_it = (grep { $select !~ m/ \Q$_\E,|$/ }
+           my @not_in_it = (grep { $select !~ m/ \Q$_\E(?:,|$)/ }
 			    map { $_->{expr} } @$order);
            $select =~ s{\n}{join("", map {", $_"} @not_in_it)."\n"}se
 	       if @not_in_it;

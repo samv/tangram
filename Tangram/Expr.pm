@@ -603,7 +603,7 @@ sub new
 	$sql .= "  $cols";
 	if (exists $args{order}) {
 	    $sql .= join("", map {", $_"}
-			 grep { $sql !~ m/ \Q$_\E,|$/ }
+			 grep { $sql !~ m/ \Q$_\E(?:,|$)/ }
 			 map { $_->{expr} } @{$args{order}});
 	}
 	$sql .= "\nFROM $from" if $from;

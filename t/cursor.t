@@ -14,7 +14,7 @@ sub NaturalPerson::children
       : join(' ', map { $_->{firstName} } @{ $self->{$children} } )
 }
 
-Springfield::begin_tests(13);
+Springfield::begin_tests(15);
 
 {
 	my $storage = Springfield::connect_empty;
@@ -146,7 +146,8 @@ Springfield::leaktest;
    my $cursor = $storage->cursor($person,
        filter => $person->{partner} == $partner,
 	   order => [ $partner->{firstName} ],
-	   retrieve => [ $partner->{firstName}, $partner->{name} ] );
+	   retrieve => [ $partner->{firstName}, $partner->{name} ]
+	);
 
    my @results;
 
@@ -159,6 +160,37 @@ Springfield::leaktest;
    # print "@results\n";
 
    Springfield::test( "@results" eq 'Marge Homer Simpson Homer Marge Simpson');
+
+   $storage->disconnect;
+}
+
+Springfield::leaktest;
+
+{
+   my $storage = Springfield::connect;
+
+   my ($person, $partner) = $storage->remote(qw( NaturalPerson NaturalPerson ));
+
+   my $cursor = $storage->cursor($person,
+       filter => $person->{partner} == $partner,
+
+	   # here we're ordering by an unselected foreign column; MySQL doesn't
+           # mind, some other RDBMS' apparently do.
+           # This extra column will end up in the $cursor->residue();
+	   order => [ $partner->{firstName} ],
+	);
+
+   my @results;
+
+   while (my $p = $cursor->current())
+   {
+      push @results, $p->{firstName}, $cursor->residue();
+      $cursor->next();
+   }
+
+   # print "@results\n";
+
+   Springfield::test( "@results" eq 'Marge Homer Homer Marge');
 
    $storage->disconnect;
 }
