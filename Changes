@@ -11,3 +11,7 @@ Revision history for Perl extension Tangram.
 		improve speed of read_object
 		fixed various bugs
 		rewrote part of, and expanded documentation
+
+1.01  Nov 12 1999
+	- interim version
+		added (raw) mapping between Perl strings and date/time SQL types
