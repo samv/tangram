@@ -75,6 +75,11 @@ sub new
 
 			my $type = $self->{types}{$typetag};
 
+			croak("Unknow field type '$typetag', ",
+				  "did you forget some 'use Tangram::SomeType' ",
+				  "in your program?\n")
+				unless defined $types->{$typetag};
+
 			my @members = $types->{$typetag}->reschema($memdefs, $class, $self)
 				if $memdefs;
 
