@@ -1,6 +1,7 @@
-libtangram-perl (2.0501) unstable; urgency=low
+libtangram-perl (2.06) unstable; urgency=low
 
   * Added Tangram::Storage->oid_isa
+  * Compatibility with Perl 5.8.1-RC2
 
  -- Sam Vilain <sam@vilain.net>  Wed, 21 May 2003 03:46:21 +1200
 

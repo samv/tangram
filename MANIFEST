@@ -115,3 +115,10 @@ t/mysql.t
 t/mappings.t
 t/Capture.pm
 t/bughunt.t
+
+debian/changelog
+debian/control
+debian/rules
+debian/copyright
+
+META.yml                                Module meta-data (added by MakeMaker)

@@ -28,7 +28,7 @@ Springfield::leaktest;
 	my ($p1, $p2) = $storage->remote(qw( NaturalPerson NaturalPerson ));
 
 	my ($homer, $other) = $storage->select( $p1,
-											$p1->{partner} == $p2 & $p2->{firstName} eq 'Marge' );
+											($p1->{partner} == $p2) & ($p2->{firstName} eq 'Marge') );
 
 	Springfield::test( $homer && !$other );
 

@@ -28,7 +28,7 @@ my @tests =
       ],
       "iarray (w/Package seperator)" =>
       [
-       Natural::Person =>
+       'Natural::Person' =>
        {
 	fields => {
 		   string   => [ qw( firstName name ) ],
@@ -40,7 +40,7 @@ my @tests =
       ],
       "iarray (w/Package seperator, long form)" => 
       [
-       UnNatural::Person =>
+       'UnNatural::Person' =>
        {
 	fields => {
 		   string   => [ qw( firstName name ) ],
@@ -55,7 +55,7 @@ my @tests =
       ],
       "iarray (w/Package seperator, long form + coll/slot)" =>
       [
-       Natural::Bloke =>
+       'Natural::Bloke' =>
        {
 	fields => {
 		   string   => [ qw( firstName name ) ],

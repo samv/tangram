@@ -191,7 +191,7 @@ sub includes
 	}
 
 	my $remote = $storage->remote($item_class);
-	return $self->includes($remote) & $remote->{id} == $item_id;
+	return ($self->includes($remote) & ($remote->{id} == $item_id));
 }
 
 package Tangram::LinkTable;
