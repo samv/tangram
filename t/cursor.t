@@ -12,18 +12,27 @@ sub NaturalPerson::children
       : join(' ', map { $_->{firstName} } @{ $self->{$children} } )
 }
 
-Springfield::begin_tests(8);
+Springfield::begin_tests(12);
 
 {
-   my $storage = Springfield::connect_empty;
+	my $storage = Springfield::connect_empty;
 
-	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
+	my @children = map { NaturalPerson->new( firstName => $_, name => 'Simpson' ) } @kids;
 
-   $storage->insert(
-      NaturalPerson->new( firstName => 'Homer', $children => [ @children ] ),
-      NaturalPerson->new( firstName => 'Marge', $children => [ @children ] ) );
+	my $homer = NaturalPerson->new( firstName => 'Homer', name => 'Simpson',
+									$children => [ @children ] );
 
-   $storage->disconnect;
+	my $marge = NaturalPerson->new(firstName => 'Marge', name => 'Simpson',
+								   $children => [ @children ] );
+
+	$homer->{partner} = $marge;
+	$marge->{partner} = $homer;
+
+	$storage->insert( $homer, $marge );
+
+	delete $homer->{partner};
+
+	$storage->disconnect;
 }
 
 Springfield::leaktest;
@@ -82,3 +91,72 @@ Springfield::leaktest;
 }
 
 Springfield::leaktest;
+
+{
+	my $storage = Springfield::connect;
+	$storage->insert( NaturalPerson->new(firstName => 'Montgomery',	name => 'Burns' ) );
+	$storage->disconnect;
+}
+
+{
+   my $storage = Springfield::connect;
+
+   my $remote = $storage->remote('NaturalPerson');
+
+   my @results = $storage->select($remote,
+	   order => [ $remote->{firstName}, $remote->{name} ] );
+
+   @results = map { "$_->{firstName} $_->{name}"} @results;
+
+   Springfield::test( "@results\n" eq <<CONTROL );
+Bart Simpson Homer Simpson Lisa Simpson Maggie Simpson Marge Simpson Montgomery Burns
+CONTROL
+
+   $storage->disconnect;
+}
+
+{
+   my $storage = Springfield::connect;
+
+   my $remote = $storage->remote('NaturalPerson');
+
+   my @results = $storage->select($remote,
+       filter => $remote->{name} eq 'Simpson', 
+	   order => [ $remote->{firstName}, $remote->{name} ] );
+
+   @results = map { "$_->{firstName} $_->{name}"} @results;
+
+   Springfield::test( "@results\n" eq <<CONTROL );
+Bart Simpson Homer Simpson Lisa Simpson Maggie Simpson Marge Simpson
+CONTROL
+
+   $storage->disconnect;
+}
+
+
+Springfield::leaktest;
+
+{
+   my $storage = Springfield::connect;
+
+   my ($person, $partner) = $storage->remote(qw( NaturalPerson NaturalPerson ));
+
+   my $cursor = $storage->cursor($person,
+       filter => $person->{partner} == $partner,
+	   order => [ $partner->{firstName} ],
+	   retrieve => [ $partner->{firstName}, $partner->{name} ] );
+
+   my @results;
+
+   while (my $p = $cursor->current())
+   {
+      push @results, $p->{firstName}, $cursor->residue();
+      $cursor->next();
+   }
+
+   # print "@results\n";
+
+   Springfield::test( "@results" eq 'Marge Homer Simpson Homer Marge Simpson');
+
+   $storage->disconnect;
+}
