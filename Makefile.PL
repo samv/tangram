@@ -95,7 +95,6 @@ MSG
 			$schema->{sql}{id} = 'int4';
 			$schema->{sql}{cid} = 'int4';
 			$schema->{sql}{oid} = 'int4';
-			$schema->{sql}{cid_size} = 3;
 		}
 
 		elsif ($Springfield::cs =~ /access/i)
@@ -103,7 +102,6 @@ MSG
 			$schema->{sql}{id} = 'int';
 			$schema->{sql}{cid} = 'int';
 			$schema->{sql}{oid} = 'int';
-			$schema->{sql}{cid_size} = 3;
 		}
 
 		my $rs = $schema->relational_schema();
