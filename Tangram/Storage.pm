@@ -692,6 +692,8 @@ sub _fetch_object_state
     my $cursor = $self->sql_cursor($sql, $self->{db});
     my $row = [ $cursor->fetchrow() ];
     $cursor->close();
+
+	die "no object with id '$id'" unless @$row;
    
     splice @$row, 0, 2; # id and classId
 
