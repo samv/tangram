@@ -315,7 +315,7 @@ my $top = 1_000;
 
 sub new
 {
-	++$top
+	'l' . ++$top
 }
 
 1;
