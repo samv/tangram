@@ -74,7 +74,79 @@ our $pixie_like_schema =
      });
 
 use Storable qw(dclone);
-our $next_gen_schema = dclone $schema;
+our $next_gen_schema = # dclone $schema;
+   ({
+    classes => [
+       CD => {
+         fields => {
+            string => [ qw(title) ],
+            timepiece => [ qw(publishdate) ],
+            iarray  => { songs => { class => 'CD::Song',
+                                    aggreg => 1,
+                                    back => 'cd',
+                                  },
+                       },
+         }
+       },
+       CD::Album => {
+         bases => [ qw(CD) ],
+         fields => {
+            string => [ qw(title) ],
+            timepiece => [ qw(publishdate) ],
+            iarray  => { songs => { class => 'CD::Song',
+                                    aggreg => 1,
+                                    back => 'cd',
+                                  },
+                       },
+         }
+       },
+       CD::Compilation => {
+         bases => [ qw(CD) ],
+         fields => {
+            string => [ qw(title) ],
+            timepiece => [ qw(publishdate) ],
+            iarray  => { songs => { class => 'CD::Song',
+                                    aggreg => 1,
+                                    back => 'cd',
+                                  },
+                       },
+         }
+       },
+       CD::Song => {
+         fields => {
+            string => [ qw(name) ],
+         }
+       },
+       CD::Artist => {
+         abstract => 1,
+         fields => {
+            string => [ qw(name popularity) ],
+            iset => { cds => { class => 'CD',
+                               aggreg => 1,
+                               back => 'artist' },
+                             },
+		   },
+       },
+       CD::Person => {
+         bases  => [ "CD::Artist" ],
+         fields => {
+            string => [ qw(gender haircolor) ],
+            timepiece => [ qw(birthdate) ],
+         }
+       },
+       CD::Band => {
+         bases  => [ "CD::Artist" ],
+         fields => {
+            timepiece => [ qw(creationdate enddate) ],
+            set => { members => { class => 'CD::Person',
+				  table => "artistgroup",
+				},
+                   },
+	    },
+       },
+    ],
+});
+
 
 sub AUTOLOAD {
     my ($func) = ($AUTOLOAD =~ m/.*::(.*)$/);
