@@ -1,15 +1,18 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tangram
-version:      2.07_06
+version:      2.07_07
 version_from: lib/Tangram.pm
 installdirs:  site
 requires:
-    Date::Manip:                   0
+    Class::Date:                   0
+    Data::Lazy:                    0.06
     DBI:                           0
     Scalar::Util:                  0
     Set::Object:                   1.04
+    Set::Scalar:                   0
     Test::More:                    0
+    Time::Piece:                   0
 
 distribution_type: module
 generated_by: ExtUtils::MakeMaker version 6.17
