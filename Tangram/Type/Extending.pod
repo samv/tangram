@@ -11,16 +11,6 @@ simplest cases). There is one Type object per persistent field.
 Adding support for new types amounts to adding subclasses to
 Tangram::Type.
 
-=head1 DISCLAIMERS
-
-THIS IS ADVANCED MATERIAL!!!
-
-THIS MATERIAL IS SUBJECT TO CHANGE!!!
-
-The Type hierarchy has been entirely reworked. Its protected
-interfaces are considered in alpha stage, and may change in the
-future.
-
 =head1 WRITING NEW TYPES
 
 Tangram is organized in several subsystems, described below.

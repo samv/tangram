@@ -11,27 +11,30 @@ them.
 =head1 STRATEGIES FOR MAPPING INHERITANCE
 
 Inheritance is a concept that has no equivalent in the relational
-world. However, it is possible to implement it by using a combination of
-relational features like tables and foreign keys.
+world. However, it is possible to implement it by using strict
+disciplines and a combination of relational features like tables and
+foreign keys.
 
-One of the paramount issues about mapping inheritance is how well the mapping
-supports polymorphism. Any Object-Oriented persistence facility that deserves
-its name needs to allow the retrieval of all the Fruits, and return a
-heterogeneous collection of Apples, Oranges and Bananas. Also, it must
-perform this operation in an efficient manner. In particular, polymorphic
-retrieval should not cost one SELECT per retrieved object.
+One of the paramount issues about mapping inheritance is how well the
+mapping supports polymorphism.  Any Object-Oriented persistence
+facility that deserves its name needs to allow the retrieval of all
+the Fruits, and return a heterogeneous collection of Apples, Oranges
+and Bananas.  Also, it must perform this operation in an efficient
+manner.  In particular, polymorphic retrieval should not cost one
+SELECT per retrieved object.
 
-A secondary - yet important - issue is how well the mapping plays by the rules
-of orthogonal orthodoxy.
+A secondary - yet important - issue is how well the mapping plays by
+the rules of orthogonal orthodoxy.
 
-Another issue we'll examine is how well the mapping supports 'complex' queries,
-that is, queries that involve several objects
+Another issue we'll examine is how well the mapping supports 'complex'
+queries, that is, queries that involve several objects.
 
-Three strategies are in common use, that go by the name Vertical, Horizontal
-and Filtered mapping. They all have advantages and disadvantages.
+Three strategies are in common use, that go by the name Vertical,
+Horizontal and Filtered mapping.  They all have advantages and
+disadvantages.
 
-The following sections describe the three strategies in details. They make use of
-a simple object model to illustrate the mappings.
+The following sections describe the three strategies in details. They
+make use of a simple object model to illustrate the mappings.
 
 
                           +---------------------+
@@ -50,7 +53,7 @@ a simple object model to illustrate the mappings.
      |   +---------------+                        +-----------------+
      |   |  age: integer |                        | form: string    |
      |   +---------------+                        +-----------------+
-     |     
+     |
      |
      |
      |                    +---------------------+
@@ -79,8 +82,9 @@ Each I<concrete> class is mapped onto a single table. Each row in the
 table describes the persistent state of one object.
 
 The attributes are mapped onto columns, usually one column per
-attribute but not necessarily. For example, collections may be stored elsewhere
-(for example on a link table) and thus require no column on the class' table.
+attribute but not necessarily. For example, collections may be stored
+elsewhere (for example on a link table) and thus require no column on
+the class' table.
 
 In effect, the database looks like this:
 
@@ -127,23 +131,25 @@ In effect, the database looks like this:
 
 =head2 advantages
 
-Polymorphic retrieval costs one SELECT per concrete conforming class; retrieving
-all the Persons costs two SELECTs. These SELECTs, however, don't use joins -
-an expensive operation. In our example, retrieving all the Persons requires the
-following two SELECTs:
+Polymorphic retrieval costs one SELECT per concrete conforming class;
+retrieving all the Persons costs two SELECTs. These SELECTs, however,
+don't use joins - an expensive operation. In our example, retrieving
+all the Persons requires the following two SELECTs:
 
    SELECT id, name, age FROM NaturalPerson
    SELECT id, name, form FROM LegalPerson
 
 =head2 disadvantages
 
-This mapping is reasonable with regard to relational orthodoxy, but not perfect:
-the 'name' column is present on two different tables, with the same semantic.
+This mapping is reasonable with regard to relational orthodoxy, but
+not perfect: the 'name' column is present on two different tables,
+with the same semantic.
 
-The biggest drawback, however, happens when you try to perfrom complex queries.
-Suppose oyu want to retrieve all the Persons (Natural- or Legal-) that own a
-Vehicle of make 'Saab' (be it a Car or a Plane). Sticking with equijoins, the
-cost of the operation is four SELECTs:
+The biggest drawback, however, happens when you try to perfrom complex
+queries.  Suppose oyu want to retrieve all the Persons (Natural- or
+Legal-) that own a Vehicle of make 'Saab' (be it a Car or a
+Plane). Sticking with equijoins, the cost of the operation is four
+SELECTs:
 
    SELECT NaturalPerson.id, NaturalPerson.name, NaturalPerson.age
       FROM NaturalPerson, Car
@@ -161,17 +167,17 @@ cost of the operation is four SELECTs:
       FROM LegalPerson, Plane
       WHERE Plane.owner = LegalPerson.id
 
-When the depth of the hierarchies increase, the combinatory explosion makes
-complex queries prohibitive.
+When the depth of the hierarchies increase, the combinatory explosion
+makes complex queries prohibitive.
 
 =head1 Vertical Mapping
 
 =head2 description
 
-Each class has its corresponding table, which contains only the class' direct
-fields. In other words, the table doesn't store the inherited fields. Both
-concrete and abstract classes get a table. The state of an object is
-thus scattered over several tables.
+Each class has its corresponding table, which contains only the class'
+direct fields. In other words, the table doesn't store the inherited
+fields. Both concrete and abstract classes get a table. The state of
+an object is thus scattered over several tables.
 
 For example:
 
@@ -188,8 +194,8 @@ For example:
          +------+----------------+
 
 
-         +---------------+     +-------------+ 
-         | NaturalPerson |     | LegalPerson | 
+         +---------------+     +-------------+
+         | NaturalPerson |     | LegalPerson |
          +------+--------+     +-------+-----++
          |  id  | age    |     |  id   | form |
          =================     ================
@@ -212,8 +218,8 @@ For example:
          |  51  | 36    | Miata          |
          +------+-------+----------------+
 
-         +------+              +-------+         
-         | Car  |              | Plane |         
+         +------+              +-------+
+         | Car  |              | Plane |
          +------++--------+    +-------+--------+
          |  id   | plate  |    |  id   | ident  |
          ==================    ==================
