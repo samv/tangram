@@ -104,7 +104,24 @@ Revision history for Perl extension Tangram.
 1.17  Jul 28 2000 - interim version
 	- Gabor's patches on deep updates
 
-1.18  Jul 28 2000 - experimental version
+1.18  Jul 28 2000 - stable version
 	- weakrefs!
 	- tuples
 	- mysql tx acquired lock regardless of tx nesting
+
+1.19  Jul 28 2000 - stable version
+	- improved id allocation for mysql
+	- bitwise operators for mysql
+	- manual class id allocation
+	- install now works in the absence of DBI and Set::Object
+	- Makefile.PL prerequisites work now
+	- Guided Tour is now generated & can be run
+	- added support for LIMIT in selects
+	- deploy() didn't take explicit oid/cid type into account; fixed
+	- deploy() wrongly defaulted to NULLable types; fixed
+	- class id can now be specified
+	- oid and cid now default to INTEGER
+	- fixed error in Expr.pod but I don't remember what it was	
+	- minor improvement to Schema.pod
+	- added Springfield.pm for users to play with
+	- added support for SELECT SUM

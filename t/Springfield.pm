@@ -27,8 +27,7 @@ $schema = Tangram::Schema->new( {
 
    sql =>
    {
-	   cid_size => 2,
-	   
+	   cid_size => 3,
    },
 
    class_table => 'Classes',
@@ -68,7 +67,7 @@ $schema = Tangram::Schema->new( {
 
 		array =>
 		{
-		 a_children =>
+		 children =>
 		 {
 		  class => 'NaturalPerson',
 		  table => 'a_children',
@@ -230,19 +229,23 @@ sub connect
 	return $storage;
 }
 
-sub connect_empty
-{
-   my $storage = Springfield::connect;
+sub empty
+  {
+	my $storage = shift || Springfield::connect;
 	my $conn = $storage->{db};
 
-   foreach my $classdef (values %{ $Springfield::schema->{classes} })
-   {
+	foreach my $classdef (values %{ $Springfield::schema->{classes} }) {
       $conn->do("DELETE FROM $classdef->{table}") or die
-			unless $classdef->{stateless};
-   }
+		unless $classdef->{stateless};
+	}
+  }
 
-   return $storage;
-}
+sub connect_empty
+  {
+	my $storage = Springfield::connect;
+	empty($storage);
+	return $storage;
+  }
 
 use vars qw( $test );
 
