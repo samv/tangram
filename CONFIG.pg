@@ -1,4 +1,1 @@
-DBI:Pg:dbname=Springfield
-tangram
-
-
+dbi:Pg:dbname=tangram
