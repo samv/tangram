@@ -13,4 +13,5 @@ If you intend to run the regression tests (recommended), you will
 also need to prepare an empty database before starting the installation
 procedure.
 
-For more information, see the included POD files.
+For more information, see the included POD files and
+http://www.tangram-persistence.org/

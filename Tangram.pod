@@ -30,7 +30,7 @@ Perl 5.00503
 
 =item *
 
-Set::Object 1.02
+Set::Object 1.03
 
 =item *
 
@@ -64,15 +64,15 @@ TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
 
 =head1 SUPPORT
 
-Please send bug reports directly to me (jll@soundobjectlogic.com)
-or to the Tangram mailing list (tangram-users@lists.sourceforge.net).
+Please send bug reports directly to the Tangram 2 maintainer's mailing
+list <tangram-t2-maintainers@tangram-persistence.org>, and please CC:
+<bug-Tangram@rt.cpan.org> so I can track your fault accurately.
 
 Whenever possible, include a short, complete script demonstrating the
-problem.
+problem.  (read: if you want it fixed quicker, demonstrate it)
 
-Questions of general interest should should be posted either to the
-mailing list or to comp.lang.perl.modules, which I monitor daily. Make
-sure to include 'Tangram' in the subject line.
+Questions of general interest should should be posted to the mailing
+list, but not rt.cpan.org.
 
 Commercial support for Tangram is available, see
 http://www.soundobjectlogic.com/tangram/support.html.
@@ -81,5 +81,7 @@ http://www.soundobjectlogic.com/tangram/support.html.
 
 Except where noted, all the code and documentation was written by
 Jean-Louis Leroy (jll@soundobjectlogic.com) and Sound Object Logic.
+
+Sam Vilain <sam@vilain.net> is the current humble maintainer.
 
 =cut

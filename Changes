@@ -140,6 +140,51 @@ Revision history for Perl extension Tangram.
 	- introduced Relational::Engine
 	- flexible mapping
 
+2.05pre1 May 2003 - SamV - first "not the momma" release
+
+	- Patches from lots of people, don't know who 'coz the honourable
+	  grand master JLL applied a lot of them, I'll try to summarize
+	  here:
+	
+		- back-porting pieces for 5.00503 (that was me)
+		- a more elegant solution for the
+		  Tangram::AbstractArray/AbstractHash corner case than
+		  the one I submitted :-)
+		- code that (possibly) completes Tangram::Hash support (I
+		  haven't written a test case to confirm this yet)
+		- A fix to Tangram::AbstractSet that again caters to some
+		  very strange corner cases (this was me too)
+		- Working implementation of the Tangram::DMDateTime type
+		  mapping, a good thing that running a persistent
+		  application server offsets the huge time it takes to
+		  load in Date::Manip :-)
+		- A bug fix to Tangram::FlatArray mapping type that
+		  affects deleting members (don't know whose)
+		- Tangram::IntrSet::get_intrusions (? can anyone claim
+		  or explain this one?)
+		- Minor Tangram::PerlDump fix (a simple one)
+		- Deep, deep magic in Tangram::Relational::Engine;
+		  new function get_heterogeneity (anyone?)
+		- Use of uninitialised variable in Tangram::Engine...
+		- Other large changes to Tangram::Schema (? - get_bases,
+		  get_specs, is_root, etc)
+		- A problem with merging schemas when you used a
+		  `back-ref' to a class that is later on in the schema
+		  (me)
+		- Scattered showers of changes in Tangram::Storage
+		  (get_insert_statements etc, lots of `off by one'
+		  (reference nesting level that is) changes)
+	
+	- All I can say is that there have been some very smart people
+	  looking at this code and submitting patches.
+
 2.05pre2 Jun 2003 - SamV
-	- explicitly select all ORDER BY columns
-	- normalise default "slot" and "coll" column names
+	- Minor Tangram::Expr defined vs logically-false fix
+	  (Aaron Mackey)
+	- explicitly select all ORDER BY columns (Aaron Mackey)
+	- normalise default "slot" and "coll" column names in
+	  Tangram::Intr* types (SamV)
+
+2.05 Jul 2003 - SamV
+	- Tangram::Scalar and Tangram::Ref column names are now passed
+	  through $schema->{normalize}->()
