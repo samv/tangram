@@ -260,7 +260,7 @@ Revision history for Perl extension Tangram.
 	- and a Tangram::YAML (not working, waiting for a CPAN bug to
 	  be fixed)
 
-2.07.3, 14-Apr-2004 - ks.perl@kurtstephens.com
+2.07.3, 02-May-2004 - ks.perl@kurtstephens.com
 
         - Do not $self->{db}->disconnect in Storage::disconnect() and DESTROY(),
           if $self->{db} eq $opts->{dbh} in Tangram::Storage->connect($schema, $cs, $user, $pw, { 'dbh' => ... } );  See $self->{db_owned}.
@@ -273,4 +273,7 @@ Revision history for Perl extension Tangram.
 	- Added support for reused tables for mapping both sides of
           many-to-many UML Associations to the same table with Tangram::Set
           and Tangram::Array. See UMMF's example/ex1.
-	- Added support for timestamping all tables through $schame->{sql}{timestamp_all_tables}.
+	- Added support for timestamping all tables through $schema->{sql}{timestamp_all_tables}.
+        - Prevent additional records in Tangram control table on redeploy.
+        - Added support for GROUP BY in Tangram::Cursor.
+        - Added COUNT($remote) and SUM($filter_expr) support.
