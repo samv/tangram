@@ -8,7 +8,6 @@ use Tangram::RawDateTime;
 
 use Tangram::FlatArray;
 use Tangram::FlatHash;
-use Tangram::Hash;
 use Tangram::PerlDump;
 
 package Springfield;
@@ -80,14 +79,14 @@ $schema = Tangram::Schema->new( {
 		 }
 		},
 
- 		hash =>
- 		{
- 		 h_opinions =>
- 		 {
- 		  class => 'Opinion',
- 		  table => 'h_opinions',
- 		 }
- 		},
+# 		hash =>
+# 		{
+# 		 h_opinions =>
+# 		 {
+# 		  class => 'Opinion',
+# 		  table => 'h_opinions',
+# 		 }
+# 		},
 
 		iarray =>
 		{
@@ -242,8 +241,9 @@ sub empty
 	my $schema = shift || $Springfield::schema;
 	my $conn = $storage->{db};
 
-	for my $table (keys %{ $storage->{engine}->relational_schema()->[0] }) {
-      $conn->do("DELETE FROM $table");
+	foreach my $classdef (values %{ $schema->{classes} }) {
+      $conn->do("DELETE FROM $classdef->{table}") or die
+		unless $classdef->{stateless};
 	}
   }
 
