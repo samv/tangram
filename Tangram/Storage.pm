@@ -151,13 +151,25 @@ sub make_id
 {
     my ($self, $class_id) = @_;
 
-	my $schema = $self->{schema};
-    my $class_table = $schema->{class_table};
+	my $alloc_id = $self->{alloc_id} ||= {};
 
-    my $sql = "UPDATE $class_table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id";
-    $self->sql_do($sql);
-    my $cursor = $self->sql_cursor("SELECT lastObjectId from $class_table WHERE classId = $class_id", $self->{db});
-    sprintf "%d%0$self->{cid_size}d", $cursor->fetchrow(), $class_id;
+	my $id = $alloc_id->{$class_id};
+
+	if ($id)
+	{
+		$id = -$id if $id < 0;
+		$alloc_id->{$class_id} = ++$id;
+	}
+	else
+	{
+		my $table = $self->{schema}{class_table};
+		$self->sql_do("UPDATE $table SET lastObjectId = lastObjectId + 1 WHERE classId = $class_id");
+		$id = $self->sql_selectall_arrayref(
+	        "SELECT lastObjectId from $table WHERE classId = $class_id")->[0][0];
+		$alloc_id->{$class_id} = -$id;
+	}
+
+	return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
 }
 
 sub unknown_classid
@@ -191,10 +203,29 @@ sub tx_commit
 
     carp $error_no_transaction unless @{ $self->{tx} };
 
-    $self->{db}->commit unless $self->{no_tx}
-		|| @{ $self->{tx} } > 1; # don't commit db if nested tx
+	# update lastObjectId's
 
-    pop @{ $self->{tx} };	# drop rollback subs
+	if (my $alloc_id = $self->{alloc_id})
+	{
+		my $table = $self->{schema}{class_table};
+
+		for my $class_id (keys %$alloc_id)
+		{
+			my $id = $alloc_id->{$class_id};
+			next if $id < 0;
+			$self->sql_do("UPDATE $table SET lastObjectId = $id WHERE classId = $class_id");
+		}
+
+		delete $self->{alloc_id};
+	}
+
+	unless ($self->{no_tx} || @{ $self->{tx} } > 1)
+	{
+		# committing outer tx: commit to db
+		$self->{db}->commit;
+	}
+
+    pop @{ $self->{tx} };		# drop rollback subs
 }
 
 sub tx_rollback
@@ -207,18 +238,18 @@ sub tx_rollback
 
     if ($self->{no_tx})
     {
-	pop @{ $self->{tx} };
+		pop @{ $self->{tx} };
     }
     else
     {
-	$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
+		$self->{db}->rollback if @{ $self->{tx} } == 1; # don't rollback db if nested tx
 
-	# execute rollback subs in reverse order
+		# execute rollback subs in reverse order
 
-	foreach my $rollback ( @{ pop @{ $self->{tx} } } )
-	{
-	    $rollback->($self);
-	}
+		foreach my $rollback ( @{ pop @{ $self->{tx} } } )
+		{
+			$rollback->($self);
+		}
     }
 }
 
@@ -863,6 +894,13 @@ sub sql_do
     my ($self, $sql) = @_;
     print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
     $self->{db}->do($sql) or croak $DBI::errstr;
+}
+
+sub sql_selectall_arrayref
+{
+    my ($self, $sql, $dbh) = @_;
+    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+	($dbh || $self->{db})->selectall_arrayref($sql);
 }
 
 sub sql_prepare

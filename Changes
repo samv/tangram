@@ -65,3 +65,5 @@ Revision history for Perl extension Tangram.
 	- began documenting Type
 	- added Storage::reload()
 
+1.08  Mar 26 2000 - interim version
+	- batch allocation of object ids
