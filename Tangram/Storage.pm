@@ -940,6 +940,8 @@ sub reset
 
 	delete $self->{objects};
 	delete $self->{ids};
+	delete $self->{PREFETCH};
+
 	undef($objects);
 }
 
