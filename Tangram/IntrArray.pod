@@ -12,7 +12,7 @@ Tangram::IntrArray - map Set::Object without link table
 
 	$schema = Tangram::Schema->new(
 
-		classes => { Agenda => { members => {
+		classes => { Agenda => { fields => {
 
 		iarray =>
 		{

@@ -10,14 +10,14 @@ Tangram::Ref
 	use Tangram::Core;
 
 	$schema = Tangram::Schema->new(
-	    classes => { NaturalPerson => { members => {
+	    classes => { NaturalPerson => { fields => {
 			string => [ qw( name firstName gender ) ],
 			int => [ qw( age ) ],
 			real => [ qw( height weight ) ],
 
 	# or
 
-	    classes => { NaturalPerson => { members => {
+	    classes => { NaturalPerson => { fields => {
 			string =>
 			{
 				name 	=> { sql => 'VARCHAR(100)' },

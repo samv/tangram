@@ -11,13 +11,13 @@ Tangram::Ref
 	use Tangram::Ref;
 
 	$schema = Tangram::Schema->new(
-	    classes => { Company => { members => {
+	    classes => { Company => { fields => {
 			ref => [ qw( ceo vice_ceo ) ]
 
 	# or
 
 	$schema = Tangram::Schema->new(
-	    classes => { Company => { members => {
+	    classes => { Company => { fields => {
 			ref =>
 			{
 				ceo =>

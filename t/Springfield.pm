@@ -23,7 +23,7 @@ $schema = Tangram::Schema->new( {
          bases =>
             [ qw( Person ) ],
 
-         members =>
+         fields =>
          {
             string =>
 	    {
@@ -90,7 +90,7 @@ $schema = Tangram::Schema->new( {
 
       Opinion =>
       {
-         members =>
+         fields =>
          {
             string =>
                [ qw( statement ) ],
@@ -102,7 +102,7 @@ $schema = Tangram::Schema->new( {
          bases =>
             [ qw( Person ) ],
 
-         members =>
+         fields =>
          {
             string =>
                [ qw( name ) ],
@@ -118,7 +118,7 @@ $schema = Tangram::Schema->new( {
       {
          abstract => 1,
 
-         members =>
+         fields =>
          {
             int => [ qw( curies ) ],
          },
@@ -128,7 +128,7 @@ $schema = Tangram::Schema->new( {
       {
          bases => [ qw( LegalPerson EcologicalRisk ) ],
 
-         members =>
+         fields =>
          {
             array =>
             {

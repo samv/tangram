@@ -12,7 +12,7 @@ Tangram::Set - map Set::Object
 
 	$schema = Tangram::Schema->new(
 
-		classes => { Company => { members => {
+		classes => { Company => { fields => {
 
 		set =>
 		{

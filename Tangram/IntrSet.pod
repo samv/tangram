@@ -12,7 +12,7 @@ Tangram::IntrSet - map Set::Object without link table
 
 	$schema = Tangram::Schema->new(
 
-		classes => { Basket => { members => {
+		classes => { Basket => { fields => {
 
 		iset =>
 		{

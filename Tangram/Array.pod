@@ -12,7 +12,7 @@ Tangram::Array - map a Perl array
 
 	$schema = Tangram::Schema->new(
 
-		classes => { Company => { members => {
+		classes => { Company => { fields => {
 
 		array =>
 		{

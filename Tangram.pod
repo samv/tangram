@@ -145,7 +145,7 @@ Here is the Schema for Springfield:
          {
             bases => [ qw( Person ) ],
 
-            members =>
+            fields =>
             {
                string   => [ qw( firstName name ) ],
                int      => [ qw( age ) ],
@@ -158,7 +158,7 @@ Here is the Schema for Springfield:
          {
             bases => [ qw( Person ) ],
 
-            members =>
+            fields =>
             {
                string   => [ qw( name ) ],
                ref      => [ qw( manager ) ],

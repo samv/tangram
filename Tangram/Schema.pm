@@ -49,50 +49,57 @@ sub new
 
     while (my ($class, $def) = each %$classes)
     {
-	my $classdef = $classes->{$class};
+		my $classdef = $classes->{$class};
 
-	bless $classdef, 'Tangram::Class';
+		bless $classdef, 'Tangram::Class';
 
-	$classdef->{table} ||= $class;
+		$classdef->{table} ||= $class;
 
-	my $cols = 0;
+		$classdef->{fields} ||= $classdef->{members};
+		$classdef->{members} = $classdef->{fields};
 
-	foreach my $typetag (keys %{$classdef->{members}})
-	{
-	    my $memdefs = $classdef->{members}{$typetag};
+		my $cols = 0;
+
+		foreach my $typetag (keys %{$classdef->{members}})
+		{
+			my $memdefs = $classdef->{members}{$typetag};
 	    
-	    $memdefs = $classdef->{members}{$typetag} = { map { $_, $_ } @$memdefs } if (ref $memdefs eq 'ARRAY');
+			$memdefs = $classdef->{members}{$typetag} =
+			{ map { $_, $_ } @$memdefs } if (ref $memdefs eq 'ARRAY');
 
-	    my $type = $self->{types}{$typetag};
+			my $type = $self->{types}{$typetag};
 
-	    my @members = $types->{$typetag}->reschema($memdefs, $class, $self) if $memdefs;
-	    @{$classdef->{member_type}}{@members} = ($type) x @members;
+			my @members = $types->{$typetag}->reschema($memdefs, $class, $self)
+				if $memdefs;
+
+			@{$classdef->{member_type}}{@members} = ($type) x @members;
 	    
-	    @{$classdef->{MEMDEFS}}{keys %$memdefs} = values %$memdefs;
+			@{$classdef->{MEMDEFS}}{keys %$memdefs} = values %$memdefs;
 	    
-	    local $^W = undef;
-	    $cols += scalar($type->cols($memdefs));
-	}
+			local $^W = undef;
+			$cols += scalar($type->cols($memdefs));
+		}
 
-	$classdef->{stateless} = !$cols && (!exists $classdef->{stateless} || $classdef->{stateless});
+		$classdef->{stateless} = !$cols
+			&& (!exists $classdef->{stateless} || $classdef->{stateless});
 
-	foreach my $base (@{$classdef->{bases}})
-	{
-	    push @{$classes->{$base}{specs}}, $class;
-	}
+		foreach my $base (@{$classdef->{bases}})
+		{
+			push @{$classes->{$base}{specs}}, $class;
+		}
     }
 
     while (my ($class, $classdef) = each %$classes)
     {
-	my $root = $class;
+		my $root = $class;
 	
-	while (@{$classes->{$root}{bases}})
-	{
-	    $root = @{$classes->{$root}{bases}}[0];
-	}
+		while (@{$classes->{$root}{bases}})
+		{
+			$root = @{$classes->{$root}{bases}}[0];
+		}
 
-	$classdef->{root} = $classes->{$root};
-	delete $classdef->{stateless} if $root eq $class;
+		$classdef->{root} = $classes->{$root};
+		delete $classdef->{stateless} if $root eq $class;
     }
 
     return $self;
