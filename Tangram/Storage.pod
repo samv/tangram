@@ -241,6 +241,8 @@ directives:
 
 =item * distinct
 
+=item * limit
+
 =back
 
 C<filter> specifies a Filter that can be used to restrict the result
@@ -249,12 +251,21 @@ set.
 C<distinct> specifies that each object in the result set must be
 unique (Tangram generates a SELECT DISTINCT).
 
-C<order> THIS OPTION IS DEPRECATED!
+C<order> specifies attributes in terms of one or more of the remote
+objects - any that are being selected, or any that appear in the
+filter.
 
-C<desc> THIS OPTION IS DEPRECATED!
+C<desc> specifies that the order should be descending.  Order of which
+of the columns in the C<order> category, you might ask?  The last one
+for now :-}.  This syntax is therefore deprecated, to be replaced with
+a unary C<-> operator in some future Tangram release.
 
 C<distinct> is a boolean; a true value specifies that the same object
 should ocur only once in the result set.
+
+C<limit> is a maximum number of rows to retrieve; in fact, with some
+databases you can give two numbers to this to get the rows between N
+and M of a select.  See your RDBMS manual for more.
 
 Valid only in list context.
 

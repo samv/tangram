@@ -115,7 +115,7 @@ sub erase
 		}
 		else
 		{
-			my $item_classdef = $storage->{schema}{$def->{class}};
+			my $item_classdef = $storage->{schema}{classes}{$def->{class}};
 			my $table = $item_classdef->{table} || $def->{class};
 			my $item_col = $def->{coll};
 			$storage->sql_do("UPDATE $table SET $item_col = NULL WHERE $item_col = $coll_id");

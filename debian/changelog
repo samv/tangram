@@ -1,3 +1,9 @@
+libtangram-perl (2.06.1) unstable; urgency=low
+
+  * Fixed minor Intr* bug
+
+ -- Sam Vilain <sam@vilain.net>  Wed, 21 May 2003 03:46:21 +1200
+
 libtangram-perl (2.06) unstable; urgency=low
 
   * Added Tangram::Storage->oid_isa

@@ -122,7 +122,7 @@ sub erase
 		}
 		else
 		{
-			my $item_classdef = $storage->{schema}{$def->{class}};
+			my $item_classdef = $storage->{schema}{classes}{$def->{class}};
 			my $table = $item_classdef->{table} || $def->{class};
 			my $item_col = $def->{coll};
 			my $slot_col = $def->{slot};
