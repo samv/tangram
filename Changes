@@ -261,6 +261,11 @@ Revision history for Perl extension Tangram.
 	  be fixed)
 
 2.07_03, 04-May-2004 - SamV
+	- Some documentation additions and pretty printing in the
+          internals
+	- Added Tangram::IDBIF to combine multiple object fields into
+	  one perl_dump style field (including a "catch-all" facility)
+	  Test suite for this isn't complete yet.
 
 	Most changes from Kurt <ks.perl@kurtstephens.com>, with many
 	thanks:
@@ -289,3 +294,4 @@ Revision history for Perl extension Tangram.
 	- [SamV] Started using _NN version style, so CPAN marks it as
 	  a development release
 	- added brief test suite for aggregate functions
+
