@@ -1,7 +1,10 @@
+use strict;
+
 use ExtUtils::MakeMaker;
 
 my %required =
     (
+     'Set::Scalar' => 0,
      'Set::Object' => 1.04,
      "Test::More" => 0,
      "Date::Manip" => 0,
@@ -10,7 +13,7 @@ my %required =
     );
 
 my %required_soft = map{$_=>1} qw( Scalar::Util Date::Manip );
-my %required_hard = map{$_=>1} qw( Set::Object  DBI );
+my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar );
 
 my ($skip_tests, $bomb_out);
 while (my ($module, $min_ver) = each %required) {
@@ -61,6 +64,16 @@ if ($ENV{TANGRAM_CONFIG})
 You have set TANGRAM_CONFIG to $ENV{TANGRAM_CONFIG}.
 Should I use it?};
    $configured = yes();
+   unless ($ENV{TANGRAM_CONFIG} eq "t/CONFIG") {
+      open TCONF, "$ENV{TANGRAM_CONFIG}"
+	  or die "failed to open $ENV{TANGRAM_CONFIG} for reading; $!";
+      unlink "t/CONFIG";
+      open CONFIG, ">t/CONFIG"
+	  or die "failed to open t/CONFIG for writing; $!";
+      while (<TCONF>) { print CONFIG }
+      close TCONF;
+      close CONFIG;
+   }
 }
 
 if (!$configured && -e 't/CONFIG')
@@ -137,21 +150,28 @@ MSG
 NOTESTS:
 eval "use Test::Manifest";
 
-unless( $@ )
-    {
+my $tests;
+
+if ( $@ ) {
+    open TESTS, "<t/test_manifest" or die $!;
+    $tests = join " ", map { chomp; $_ } <TESTS>;
+    close TESTS;
+}
+
+else {
     * ExtUtils::MM_Any::test_via_harness = sub
 	{
 	    my($self, $perl, $tests) = @_;
 
 	    return qq|\t$perl "-MTest::Manifest" | .
 		qq|"-e" "run_t_manifest(\$(TEST_VERBOSE), '\$(INST_LIB)', | .
-    qq|'\$(INST_ARCHLIB)')"\n|;
-	}
-    }
+		    qq|'\$(INST_ARCHLIB)')"\n|;
+	};
+}
 
 WriteMakefile(
 	      'NAME'	=> 'Tangram',
 	      'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
 	      PREREQ_PM => \%required,
-	      #test => { TESTS => "t/*/*.t" },
+	      test => { TESTS => $tests },
 );

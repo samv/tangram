@@ -37,7 +37,7 @@ my %ids;
 
 	my $chloe = NaturalPerson->new
 		(
-		 firstName => 'Chloé',
+		 firstName => 'Chloé',  # uh-oh, iso-8859-1!
 		 ($do_rawtests ? (birth => '1993-7-28 13:10:00')
 		  : () ),
 		 incarnation => ParseDate('1993-7-28 13:10:00'),
@@ -74,14 +74,14 @@ is(leaked, 0, "leaktest");
     # straightforward to overload Tangram::DMDateTime::binop to be
     # able to wrap the arg later on.  This works for now!
      my @results = $storage->select
-	( $rp, $rp->{incarnation} > $storage->dbms_date('19900101') );
+	( $rp, $rp->{incarnation} > $storage->to_dbms('date', '1990-01-01T12:00:00') );
 
     is(@results, 1, "Select by date compare");
     is($storage->id( $results[0] ), $ids{chloe},
        "got right object back" );
 
     like( $results[0]->{incarnation}, qr/^\d{10}:\d\d:\d\d$/,
-	  "Dates returned in ISO9601 form" );
+	  "Dates returned in ISO8601 form" );
 
 # 	if (optional_tests('epoch; no Time::Local',
 # 					   eval { require 'Time::Local' }, 1)) {

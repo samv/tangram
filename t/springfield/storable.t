@@ -12,8 +12,8 @@ use Springfield;
 use Set::Object qw(is_overloaded blessed);
 
 SKIP:{
-    skip "Storable broken on Pg - see lib/Tangram/Pg.pod", 3
-	if $Springfield::vendor eq "Pg";
+    #skip "Storable broken on Pg - see lib/Tangram/Pg.pod", 3
+	#if $Springfield::vendor eq "Pg";
 my $homer_id;
 
 {

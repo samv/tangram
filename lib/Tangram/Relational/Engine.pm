@@ -445,9 +445,7 @@ sub deploy
 	my $timestamp = $schema->{sql}{timestamp_all_tables};
 
 	push @base_cols,("$id_col ".
-			 $driver->type("$schema->{sql}{id} NOT NULL")
-			 .",\n"
-			 ."PRIMARY KEY( $id_col )")
+			 $driver->type("$schema->{sql}{id} NOT NULL"))
 	    if exists $cols->{$id_col};
 	push @base_cols, "$class_col "
 	    .$driver->type("$schema->{sql}{cid} NOT NULL")
@@ -463,7 +461,11 @@ sub deploy
 	$do->("CREATE TABLE $table\n(\n  ",
 	      join( ",\n  ", (@base_cols,
 			      map { "$_ ".$driver->type($cols->{$_}) }
-			      keys %$cols) ),
+			      keys %$cols),
+		    ( exists $cols->{$id_col} 
+		      ? ("PRIMARY KEY( $id_col )")
+		      : () ),
+		  ),
 	      "\n) ".($type?" TYPE=$type":""));
 
     }

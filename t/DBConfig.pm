@@ -1,12 +1,13 @@
 
 package DBConfig;
 
+use DBI;
 local $/;
 
-my $config = $ENV{TANGRAM_CONFIG} || 'CONFIG';
+my $config = $ENV{TANGRAM_CONFIG} || 't/CONFIG';
 
-open CONFIG, "t/$config"
-    or die "Cannot open t/$config, reason: $!";
+open CONFIG, "$config"
+    or die "Cannot open $config, reason: $!";
 
 my ($tx, $subsel, $ttype);
 ($cs, $user, $passwd, $tx, $subsel, $ttype)
@@ -25,7 +26,7 @@ if ($ttype =~ m/table_type\s*=\s*(.*)/) {
 $vendor = (split ':', $cs)[1];;
 $dialect = "Tangram::$vendor";  # deduce dialect from DBI driver
 eval "use $dialect";
-$dialect = 'Tangram::Relational' if $@;
+($dialect = 'Tangram::Relational'), eval("use $dialect") if $@;
 print $Tangram::TRACE "Vendor driver $dialect not found - using ANSI SQL ($@)\n"
     if $@ and $Tangram::TRACE;
 print $Tangram::TRACE "Using dialect $dialect\n" if $Tangram::TRACE;

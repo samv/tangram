@@ -39,9 +39,9 @@ sub get_exporter
 	my ($obj, $context) = @_;
 	my $val = $obj->{$name};
 
+	$val = $closure->($val) if defined $val and $closure;
 	$val = $context->{storage}->to_dbms('date', $val)
 	    if defined $val;
-	$val = $closure->($val) if defined $val and $closure;
 
 	return $val;
     }

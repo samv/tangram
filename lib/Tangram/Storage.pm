@@ -68,11 +68,18 @@ sub combine_ids
 		 : sprintf("%d%0$self->{cid_size}d", $id, $cid) );
   }
 
-sub dbms_date
+sub from_dbms
     {
 	my $self = shift;
 	my $driver = $self->{driver} or confess "no driver";
-	return $self->{driver}->dbms_date(shift);
+	return $self->{driver}->from_dbms(@_);
+    }
+
+sub to_dbms
+    {
+	my $self = shift;
+	my $driver = $self->{driver} or confess "no driver";
+	return $self->{driver}->to_dbms(@_);
     }
 
 sub get_sequence {
@@ -653,13 +660,18 @@ sub _insert
 		my @sql = $engine->get_insert_statements($class);
 		printf $Tangram::TRACE ">-\n%s\n".(@{$fields[$i]}?"-- with:\n    /* (%s) */\n":"%s")."...\n",
 		$sql[$i],
-		join(', ', map { $_ || 'NULL' } @state[ @{ $fields[$i] } ] )
+		join(', ', map { "'$_'" || 'NULL' } @state[ @{ $fields[$i] } ] )
 	  }
 
 	  my $sth = $sths->[$i];
-	  $sth->execute(map {( ref $_ ? "$_" : $_ )}
-			@state[ @{ $fields[$i] } ])
+
+	  #kill 2, $$;
+
+	  my @args = (map {( ref $_ ? "$_" : $_ )} @state[ @{ $fields[$i] } ]);
+	  #print STDERR "args are: ".Data::Dumper::Dumper(\@args);
+	  $sth->execute(@args)
 	      or die $dbh->errstr;
+
 	  $sth->finish();
 	}
 

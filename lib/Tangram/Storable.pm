@@ -42,11 +42,16 @@ sub reschema {
       unless $refdef eq 'HASH';
 	
     $def->{col} ||= $schema->{normalize}->($field, 'colname');
-    $def->{sql} ||= 'VARCHAR(255)';
+    $def->{sql} ||= 'BLOB';
     $def->{deparse} ||= 0;
     $def->{dumper} ||= sub {
 	local($Storable::Deparse) = $def->{deparse};
-	freeze([@_]);
+	my $ent = [@_];
+	my $dumped = freeze($ent);
+	$Data::Dumper::Purity = 1;
+	$Data::Dumper::Useqq = 1;
+	#print STDERR "Dumped: ".Data::Dumper::Dumper($ent, $dumped);
+	$dumped;
     };
   }
 
@@ -60,7 +65,7 @@ sub get_importer
 my \$data = shift \@\$row;
 print \$Tangram::TRACE \"THAWING (length = \".(length(\$data)).\":\".Data::Dumper::Dumper(\$data)
    if \$Tangram::TRACE and \$Tangram::DEBUG_LEVEL > 2;
-my \$ref = Storable::thaw(\$data) or die \"thaw failed on data (\".(length(\$data)).\") = \$data\";
+my \$ref = Storable::thaw(\$context->{storage}->from_dbms('blob', \$data)) or die \"thaw failed on data (\".(length(\$data)).\") = \".Data::Dumper::Dumper(\$data);
 \$obj->{$self->{name}} = \$ref->[0];\n"
 	       ."Tangram::Dump::unflatten(\$context->{storage}, "
 	       ."\$obj->{$self->{name}});\n");
@@ -78,7 +83,7 @@ sub get_exporter
 	  my $text = $self->{dumper}->($obj->{$field});
 	  Tangram::Dump::unflatten($context->{storage},
 				   $obj->{$field});
-	  return $text;
+	  return $context->{storage}->to_dbms('blob', $text);
 	};
   }
 

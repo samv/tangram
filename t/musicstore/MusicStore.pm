@@ -7,6 +7,8 @@ use Tangram::IntrArray;
 use Tangram::TimePiece;
 use Tangram::IntrSet;
 use Tangram::Set;
+use Heritable::Types;
+use Tangram::IDBIF;
 
 our $schema =
    ({
@@ -57,13 +59,12 @@ our $schema =
     ],
 });
 
+
 our $pixie_like_schema =
     ({
       classes =>
       [
-       # with Heritable::Types, we could use HASH here.
-       # in fact, later we will.
-       Class::Accessor::Assert =>
+       HASH =>
        {
 	table => "objects",
 	sql => { sequence => "oid_sequence" },

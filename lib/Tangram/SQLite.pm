@@ -2,7 +2,7 @@
 use strict;
 use Tangram::Core;
 
-package Tangram::Pg;
+package Tangram::SQLite;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -11,12 +11,12 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::Pg::Storage->connect
+      my $storage = Tangram::SQLite::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
 sub blob {
-    return "BYTEA";
+    return "BLOB";
 }
 
 sub date {
@@ -25,6 +25,32 @@ sub date {
 
 sub bool {
     return "BOOL";
+}
+
+# conversions necessary to binary-safe data
+
+
+# function to return a DBMS date from an ISO-8601 date in the form:
+sub to_date {
+    my $self = shift;
+
+    my $date = shift;
+
+    $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
+	{$1-$2-$3T$4:$5:$6};
+
+    return $date;
+}
+
+sub from_date {
+    my $self = shift;
+
+    my $date = $self->SUPER::from_date(shift);
+
+    $date =~ s{^(\d{4})(\d{2})(\d{2})(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?)$}
+	{$1-$2-$3T$4:$5:$6};
+
+    return $date;
 }
 
 use MIME::Base64;
@@ -47,7 +73,7 @@ sub sequence_sql {
     return "SELECT nextval('$sequence_name')";
 }
 
-package Tangram::Pg::Storage;
+package Tangram::SQLite::Storage;
 
 use Tangram::Storage;
 use vars qw(@ISA);
@@ -60,6 +86,7 @@ sub connect
     my $self = $class->SUPER::connect(@_);
 
     $self->{db}->{RaiseError} = 1;
+    #$self->{db}->{sqlite_handle_binary_nulls} = 1;
     return $self;
 }
 

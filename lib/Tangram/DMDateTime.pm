@@ -27,6 +27,8 @@ sub get_exporter
     my $self = shift;
     my $context = shift;
     $self->SUPER::get_exporter
-	($context, sub {UnixDate(shift, "%Y-%m-%dT%H:%M:%S")});
+	($context, sub {
+	     UnixDate(shift, "%Y-%m-%dT%H:%M:%S")
+	 });
 }
 1;

@@ -106,6 +106,7 @@ sub from_dbms {
 		 : __PACKAGE__);
     my $type = shift;
     my $value = shift;
+    #print STDERR "Relational: converting (TO) $type $value\n";
 
     my $method = "from_$type";
     if ( $self->can($method) ) {
@@ -122,6 +123,7 @@ sub to_dbms {
 		 : __PACKAGE__);
     my $type = shift;
     my $value = shift;
+    #print STDERR "Relational: converting (TO) $type $value\n";
 
     my $method = "to_$type";
     if ( $self->can($method) ) {

@@ -3,11 +3,8 @@
 # test script for the Persistathon - set TANGRAM_TRACE=1 in the
 # environment for a query log
 
-use lib "t";
-use DBConfig;
-
 use lib "t/musicstore";
-use MusicStore;
+use Prerequisites;
 
 use Test::More tests => 15;
 use Tangram::Storage;

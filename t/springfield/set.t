@@ -3,12 +3,11 @@
 
 use strict;
 use lib 't/springfield';
-use Springfield;
+use Springfield qw(%id);
 
 use vars qw( $intrusive );
 
 my $children = $intrusive ? 'is_children' : 's_children';
-my %id;
 my @kids = qw( Bart Lisa Maggie );
 
 sub NaturalPerson::children
@@ -33,17 +32,17 @@ sub stdpop
 
 	my @children = map { NaturalPerson->new( firstName => $_ ) } @kids;
 	@id{ @kids } = $storage->insert( @children );
-   
+   #
 	my $homer = NaturalPerson->new( firstName => 'Homer',
-									$children => Set::Object->new( @children ) );
+					$children => Set::Object->new( @children ) );
 	$id{Homer} = $storage->insert($homer);
-   
+   #
 	my $marge = NaturalPerson->new( firstName => 'Marge' );
 	$marge->{$children} = Set::Object->new( @children ) unless $intrusive;
 	$id{Marge} = $storage->insert($marge);
-
+#
 	$storage->disconnect;
-    #<>;
+    ##<>;
 }
 
 Springfield::begin_tests(43);

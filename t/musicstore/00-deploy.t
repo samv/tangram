@@ -7,7 +7,6 @@ use lib "t/musicstore";
 use Prerequisites;
 
 use Test::More tests => 2;
-use DBConfig;
 
 BEGIN {
     use_ok "MusicStore";

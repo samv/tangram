@@ -109,7 +109,7 @@ refined ability to cache and manipulate data indices.
 
 In that case, you may choose to start with mapping all of your
 object's properties to database columns (as was the only option before
-Tangram 2.10):
+Tangram 2.08):
 
  package MyProject::Tangram;
 
@@ -130,7 +130,6 @@ Tangram 2.10):
            } );
 
   sub db { Tangram::Storage->new($schema, @_) }
-
 
 Tangram has been transaction-savvy since version 1.  So long as you
 are careful to flush Tangram's object cache, before you start doing

@@ -38,6 +38,7 @@ use DBConfig;
     $no_tx = DBConfig->no_tx;
     $no_subselects = DBConfig->no_subselects;
     $table_type = DBConfig->table_type;
+    $vendor = DBConfig->vendor;
 
     $dialect = DBConfig->dialect;
 
@@ -47,7 +48,7 @@ sub list_if {
   shift() ? @_ : ()
 }
 
-$schema = Tangram::Schema->new
+$schema = 
     ( {
 
    #set_id => sub { my ($obj, $id) = @_; $obj->{id} = $id },
@@ -100,9 +101,9 @@ $schema = Tangram::Schema->new
 		  rawdatetime => [ qw( birth ) ],
 		 ):()),
 
-	    ($no_date_manip ? () : (
-				    dmdatetime => [ qw( incarnation ) ]
-				   )),
+	    ($no_date_manip ? () : ( dmdatetime => [ qw( incarnation ) ] )),
+	    #($no_time_piece ? () : ( timepiece => [ qw( timepiece ) ] )),
+	    #($no_date_manip ? () : ( dmdatetime => [ qw( incarnation ) ] )),
 
 		array =>
 		{
@@ -203,7 +204,7 @@ $schema = Tangram::Schema->new
 
 		perl_dump => [ qw( brains ) ],
 
-		( $vendor !~ m/^Pg$/
+		( $vendor !~ m/^Peegee$/
 		  ? (storable => [ qw( thought ) ])
 		  : () ),
 	   },
@@ -316,16 +317,20 @@ $schema = Tangram::Schema->new
 
    ],
 
-       ($ENV{"NORMALIZE_TEST"}
-	? (normalize => sub {
-	       local($_)=shift;
-	       s/NaturalPerson/NP/;
-	       s/$/_n/;
-	       return $_;
-	   })
-	:
-	()),
       } );
+
+if ( $ENV{"NORMALIZE_TEST"} ) {
+    $schema->{normalize} = 
+	sub {
+	    local($_)=shift;
+	    print STDERR "topic is $_\n";
+	    s/NaturalPerson/NP/;
+	    s/$/_n/;
+	    return $_;
+	};
+}
+
+$schema = Tangram::Schema->new($schema);
 
 sub connect
   {
@@ -470,8 +475,10 @@ sub stdpop
     $children[1]->{age} = 8;
     $children[2]->{age} = 1;
     @id{ @kids } = $storage->insert( @children );
+
     # *cough* hack *cough*
-    main::like("@id{@kids}", qr/^\d+ \d+ \d+$/, "Got ids back OK");
+    main::like("@id{@kids}", qr/^\d+ \d+ \d+$/, "Got ids back OK")
+	    if defined &main::like;
 
     my %ops = ( "beer" => Opinion->new(statement => "good"),
 		     "donuts" => Opinion->new(statement => "mmm.."),
@@ -505,7 +512,8 @@ sub stdpop
     }
 
     $id{Homer} = $storage->insert($homer);
-    main::isnt($id{Homer}, 0, "Homer inserted OK");
+    main::isnt($id{Homer}, 0, "Homer inserted OK")
+	    if defined &main::isnt;
 
     my $marge = NaturalPerson->new( firstName => 'Marge',
 				    age => 37,
@@ -522,7 +530,8 @@ sub stdpop
     }
 
     $id{Marge} = $storage->insert($marge);
-    main::isnt($id{Marge}, 0, "Marge inserted OK");
+    main::isnt($id{Marge}, 0, "Marge inserted OK")
+	    if defined &main::isnt;
 
     my $abraham = NaturalPerson->new( firstName => 'Abraham',
 				      age => 62,
