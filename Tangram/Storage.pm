@@ -125,7 +125,8 @@ sub _open
 	  my $address = Tangram::refaddr(shift());
 	  my $id = $self->{ids}{$address};
 	  return undef unless $id;
-	  return $id if exists $self->{objects}{$id};
+	  # refaddr's can be re-used, but weakrefs are magic :-)
+	  return $id if defined($self->{objects}{$id});
 	  delete $self->{ids}{$address};
 	  delete $self->{objects}{$id};
 	  return undef;
