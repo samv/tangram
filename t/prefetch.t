@@ -1,14 +1,15 @@
 #!/usr/bin/perl -ws
 
 use strict;
+use lib "..";
 
 # command line parameters - see perlrun (-s switch)
 use vars qw($debug);
 
-use Test::More tests => 55;
+use Test::More tests => 99;
 
 use lib "t";
-use Springfield qw(%id stdpop leaked @kids);
+use Springfield qw(%id stdpop leaked @kids @opinions);
 
 my $tests = {(
 	      "IntrArray" => [ 1, "ia_children", "NaturalPerson", ],
@@ -17,9 +18,14 @@ my $tests = {(
 	      #"IntrHash"  => [ 1, "ih_opinions", "Opinion",       ],
 	      "Set"       => [ 0, "s_children",  "NaturalPerson", ],
 	      "IntrSet"   => [ 1, "is_children", "NaturalPerson", ],
+	      "DiffIntrArray" => [ 1, "ia_opinions", "Opinion", ],
+	      "DiffArray" => [ 0, "a_opinions", "Opinion", ],
+	      "DiffIntrSet" => [ 1, "is_opinions", "Opinion", ],
+	      "DiffSet" => [ 0, "s_opinions", "Opinion", ],
 	     )};
 while (my ($test_name, $data) = each %$tests) {
     my ($intrusive, $children, $class) = @{ $data };
+    #diag("Running test $test_name");
     test_prefetch($test_name, $intrusive, $children, $class);
 }
 
@@ -40,27 +46,45 @@ sub test_prefetch {
 	    my ($r_parent, $r_child) = $storage->remote( "NaturalPerson",
 							 $class );
 
-	    my $filter = ($r_parent->{$children}->includes($r_child)
-			  & ($r_parent == $Homer));
+	    my $filter = ($r_parent == $Homer);
+	    my $filter2 = ($filter &
+			   $r_parent->{$children}->includes($r_child)
+			  );
 
-	    my @parents  = $storage->select( $r_parent, $filter );
-	    my @children = $storage->select( $r_child,  $filter );
+	    my @parents  = $storage->select( $r_parent, $filter2 );
+	    my @children = $storage->select( $r_child,  $filter2 );
+
+	    my @k = ($children =~ m/children/ ? @kids : @opinions);
 	    @children = sort {
 		my $ix_a;
 		my $ix_b;
 		my $count = 0;
-		for (@kids) {
-		    $ix_a = $count if ($a->{firstName} eq $_);
-		    $ix_b = $count if ($b->{firstName} eq $_);
+		for (@k) {
+		    $ix_a = $count
+			if ( (exists $a->{firstName} &&
+			      $a->{firstName} eq $_) ||
+			     (exists $a->{statement} &&
+			      $a->{statement} eq $_) );
+		    $ix_b = $count
+			if ( (exists $b->{firstName} &&
+			      $b->{firstName} eq $_) ||
+			     (exists $b->{statement} &&
+			      $b->{statement} eq $_) );
 		    $count++;
 		}
 		$ix_a <=> $ix_b;
-	    } @children if ($children =~ /children/);
+	    } @children if ($children =~ /children|a_/);
 	    ok(@children, "$test_name - Got some children back");
 
-	    $storage->prefetch( 'NaturalPerson',
-				$children,
-				$filter ) if $do_prefetch;
+	    {
+		#local($Tangram::TRACE);
+		#if ($test_name =~ /IntrArray/) {
+		    #$Tangram::TRACE = \*STDERR;
+		#}
+		$storage->prefetch( $r_parent,
+				    $children,
+				    $filter ) if $do_prefetch;
+	    }
 
 	    $storage->{db}->disconnect(); # hyuk yuk yuk
 
@@ -72,12 +96,12 @@ sub test_prefetch {
 		 : ( $a->{statement} cmp $b->{statement} ) );
 	    };
 	    eval {
-		if ($children =~ m/s_children/) {
+		if ($children =~ m/s_/) {
 		    @new_children = sort { $sort->() }
 			$Homer->{$children}->members;
 		    @children = sort { $sort->() } @children;
 
-		} elsif ($children =~ m/children/) {
+		} elsif ($children =~ m/children|a_/) {
 		    @new_children = @{ $Homer->{$children} };
 		} else {
 		    @new_children = sort { $sort->() }
@@ -95,7 +119,8 @@ sub test_prefetch {
 		    #"\nGot: ", @new_children, "\n";
 		is_deeply(\@new_children, \@children, "$test_name - got back what we put in");
 	    } else {
-		isnt($@, "", "$test_name - Raises an exception w/o prefetch");
+		like($@, qr/Execute failed/,
+		     "$test_name - Raises correct exception w/o prefetch");
 		isnt(@new_children, @children,
 		     "$test_name - didn't get back what we put in");
 	    }

@@ -13,10 +13,10 @@ use Tangram::PerlDump;
 
 package Springfield;
 use Exporter;
-use vars qw(@ISA @EXPORT @EXPORT_OK %id @kids);
+use vars qw(@ISA @EXPORT @EXPORT_OK %id @kids @opinions);
 @ISA = qw( Exporter );
 
-@EXPORT = qw( &optional_tests $schema testcase &leaktest &leaked &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd stdpop %id @kids);
+@EXPORT = qw( &optional_tests $schema testcase &leaktest &leaked &test &begin_tests &tests_for_dialect $dialect $cs $user $passwd stdpop %id @kids @opinions);
 @EXPORT_OK = @EXPORT;
 
 use vars qw($cs $user $passwd $dialect $vendor $schema);
@@ -117,6 +117,11 @@ $schema = Tangram::Schema->new
 		  class => 'Item',
 		  aggreg => 1,
 		  deep_update => 1
+		 },
+		 a_opinions =>
+		 {
+		  class => 'Opinion',
+		  table => 'a_opinions',
 		 }
 		},
 
@@ -138,6 +143,10 @@ $schema = Tangram::Schema->new
 		  slot => 'ia_slot',
 		  back => 'ia_parent',
 		  aggreg => 1,
+		 },
+		 ia_opinions =>
+		 {
+		  class => 'Opinion',
 		 }
 		},
 
@@ -148,6 +157,11 @@ $schema = Tangram::Schema->new
 		  class => 'NaturalPerson',
 		  table => 's_children',
 		  aggreg => 1,
+		 },
+		 s_opinions =>
+		 {
+		  class => 'Opinion',
+		  table => 's_opinions',
 		 }
 		},
 
@@ -160,6 +174,10 @@ $schema = Tangram::Schema->new
 		  slot => 'is_slot',
 		  back => 'is_parent',
 		  aggreg => 1,
+		 },
+		 is_opinions =>
+		 {
+		  class => 'Opinion',
 		 }
 		},
 
@@ -388,7 +406,16 @@ sub stdpop
     # *cough* hack *cough*
     main::like("@id{@kids}", qr/^\d+ \d+ \d+$/, "Got ids back OK");
 
-    my $homer = NaturalPerson->new
+    my %ops = ( "beer" => Opinion->new(statement => "good"),
+		     "donuts" => Opinion->new(statement => "mmm.."),
+		     "heart disease" =>
+		     Opinion->new(statement => "Heart What?"));
+
+    @opinions = map { $_->{statement} } values %ops;
+
+    my $homer;
+    {
+	$homer = NaturalPerson->new
 	(
 	 firstName => 'Homer',
 	 ($children =~ m/children/
@@ -396,15 +423,19 @@ sub stdpop
 	     ? ( $children => Set::Object->new(@children) )
 	     : ( $children => [ @children ] ) )
 	  : () ),
-	 ($children =~ m/opinion/ ?
-	  ($children => {
-			 "beer" => Opinion->new(statement => "good"),
-			 "donuts" => Opinion->new(statement => "mmm.."),
-			 "heart disease" =>
-			 Opinion->new(statement => "Heart What?"),
-			}) : () )
-	 );
-			
+	 ($children =~ m/opinion/
+	  ? ($children =~ m/h_/
+	     ? ($children => { %ops })
+	     : ($children =~ m/a_/
+		? ($children => [ values %ops ])
+		: ($children => Set::Object->new( values %ops ) )
+	       )
+	    )
+	  : ()
+	 )
+	);
+    }
+
     $id{Homer} = $storage->insert($homer);
     main::isnt($id{Homer}, 0, "Homer inserted OK");
 

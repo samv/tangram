@@ -349,6 +349,61 @@ For options C<filter>, C<order>, C<desc> and C<distinct>, see C<select>.
 Option C<retrieve> is an array of Expr, to be retrieved in addition to
 the object itself.
 
+=head2 prefetch
+
+   $storage->prefetch("Class", "collection", $filter);
+
+This method fetches all the "collection" collections from "Class",
+where $filter.
+
+You need to be very careful with your filter - it is quite easy to end
+up with a filter that will include a single table twice with no join.
+
+You B<should not> include an expression in the filter that matches the
+type of object that you are prefetching, unless that is a *different*
+object to the one you want to load.
+
+You B<should> replace the text "Class" with a Tangram::Remote object
+from your C<$filter> if it appears in the expression.
+
+This code is OK:
+
+   my $r_parent = $storage->remote( "NaturalPerson" );
+   my $filter = ($r_parent->{age} > 40);
+
+   my @parent = $storage->select($r_parent, $filter);
+   $storage->prefetch($r_parent, "children" $filter);
+
+But this code has the problem:
+
+   my $r_parent = $storage->remote( "NaturalPerson" );
+   my $r_child  = $storage->remote( "NaturalPerson" );
+
+   my $filter = (
+                 ($r_parent->{age} > 40) &;
+                  $r_parent->{children}->includes($r_child)
+                );
+
+   my @parent = $storage->select($r_parent, $filter);
+   my @children = $storage->select($r_child, $filter);
+
+   $storage->prefetch($r_parent, "children", $filter);
+
+Because C<$filter> contains an extra `unnecessary' relationship with
+C<$r_child>, the filter that Tangram builds internally ends up looking
+like:
+
+    (
+     ($r_parent->{age} > 40) &
+     $r_parent->{children}->includes($r_child) &
+     $r_parent->{children}->includes($r_child2) &
+    );
+
+So, you end up including extra tables without joining them.  This
+situation does not make any sense, but unfortunately because of the
+definition of how RDBMS' work, it is required behaviour for it to give
+you a permutation of all of the unjoined tables.  <sigh>
+
 =head2 erase
 
    $storage->erase( @obj );

@@ -4,6 +4,10 @@
 
 export DH_COMPAT=2
 
+ifndef DESTDIR
+DESTDIR=..
+endif
+
 ifndef PERL
 PERL = /usr/bin/perl
 endif
@@ -38,7 +42,7 @@ binary-indep:	checkroot build
 	dh_installdeb
 	dh_gencontrol
 	dh_md5sums
-	dh_builddeb
+	dh_builddeb --destdir=$(DESTDIR)
 
 binary-arch:	checkroot build
 
