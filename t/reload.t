@@ -22,14 +22,9 @@ Springfield::leaktest;
 
 	testcase($marge->{name} eq 'Bouvier');
 
-	{
-		my $storage = Springfield::connect;
-		my ($marge) = $storage->select('NaturalPerson');
-		$marge->{name} = 'Simpson';
-		$marge->{children} = [ NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ) ];
-		$storage->update($marge);
-		$storage->disconnect;
-	}
+	$marge->{name} = 'Simpson';
+	$marge->{children} = [ NaturalPerson->new( firstName => 'Bart', name => 'Simpson' ) ];
+	$storage->update($marge);
 
 	$storage->reload($marge);
 
