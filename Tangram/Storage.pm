@@ -804,6 +804,14 @@ sub sql_do
     $self->{db}->do($sql) or croak $DBI::errstr;
 }
 
+sub sql_prepare
+{
+    my ($self, $sql, $connection) = @_;
+    confess unless $connection;
+    print $Tangram::TRACE "$sql\n" if $Tangram::TRACE;
+    return $connection->prepare($sql) or die;
+}
+
 sub sql_cursor
 {
     my ($self, $sql, $connection) = @_;

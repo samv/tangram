@@ -108,6 +108,14 @@ use base qw( Tangram::Scalar );
 
 $Tangram::Schema::TYPES{string} = Tangram::String->new;
 
+sub quote
+{
+	my $val = shift;
+	return 'NULL' unless $val;
+	$val =~ s/'/''/g;	# 'emacs
+	return "'$val'";
+}
+
 sub save
 {
     my ($self, $cols, $vals, $obj, $members) = @_;
@@ -115,16 +123,7 @@ sub save
     foreach my $member (keys %$members)
     {
 		push @$cols, $members->{$member}{col};
-
-		if (exists($obj->{$member}) && defined( my $val = $obj->{$member} ))
-		{
-			$val =~ s/'/''/g;	# 'emacs
-			push @$vals, "'$val'";
-		}
-		else
-		{
-			push @$vals, 'NULL';
-		}
+		push @$vals, quote(exists($obj->{$member}) && $obj->{$member});
 	}
 }
 

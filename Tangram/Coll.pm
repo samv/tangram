@@ -47,6 +47,25 @@ sub get_load_state
 	return $storage->{scratch}{ref($self)}{$storage->id($obj)}{$member};
 }
 
+sub array_diff
+{
+	my ($new_state, $old_state, $differ) = @_;
+
+	return (0, []) unless $new_state && $old_state;
+
+	$differ ||= sub { shift() != shift() };
+
+	my $old_size = @$old_state;
+	my $new_size = @$new_state;
+	my $common = $old_size < $new_size ? $old_size : $new_size;
+
+	use integer;
+
+	my @changed = grep { $differ->($old_state->[$_], $new_state->[$_]) } 0 .. ($common-1);
+
+	return ($common, \@changed);
+}
+
 package Tangram::AbstractCollExpr;
 
 sub new
@@ -182,6 +201,7 @@ sub where
 	confess unless wantarray;
 	()
 }
+
 package Tangram::CollOnDemand;
 
 sub TIESCALAR

@@ -46,3 +46,13 @@ Revision history for Perl extension Tangram.
 1.05  Jan 03 2000 - interim version
 	- fixed: Storage::prefetch now works with inherited members
 	- fixed: _insert() ignored collections in stateless classes
+
+1.06  Feb 29 2000 - higly experimental interim version
+	- added typechecks on collection members
+	- started cleaning up autovivification of colls upon save
+	- documented like()
+	- documented extended select options retrieve, order & filter
+	- changed _limit into the Limit in test suite
+	- added temporary hack in Makefile.PL to support Access
+	- added mapping for flat arrays
+	- factorized code common to Array & FlatArray

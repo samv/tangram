@@ -6,12 +6,6 @@ package Tangram::AbstractArray;
 
 use base qw( Tangram::Coll );
 
-sub content
-{
-	shift;
-	@{shift()};
-}
-
 use Carp;
 
 sub demand
@@ -49,7 +43,6 @@ sub save
 	foreach my $coll (keys %$members)
 	{
 		next if tied $obj->{$coll};
-		next unless defined $obj->{$coll};
 
 		my $class = $members->{$coll}{class};
 
@@ -63,6 +56,51 @@ sub save
 	$storage->defer(sub { $self->defered_save(shift, $obj, $members, $id) } );
 
 	return ();
+}
+
+sub defered_save
+{
+	use integer;
+
+	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	foreach my $member (keys %$members)
+	{
+		next if tied $obj->{$member}; # collection has not been loaded, thus not modified
+		
+		my $def = $members->{$member};
+		
+		my ($ne, $modify, $add, $remove) =
+			$self->get_save_closures($storage, $obj, $def, $coll_id);
+
+		my $new_state = $obj->{$member} || [];
+		my $new_size = @$new_state;
+
+		my $old_state = $self->get_load_state($storage, $obj, $member) || [];
+		my $old_size = @$old_state;
+
+		my ($common, $changed) = Tangram::Coll::array_diff($new_state, $old_state, $ne);
+            
+		for my $slot (@$changed)
+		{
+			$modify->($slot, $new_state->[$slot], $old_state->[$slot]);
+		}
+
+		for my $slot ($old_size .. ($new_size-1))
+		{
+			$add->($slot, $new_state->[$slot]);
+		}
+
+		if ($old_size > $new_size)
+		{
+			$remove->($new_size, $old_size);
+		}
+
+		$self->set_load_state($storage, $obj, $member, [ @$new_state ] );	
+
+		$storage->tx_on_rollback(
+            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
+	}
 }
 
 1;

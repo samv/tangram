@@ -30,69 +30,41 @@ sub reschema
 	return keys %$members;
 }
 
-sub defered_save
+sub get_save_closures
 {
-	use integer;
+	my ($self, $storage, $obj, $def, $id) = @_;
 
-	my ($self, $storage, $obj, $members, $coll_id) = @_;
+	my ($table, $cc, $ic, $sc) = @{ $def }{ qw( table coll item slot ) };
 
-	my $old_states = $storage->{scratch}{ref($self)}{$coll_id};
+	my $ne = sub { shift() != shift() };
 
-	foreach my $member (keys %$members)
+	my $modify = sub
 	{
-		next if tied $obj->{$member}; # collection has not been loaded, thus not modified
-		next unless exists $obj->{$member} && defined $obj->{$member};
+		my ($slot, $item) = @_;
 
-		my $def = $members->{$member};
-		my ($table, $coll_col, $item_col, $slot_col) = @{ $def }{ qw( table coll item slot ) };
-      
-		my $coll = $obj->{$member};
-		my $coll_size = @$coll;
-
-		my $old_state = $old_states->{$member};
-		my $old_size = $old_state ? @$old_state : 0;
-
-		my $common_size = $coll_size < $old_size ? $coll_size : $old_size;
-
-		my @new_state = ();
-		my $slot = 0;
-
-		while ($slot < $common_size)
-		{
-			my $item_id = $storage->id($coll->[$slot]) || croak "member $coll->[$slot] has no id";
-			my $old_id = $old_state->[$slot];
+		my $item_id = $storage->id($item)
+			|| croak "element at $slot has no id";
          
-			unless ($item_id == $old_id)
-			{
-				# array entry has changed value
-				my $sql = "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $coll_id AND $slot_col = $slot AND $item_col = $old_id";
-				$storage->sql_do($sql);
-			}
-			
-			push @new_state, $item_id;
-			++$slot;
-		}
+		$storage->sql_do(
+            "UPDATE $table SET $ic = $item_id WHERE $cc = $id AND $sc = $slot");
+	};
 
-		if ($old_size > $coll_size)
-		{
-			# array shrinks
-			my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id AND $slot_col >= $slot";
-			$storage->sql_do($sql);
-		}
+	my $add = sub
+	{
+		my ($slot, $item) = @_;
+		my $item_id = $storage->id($item);
+		$storage->sql_do(
+		    "INSERT INTO $table ($cc, $ic, $sc) VALUES ($id, $item_id, $slot)");
+	};
 
-		while ($slot < $coll_size)
-		{
-			# array grows
-			my $item_id = $storage->id($coll->[$slot]) || croak "member $coll->[$slot] has no id";
-			my $sql = "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($coll_id, $item_id, $slot)";
-			$storage->sql_do($sql);
-			push @new_state, $item_id;
-			++$slot;
-		}
+	my $remove = sub
+	{
+		my ($new_size) = @_;
+		$storage->sql_do(
+            "DELETE FROM $table WHERE $cc = $id AND $sc >= $new_size");
+	};
 
-		$old_states->{$member} = \@new_state;
-		$storage->tx_on_rollback( sub { $old_states->{$member} = $old_state } );
-	}
+	return ($ne, $modify, $add, $remove);
 }
 
 sub erase
@@ -191,3 +163,56 @@ sub prefetch
 $Tangram::Schema::TYPES{array} = Tangram::Array->new;
 
 1;
+
+__END__
+
+
+sub defered_save
+{
+	use integer;
+
+	my ($self, $storage, $obj, $members, $coll_id) = @_;
+
+	foreach my $member (keys %$members)
+	{
+		next if tied $obj->{$member}; # collection has not been loaded, thus not modified
+		
+		my $def = $members->{$member};
+		my ($table, $coll_col, $item_col, $slot_col) = @{ $def }{ qw( table coll item slot ) };
+		my $id = $storage->id($obj);
+
+		my $new_state = $obj->{$member} || [];
+		my $new_size = @$new_state;
+
+		my $old_state = $self->get_load_state($storage, $obj, $member) || [];
+		my $old_size = @$old_state;
+
+		my ($common, $changed) = Tangram::Coll::array_diff($new_state, $old_state);
+            
+		for my $slot (@$changed)
+		{
+			my $item_id = $storage->id($new_state->[$slot])
+				|| croak "member $new_state->[$slot] has no id";
+         
+			$storage->sql_do(
+			    "UPDATE $table SET $item_col = $item_id WHERE $coll_col = $id AND $slot_col = $slot");
+		}
+
+		if ($old_size > $new_size)
+		{
+			$storage->sql_do(
+                "DELETE FROM $table WHERE $coll_col = $id AND $slot_col >= $new_size");
+		}
+
+		for my $slot ($old_size .. ($new_size-1))
+		{
+			my $item_id = $storage->id($new_state->[$slot]);
+			$storage->sql_do(
+			    "INSERT INTO $table ($coll_col, $item_col, $slot_col) VALUES ($id, $item_id, $slot)");
+		}
+
+		$self->set_load_state($storage, $obj, $member, [ @$new_state ] );	
+		$storage->tx_on_rollback(
+            sub { $self->set_load_state($storage, $obj, $member, $old_state) } );
+	}
+}

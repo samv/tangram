@@ -1,7 +1,16 @@
 use ExtUtils::MakeMaker;
 
-use DBI;
-use Set::Object;
+eval {use DBI;};
+if($@) {
+  warn "Couldn't load DBI... Skipping tests.";
+  goto NOTESTS;
+}
+
+eval {use Set::Object;};
+if($@) {
+  warn "Couldn't load Set::Object... Skipping tests.";
+  goto NOTESTS;
+}
 
 use lib '.';
 use Tangram::Deploy;
@@ -89,6 +98,14 @@ MSG
 			$schema->{sql}{cid_size} = 3;
 		}
 
+		elsif ($Springfield::cs =~ /access/i)
+		{
+			$schema->{sql}{id} = 'int';
+			$schema->{sql}{cid} = 'int';
+			$schema->{sql}{oid} = 'int';
+			$schema->{sql}{cid_size} = 3;
+		}
+
 		my $rs = $schema->relational_schema();
 
 		do
@@ -108,4 +125,5 @@ NOTESTS:
 WriteMakefile(
     'NAME'	=> 'Tangram',
     'VERSION_FROM' => 'Tangram.pm', # finds $VERSION
+    PREREQ_PM => { 'Set::Object' => 0, DBI => 0 }
 );
