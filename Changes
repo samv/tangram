@@ -3,3 +3,11 @@ Revision history for Perl extension Tangram.
 0.01  Sun Mar 21 10:46:45 1999
 	- original version; created by h2xs 1.18
 
+1.00  Nov 07 1999
+	- first mature release version
+		deploy() now also works directly on DBI handles
+		deploy() allows specification of SQL types via the schema hash
+		intrusive collections allow element-to-container navigation
+		improve speed of read_object
+		fixed various bugs
+		rewrote part of, and expanded documentation
