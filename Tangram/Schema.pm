@@ -57,7 +57,7 @@ sub for_conforming
  }
 
 package Tangram::Schema;
-
+#use base qw( SelfLoader );
 use Carp;
 
 use vars qw( %TYPES );
@@ -401,12 +401,12 @@ sub is_persistent
    return $self->{classes}{$class} && $self->{classes}{$class};
 }
 
-use SelfLoader;
-sub DESTROY { }
+#use SelfLoader;
+#sub DESTROY { }
 
 1;
 
-__DATA__
+#__DATA__
 
 sub relational_schema
 {
@@ -646,7 +646,7 @@ sub classids
     my ($self) = @_;
     my ($tables, $schema) = @$self;
 	my $classes = $schema->{classes};
-	use Data::Dumper;
+	# use Data::Dumper;
 	return { map { $_ => $classes->{$_}{id} } keys %$classes };
 }
 
