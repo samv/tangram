@@ -246,11 +246,21 @@ sub classids
 
     my $classes = $schema->{classes};
     my $classids = {};
-    my $classid = 1;
+    my $autoid = 0;
 
     foreach my $class (keys %$classes)
     {
-		$classids->{$class} = $classid++ unless $classes->{$class}{abstract};
+	  next if $classes->{$class}{abstract};
+	  next unless defined $classes->{$class}{id};
+	  my $id = $classids->{$class} = $classes->{$class}{id};
+	  $autoid = $id if $id > $autoid;
+    }
+
+    foreach my $class (keys %$classes)
+    {
+	  next if $classes->{$class}{abstract};
+	  next if defined $classes->{$class}{id};
+	  $classids->{$class} = ++$autoid;
     }
 
     return $classids;
