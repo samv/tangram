@@ -33,22 +33,35 @@ An Tangram::Storage object is a connection to a database configured for use with
 
 =head1 CLASS METHODS
 
-=head2 connect( $schema, @dbi_args )
+=head2 connect( $schema, $data_source, $username, $auth, \%options )
 
 Connects to a storage and return a handle object. Dies in case of failure.
 
 $schema is an L<Tangram::Schema> object consistent with the database.
 
-The other arguments (@dbi_args) are passed directly to DBI::connect.
+$data_source, $username and $auth are passed directly to
+DBI::connect().
 
-=head2 connect( $schema, $handle )
+\%options is a reference to a hash that may contain the following
+fields:
 
-Connects an Tangram::Storage object to an already opened DBI data source.
+=over 4
 
-$schema is an Tangram::Schema object compatible with the database content.
+=item * dbh 
 
-$handle is a DBI handle object (or an object supporting the DBI protocol) connected
-to a database.
+=item * dialect
+
+=back
+
+All fields are optional.
+
+C<dbh> can be used to connect a Storage via an existing DBI
+handle. $data_source, $username and $auth are still needed because
+Tangram may need to open extra connections (see below).
+
+C<dialect> contains a Dialect object (see L<Tangram::Dialect>); this is
+useful for accessing extra functionality available in some dialects of
+SQL. You may also specify the dialect as a class name.
 
 =head1 INSTANCE METHODS
 

@@ -3,79 +3,105 @@
 Tangram::Expr - manipulate expressions on database server side
 
 =head1 SYNOPSIS
+   
+	my ($r1, $r2) = $storage->remote(qw( ... ));
 
-   	$expr = $remote->{$field}
+	$r1->{field} operator $value
+   	$r1->{field} operator $r2->{field2}
    
-   	$expr1 op $expr2
-   
-   	$expr->includes( $obj )
-   	$expr->includes( $remote )
+   	$r1->{collection}->includes( $obj )
+   	$r1->{collection}->exists( $obj, $filter )
 
 =head1 DESCRIPTION
 
-Tangram::Expr objects represent expressions that will be evaluated on the database server side.
+Tangram::Expr objects represent expressions that will be evaluated on
+the database server side.
 
-Expr objects fall into the following hierarchy:
+Expression objects fall into one of the following categories: numeric,
+string, reference or collection.
 
-      Expr
-      |
-      +--ScalarExpr
-      |  |
-      |  +--NumericExpr
-      |  |
-      |  +--StringExpr
-      |  |
-      |  +--RefExpr
-      |
-      +--CollExpr
-      |
-      +--Filter
+The methods in Expr are needed only by people extending Tangram. See
+L<Tangram::Dialect>.
 
+=head1 NUMERIC EXPRESSIONS
 
-=head1 ScalarExpr
+Numeric expression objects can be compared using the operators ==, !=,
+<, >, <= and >=.  The other operand must be either another numeric
+expression object, or a normal Perl numeric value.  The result of the
+comparison is a Filter.
 
-ScalarExpr objects represent single values, similar to ordinary Perl scalars.
-They are further classified into numeric, string and reference subtypes.
+=head1 STRING EXPRESSIONS
 
-=head1 NumericExpr
+String expression objects can be compared using the operators eq, ne,
+lt, gt, le, and ge.  The other operand must be either a string
+expression object or any Perl scalar value. Tangram will automatically
+quote the operand as required by the SQL syntax.  The result of the
+comparison is a Tangram::Filter.
 
-NumericExpr objects can be compared using the usual operators ==, !=,
-<, >, <= and >=.  The other operand must be either another
-NumericExpr, or a normal Perl numeric value.  The result of the
-comparison is a L<Filter>.
-
-=head1 StringExpr
-
-StringExpr objects can be compared using the usual operators eq, ne,
-lt, gt, le, and ge.  The other operand must be either a StringExpr or
-any Perl scalar value.  Tangram will automatically quote the operand
-as required by the SQL syntax.  The result of the comparison is a
-Tangram::Filter.
-
-StringExpr objects also support the method like($str), where $str is a
-string that probably contains SQL wildcards. The result is a
+String expression objects also support the method like($str), where
+$str is a string that may contain SQL wildcards. The result is a
 Tangram::Filter that translates to a SQL C<LIKE $str> predicate.
 
-=head1 RefExpr
+=head1 REFERENCE EXPRESSIONS
 
-RefExpr objects can be compared for equality using the usual operators
-== and !=. The other operand must be another RefExpr, a persistent
-object or undef(). The result of the comparison is a Filter.
+Reference expression objects can be compared for equality using
+operators == and !=. The other operand must be another reference
+expression, a persistent object or undef(). The result of the
+comparison is a Filter.
 
-=head1 CollExpr
+=head1 COLLECTION EXPRESSIONS
 
-A CollExpr objects represents a collection inside an object. It
-supports the includes methods, which returns a Tangram::Filter stating
-that the collection must contain the operand.  The operand may be a
-Tangram::Remote, a persistent object, or an object ID.
+Collection expression objects represents a collection inside an
+object. It supports the includes methods, which returns a
+Tangram::Filter stating that the collection must contain the operand.
+The operand may be a Tangram::Remote, a persistent object, or an
+object ID.
 
 operator < is provided as a synonym for includes().
 
-=head1 Filter
+=head1 PREDICATES
 
-Filter objects represent logical expressions, or conditions. Filters
-support logical operators &, | and !. Note that a I<single> ampersand
-or vertical bar must be used.  The result is a L<Filter>.
+Predicate objects represent logical expressions, or
+conditions. Predicates support logical operators &, | and !. Note that
+a I<single> ampersand or vertical bar must be used.  The result is
+another predicate.
+
+=head1 CLASS METHODS
+
+=head2 new($type, $expr, @remotes)
+
+Returns a new instance.
+
+$type is a Type object corresponding to this expression (see
+L<Tangram::Type>).
+
+$expr is a SQL expression. It will eventually become part of a
+WHERE-CLAUSE.
+
+@remotes contains the Remote objects (see L<Tangram::Remote>) that
+participate in the expression. Tangram uses this list to insert the
+corresponding tables in the FROM clause and conditions in the
+WHERE-CLAUSE.
+
+=head1 INSTANCE METHODS
+
+=head2 expr()
+
+Returns the SQL equivalent for this expression.
+
+=head2 type()
+
+Returns the Type (see L<Tangram::Type>) corresponding  to this
+expression.
+
+=head2 objects()
+
+Returns the list of the objects that participate in this
+expression. 
+
+=head2 storage()
+
+Returns the Storage associated with this expression.
 
 =head1 EXAMPLES
 
@@ -115,4 +141,5 @@ $person is not $bart's parent
 
 =head1 SEE ALSO
 
-Tangram, Tangram::Remote, Tangram::Expr, Tangram::Storage, overload
+L<Tangram::Remote>, L<Tangram::Expr>, L<Tangram::Storage>,
+L<overload>

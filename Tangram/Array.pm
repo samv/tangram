@@ -146,7 +146,7 @@ sub prefetch
 
 	# also retrieve collection-side id and index of elmt in sequence
 	$cursor->retrieve($coll->{id},
-					  Tangram::Expr->new("t$includes->{link_tid}.$def->{slot}", 'Tangram::Number') );
+        Tangram::Number->expr("t$includes->{link_tid}.$def->{slot}") );
 
 	$cursor->select($filter ? $filter & $includes : $includes);
    

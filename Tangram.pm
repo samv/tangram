@@ -26,6 +26,8 @@ use Tangram::IntrArray;
 
 use Tangram::Hash;
 
+$Tangram::TRACE = \*STDERR if exists $ENV{TANGRAM_TRACE};
+
 1;
 
 __END__

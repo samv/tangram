@@ -832,11 +832,13 @@ use base qw( Tangram::AbstractStorage );
 
 sub connect
 {
-    my ($pkg, $schema, $cs, $user, $pw, $db) = @_;
+    my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
 
     my $self = $pkg->new;
 
-    $db ||= DBI->connect($cs, $user, $pw);
+	$opts ||= {};
+
+    my $db = $opts->{dbh} || DBI->connect($cs, $user, $pw);
 
     eval { $db->{AutoCommit} = 0 };
 
@@ -848,6 +850,9 @@ sub connect
 
 	$self->{cid_size} = $schema->{sql}{cid_size};
 
+	my $dialect = $opts->{dialect} || 'Tangram::Dialect';
+	$self->{dialect} = ref($dialect) ? $dialect : $dialect->new();
+	
     $self->_open($schema);
 
     return $self;

@@ -9,7 +9,6 @@ my %instances;
 sub instance
 {
 	my $pkg = shift;
-	Carp::confess "no arguments '@_' allowed" if @_;
 	return $instances{$pkg} ||= bless { }, $pkg;
 }
 
@@ -51,6 +50,11 @@ sub read
 
 sub prefetch
 {
+}
+
+sub expr
+{
+	return Tangram::Expr->new( @_ );
 }
 
 1;

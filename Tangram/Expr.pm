@@ -23,36 +23,36 @@ use Carp;
 
 sub new
 {
-   my ($pkg, $storage, $class) = @_;
+	my ($pkg, $storage, $class) = @_;
 
-   my $schema = $storage->{schema};
-   my $classes = $schema->{classes};
+	my $schema = $storage->{schema};
+	my $classes = $schema->{classes};
 	$schema->check_class($class);
 
-   my @tables;
+	my @tables;
 	my $table_hash = { };
-   my $self = bless { storage => $storage, tables => \@tables, class => $class,
-		table_hash => $table_hash }, $pkg;
+	my $self = bless { storage => $storage, tables => \@tables, class => $class,
+					   table_hash => $table_hash }, $pkg;
 
-   $storage->{schema}->visit_up($class,
-      sub
-      {
-         my $class = shift;
+	$storage->{schema}->visit_up($class,
+								 sub
+								 {
+									 my $class = shift;
 			
-			unless ($classes->{$class}{stateless})
-			{
-				my $id = $storage->alloc_table;
-				push @tables, [ $class, $id ];
-				$table_hash->{$class} = $id;
-			}
-      } );
+									 unless ($classes->{$class}{stateless})
+									 {
+										 my $id = $storage->alloc_table;
+										 push @tables, [ $class, $id ];
+										 $table_hash->{$class} = $id;
+									 }
+								 } );
 
-   return $self;
+	return $self;
 }
 
 sub copy
 {
-   my ($pkg, $other) = @_;
+	my ($pkg, $other) = @_;
 
 	my $self = { %$other };
 	$self->{tables} = [ @{ $self->{tables} } ];
@@ -62,7 +62,7 @@ sub copy
 
 sub storage
 {
-   shift->{storage}
+	shift->{storage}
 }
 
 sub table
@@ -73,145 +73,145 @@ sub table
 
 sub tables
 {
-   shift->{tables}
+	shift->{tables}
 }
 
 sub class
 {
 	shift->{class}
-   #my ($self) = @_;
-   #my $tables = $self->{tables};
-   #return $tables->[$#$tables][0];
+		#my ($self) = @_;
+		#my $tables = $self->{tables};
+		#return $tables->[$#$tables][0];
 }
 
 sub parts
 {
-   return map { $_->[0] } @{ shift->{tables} };
+	return map { $_->[0] } @{ shift->{tables} };
 }
 
 sub root_table
 {
-   my ($self) = @_;
-   return $self->{tables}[0][1];
+	my ($self) = @_;
+	return $self->{tables}[0][1];
 }
 
 sub class_id_col
 {
-   my ($self) = @_;
-   return "t$self->{tables}[0][1].classId";
+	my ($self) = @_;
+	return "t$self->{tables}[0][1].classId";
 }
 
 sub leaf_table
 {
-   my ($self) = @_;
-   return $self->{tables}[-1][1];
+	my ($self) = @_;
+	return $self->{tables}[-1][1];
 }
 
 sub from
 {
-   return join ', ', &from unless wantarray;
+	return join ', ', &from unless wantarray;
 
-   my ($self) = @_;
-   my $schema = $self->storage->{schema};
-   my $classes = $schema->{classes};
-   my $tables = $self->{tables};
-   map { "$classes->{$_->[0]}{table} t$_->[1]" } @$tables;
+	my ($self) = @_;
+	my $schema = $self->storage->{schema};
+	my $classes = $schema->{classes};
+	my $tables = $self->{tables};
+	map { "$classes->{$_->[0]}{table} t$_->[1]" } @$tables;
 }
 
 sub where
 {
-   return join ' AND ', &where unless wantarray;
+	return join ' AND ', &where unless wantarray;
 
-   my ($self) = @_;
+	my ($self) = @_;
    
 	my $tables = $self->{tables};
-   my $root = $tables->[0][1];
+	my $root = $tables->[0][1];
 
-   map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables];
+	map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables];
 }
 
 sub cols
 {
-   return join ', ', &cols unless wantarray;
+	return join ', ', &cols unless wantarray;
 
-   my ($self) = @_;
+	my ($self) = @_;
 
-   my $tables = $self->tables;
-   my $root = $tables->[0][1];
-   my $schema = $self->storage->{schema};
+	my $tables = $self->tables;
+	my $root = $tables->[0][1];
+	my $schema = $self->storage->{schema};
 
-   my $cols = "t$root.id, t$root.classId";
+	my $cols = "t$root.id, t$root.classId";
 
-   foreach my $table (@$tables)
-   {
-      my ($class, $id) = @$table;
-      my $classdef = $schema->classdef($class);
+	foreach my $table (@$tables)
+	{
+		my ($class, $id) = @$table;
+		my $classdef = $schema->classdef($class);
 
-      foreach my $typetag (keys %{$classdef->{members}})
-      {
-         my $members = $classdef->{members}{$typetag};
+		foreach my $typetag (keys %{$classdef->{members}})
+		{
+			my $members = $classdef->{members}{$typetag};
 
-         foreach my $col ($schema->{types}{$typetag}->cols($members))
-         {
-            $cols .= ", t$table->[1].$col";
-         }
-      }
-   }
+			foreach my $col ($schema->{types}{$typetag}->cols($members))
+			{
+				$cols .= ", t$table->[1].$col";
+			}
+		}
+	}
 
-   return $cols;
+	return $cols;
 }
 
 sub mark
 {
-   return @{ shift->{tables} };
+	return @{ shift->{tables} };
 }
 
 sub push_spec
 {
-   my ($self, $spec) = @_;
-   my $tables = $self->tables;
-   push @$tables, [ $spec, $self->storage->alloc_table ];
+	my ($self, $spec) = @_;
+	my $tables = $self->tables;
+	push @$tables, [ $spec, $self->storage->alloc_table ];
 }
 
 sub pop_spec
 {
-   my ($self, $mark) = @_;
-   my $tables = $self->{tables};
-   $self->storage->free_table( map { $_->[1] } splice @$tables, $mark, @$tables - $mark );
+	my ($self, $mark) = @_;
+	my $tables = $self->{tables};
+	$self->storage->free_table( map { $_->[1] } splice @$tables, $mark, @$tables - $mark );
 }
 
 sub expr_hash
 {
-   my ($self) = @_;
-   my $storage = $self->{storage};
-   my $schema = $storage->{schema};
-   my $classes = $schema->{classes};
+	my ($self) = @_;
+	my $storage = $self->{storage};
+	my $schema = $storage->{schema};
+	my $classes = $schema->{classes};
 	my @tables = @{$self->{tables}};
-   my $root_tid = $tables[0][1];
+	my $root_tid = $tables[0][1];
    
-   my %hash =
-   (
-      object => $self, 
-      id => Tangram::Expr->new("t$root_tid.id", 'Tangram::Number', $self)
-   );
+	my %hash =
+		(
+		 object => $self, 
+		 id => Tangram::Number->expr("t$root_tid.id", $self)
+		);
 
-   $schema->visit_up($self->{class},
-      sub
-      {
-			my $classdef = $classes->{shift()};
+	$schema->visit_up($self->{class},
+					  sub
+					  {
+						  my $classdef = $classes->{shift()};
 
-			my $tid = (shift @tables)->[1] unless $classdef->{stateless};
+						  my $tid = (shift @tables)->[1] unless $classdef->{stateless};
 
-			foreach my $typetag (keys %{$classdef->{members}})
-			{
-				my $type = $schema->{types}{$typetag};
-				my $memdefs = $classdef->{members}{$typetag};
-				@hash{$type->members($memdefs)} =
-					$type->query_expr($self, $memdefs, $tid);
-			}
-      } );
+						  foreach my $typetag (keys %{$classdef->{members}})
+						  {
+							  my $type = $schema->{types}{$typetag};
+							  my $memdefs = $classdef->{members}{$typetag};
+							  @hash{$type->members($memdefs)} =
+								  $type->query_expr($self, $memdefs, $tid, $storage);
+						  }
+					  } );
 
-   return \%hash;
+	return \%hash;
 }
 
 package Tangram::RDBObject;
@@ -220,15 +220,15 @@ use base qw( Tangram::CursorObject );
 
 sub where
 {
-   return join ' AND ', &where unless wantarray;
+	return join ' AND ', &where unless wantarray;
 
-   my ($self) = @_;
+	my ($self) = @_;
    
 	my $storage = $self->{storage};
-   my $schema = $storage->{schema};
-   my $classes = $schema->{classes};
+	my $schema = $storage->{schema};
+	my $classes = $schema->{classes};
 	my $tables = $self->{tables};
-   my $root = $tables->[0][1];
+	my $root = $tables->[0][1];
 	my $class = $self->{class};
 
 	my @where_class_id;
@@ -240,12 +240,12 @@ sub where
 		push @class_ids, $storage->class_id($class) unless $classes->{$class}{abstract};
 
 		$schema->for_each_spec($class,
-			sub { my $spec = shift; push @class_ids, $storage->class_id($spec) unless $classes->{$spec}{abstract} } );
+							   sub { my $spec = shift; push @class_ids, $storage->class_id($spec) unless $classes->{$spec}{abstract} } );
 
 		@where_class_id = "t$root.classId IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')';
 	}
 
-   return (@where_class_id, map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables]);
+	return (@where_class_id, map { "t@{$_}[1].id = t$root.id" } @$tables[1..$#$tables]);
 }
 
 package Tangram::Filter;
@@ -253,224 +253,241 @@ use Carp;
 
 sub new
 {
-   my $pkg = shift;
-   my $self = bless { @_ }, $pkg;
-   $self->{objects} ||= Set::Object->new;
-   $self;
+	my $pkg = shift;
+	my $self = bless { @_ }, $pkg;
+	$self->{objects} ||= Set::Object->new;
+	$self;
 }
 
 sub and
 {
-   my ($self, $other) = @_;
-   return op($self, 'AND', 10, $other);
+	my ($self, $other) = @_;
+	return op($self, 'AND', 10, $other);
 }
 
 sub and_perhaps
 {
-   my ($self, $other) = @_;
-   return $other ? op($self, 'AND', 10, $other) : $self;
+	my ($self, $other) = @_;
+	return $other ? op($self, 'AND', 10, $other) : $self;
 }
 
 sub or
 {
-   my ($self, $other) = @_;
-   return op($self, 'OR', 9, $other);
+	my ($self, $other) = @_;
+	return op($self, 'OR', 9, $other);
 }
 
 sub not
 {
-   my ($self) = @_;
+	my ($self) = @_;
 
-   Tangram::Filter->new(
-      expr => "NOT ($self->{expr})",
-      tight => 100,
-      objects => Set::Object->new(
-         $self->{objects}->members ) );
+	Tangram::Filter->new(
+						 expr => "NOT ($self->{expr})",
+						 tight => 100,
+						 objects => Set::Object->new(
+													 $self->{objects}->members ) );
 }
 
 sub as_string
 {
-   my $self = shift;
-   return ref($self) . "($self->{expr})";
+	my $self = shift;
+	return ref($self) . "($self->{expr})";
 }
 
 use overload "&" => \&and, "|" => \&or, '!' => \&not, fallback => 1;
 
 sub op
 {
-   my ($left, $op, $tight, $right) = @_;
+	my ($left, $op, $tight, $right) = @_;
 
-   confess "undefined operand(s) for $op" unless $left && $right;
+	confess "undefined operand(s) for $op" unless $left && $right;
 
-   my $lexpr = $tight > $left->{tight} ? "($left->{expr})" : $left->{expr};
-   my $rexpr = $tight > $right->{tight} ? "($right->{expr})" : $right->{expr};
+	my $lexpr = $tight > $left->{tight} ? "($left->{expr})" : $left->{expr};
+	my $rexpr = $tight > $right->{tight} ? "($right->{expr})" : $right->{expr};
 
-   return Tangram::Filter->new(
-      expr => "$lexpr $op $rexpr",
-      tight => $tight,
-      objects => Set::Object->new(
-         $left->{objects}->members, $right->{objects}->members ) );
+	return Tangram::Filter->new(
+								expr => "$lexpr $op $rexpr",
+								tight => $tight,
+								objects => Set::Object->new(
+															$left->{objects}->members, $right->{objects}->members ) );
 }
 
 sub from
 {
-   return join ', ', &from unless wantarray;
-   map { $_->from } shift->objects;
+	return join ', ', &from unless wantarray;
+	map { $_->from } shift->objects;
 }
 
 sub where
 {
-   return join ' AND ', &where unless wantarray;
+	return join ' AND ', &where unless wantarray;
 
-   my ($self) = @_;
-   my @expr = "($self->{expr})" if exists $self->{expr};
-   (@expr, map { $_->where } $self->objects);
+	my ($self) = @_;
+	my @expr = "($self->{expr})" if exists $self->{expr};
+	(@expr, map { $_->where } $self->objects);
 }
 
 sub where_objects
 {
-   return join ' AND ', &where_objects unless wantarray;
-   my ($self, $object) = @_;
-   map { $_ == $object ? () : $_->where } $self->objects;
+	return join ' AND ', &where_objects unless wantarray;
+	my ($self, $object) = @_;
+	map { $_ == $object ? () : $_->where } $self->objects;
 }
 
 sub objects
 {
-   shift->{objects}->members;
+	shift->{objects}->members;
 }
 
 package Tangram::Expr;
 
 sub new
 {
-   my ($pkg, $expr, $type, @objects) = @_;
-   return bless { expr => $expr, type => $type,
-      objects => Set::Object->new(@objects),
-		storage => $objects[0]->{storage} }, $pkg;
+	my ($pkg, $type, $expr, @objects) = @_;
+	return bless { expr => $expr, type => $type,
+				   objects => Set::Object->new(@objects),
+				   storage => $objects[0]->{storage} }, $pkg;
+}
+
+sub expr
+{
+	return shift->{expr};
+}
+
+sub storage
+{
+	return shift->{objects}[0]->{storage};
+}
+
+sub type
+{
+	return shift->{type};
 }
 
 sub objects
 {
-   return shift->{objects}->members;
+	return shift->{objects}->members;
 }
 
 sub eq
 {
-   my ($self, $arg) = @_;
-   return $self->binop('=', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('=', $arg);
 }
 
 sub ne
 {
-   my ($self, $arg) = @_;
-   return $self->binop('<>', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('<>', $arg);
 }
 
 sub lt
 {
-   my ($self, $arg) = @_;
-   return $self->binop('<', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('<', $arg);
 }
 
 sub le
 {
-   my ($self, $arg) = @_;
-   return $self->binop('<=', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('<=', $arg);
 }
 
 sub gt
 {
-   my ($self, $arg) = @_;
-   return $self->binop('>', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('>', $arg);
 }
 
 sub ge
 {
-   my ($self, $arg) = @_;
-   return $self->binop('>=', $arg);
+	my ($self, $arg) = @_;
+	return $self->binop('>=', $arg);
 }
 
 sub binop
 {
-   my ($self, $op, $arg) = @_;
+	my ($self, $op, $arg) = @_;
 
-   my @objects = $self->objects;
-   my $objects = Set::Object->new(@objects);
+	my @objects = $self->objects;
+	my $objects = Set::Object->new(@objects);
 
-   if ($arg)
-   {
-	   if (my $type = ref($arg))
-      {
-         if ($arg->isa('Tangram::Expr'))
-         {
-            $objects->insert($arg->objects);
-            $arg = $arg->{expr};
-         }
+	if ($arg)
+	{
+		if (my $type = ref($arg))
+		{
+			if ($arg->isa('Tangram::Expr'))
+			{
+				$objects->insert($arg->objects);
+				$arg = $arg->{expr};
+			}
    
-         elsif ($arg->isa('Tangram::QueryObject'))
-         {
-            $objects->insert($arg->object);
-            $arg = $arg->{id}->{expr};
-         }
+			elsif ($arg->isa('Tangram::QueryObject'))
+			{
+				$objects->insert($arg->object);
+				$arg = $arg->{id}->{expr};
+			}
    
-         elsif (exists $self->{storage}{schema}{classes}{$type})
-         {
-            $arg = $self->{storage}->id($arg) or Carp::confess "$arg is not persistent";
-         }
+			elsif (exists $self->{storage}{schema}{classes}{$type})
+			{
+				$arg = $self->{storage}->id($arg) or Carp::confess "$arg is not persistent";
+			}
 
-		   else
-		   {
+			else
+			{
 			    $arg = $self->{type}->literal($arg);
-		   }
-      }
-	   else
-      {
-          $arg = $self->{type}->literal($arg);
-      }
-   }
-   else
-   {
-      $op = $op eq '=' ? 'IS' : $op eq '<>' ? 'IS NOT' : Carp::confess;
-      $arg = 'NULL';
-   }
+			}
+		}
+		else
+		{
+			$arg = $self->{type}->literal($arg);
+		}
+	}
+	else
+	{
+		$op = $op eq '=' ? 'IS' : $op eq '<>' ? 'IS NOT' : Carp::confess;
+		$arg = 'NULL';
+	}
 
-   return new Tangram::Filter(expr => "$self->{expr} $op $arg", tight => 100,
-      objects => $objects );
+	return new Tangram::Filter(expr => "$self->{expr} $op $arg", tight => 100,
+							   objects => $objects );
 }
 
 sub like
 {
 	my ($self, $val) = @_;
-   return new Tangram::Filter(expr => "$self->{expr} like '$val'", tight => 100,
-      objects => Set::Object->new($self->objects) );
+	return new Tangram::Filter(expr => "$self->{expr} like '$val'", tight => 100,
+							   objects => Set::Object->new($self->objects) );
 }
 
 sub count
 {
 	my ($self, $val) = @_;
-   Tangram::Expr->new( "COUNT($self->{expr})", 'Tangram::Integer', $self->objects );
+	$self->{storage}{dialect}
+		->expr(Tangram::Integer->instance, "COUNT($self->{expr})",
+				$self->objects );
 }
 
 sub as_string
 {
-   my $self = shift;
-   return ref($self) . "($self->{expr})";
+	my $self = shift;
+	return ref($self) . "($self->{expr})";
 }
 
 use overload
-   "==" => \&eq,
-   "eq" => \&eq,
-   "!=" => \&ne,
-   "ne" => \&ne,
-   "<" => \&lt,
-   "lt" => \&lt,
-   "<=" => \&le,
-   "le" => \&le,
-   ">" => \&gt,
-   "gt" => \&gt,
-   ">=" => \&ge,
-   "ge" => \&ge,
-   '""' => \&as_string,
+	"==" => \&eq,
+	"eq" => \&eq,
+	"!=" => \&ne,
+	"ne" => \&ne,
+	"<" => \&lt,
+	"lt" => \&lt,
+	"<=" => \&le,
+	"le" => \&le,
+	">" => \&gt,
+	"gt" => \&gt,
+	">=" => \&ge,
+	"ge" => \&ge,
+	'""' => \&as_string,
 	fallback => 1;
 
 package Tangram::QueryObject;
@@ -479,13 +496,13 @@ use Carp;
 
 sub new
 {
-   my ($pkg, $obj) = @_;
-   bless $obj->expr_hash(), $pkg;
+	my ($pkg, $obj) = @_;
+	bless $obj->expr_hash(), $pkg;
 }
 
 sub object
 {
-   shift->{object}
+	shift->{object}
 }
 
 sub class
@@ -498,9 +515,9 @@ sub eq
 	my ($self, $other) = @_;
 
 	if (!defined($other))
-   {
+	{
 		$self->{id} == undef
-   }
+	}
 	elsif ($other->isa('Tangram::QueryObject'))
 	{
 		$self->{id} == $other->{id}
@@ -515,15 +532,15 @@ sub eq
 
 sub is_kind_of
 {
-   my ($self, $class) = @_;
+	my ($self, $class) = @_;
 
-   my $object = $self->{object};
-   my $root = $object->{tables}[0][1];
+	my $object = $self->{object};
+	my $root = $object->{tables}[0][1];
 
-   Tangram::Filter->new(
-      expr => "t$root.classId IN (" . join(', ', $object->{storage}->_kind_class_ids($class) ) . ')',
-      tight => 100,
-      objects => Set::Object->new( $object ) );
+	Tangram::Filter->new(
+						 expr => "t$root.classId IN (" . join(', ', $object->{storage}->_kind_class_ids($class) ) . ')',
+						 tight => 100,
+						 objects => Set::Object->new( $object ) );
 }
 
 use overload "==" => \&eq, "!=" => \&ne, fallback => 1;
@@ -536,44 +553,44 @@ use base qw( Tangram::Expr );
 
 sub new
 {
-   my ($type, %args) = @_;
+	my ($type, %args) = @_;
 
-   my $cols = join ', ', map
-   {
-      confess "column specification must be a Tangram::Expr" unless $_->isa('Tangram::Expr');
-      $_->{expr};
-   } @{$args{cols}};
+	my $cols = join ', ', map
+	{
+		confess "column specification must be a Tangram::Expr" unless $_->isa('Tangram::Expr');
+		$_->{expr};
+	} @{$args{cols}};
 
-   my $filter = $args{filter} || $args{where} || Tangram::Filter->new;
+	my $filter = $args{filter} || $args{where} || Tangram::Filter->new;
 
-   my $objects = Set::Object->new();
+	my $objects = Set::Object->new();
 
 	if (exists $args{from})
 	{
-      $objects->insert( map { $_->object } @{ $args{from} } );
+		$objects->insert( map { $_->object } @{ $args{from} } );
 	}
 	else
 	{
 		$objects->insert( $filter->objects(), map { $_->objects } @{ $args{cols} } );
-      $objects->remove( @{ $args{exclude} } ) if exists $args{exclude};
+		$objects->remove( @{ $args{exclude} } ) if exists $args{exclude};
 	}
 
-   my $from = join ', ', map { $_->from } $objects->members;
+	my $from = join ', ', map { $_->from } $objects->members;
 
 	my $where = join ' AND ',
-      $filter->{expr} ? "($filter->{expr})" : (),
-      map { $_->where } $objects->members;
+		$filter->{expr} ? "($filter->{expr})" : (),
+			map { $_->where } $objects->members;
 
-   my $sql = "SELECT $cols";
-   $sql .= "\nFROM $from" if $from;
-   $sql .= "\nWHERE $where" if $where;
+	my $sql = "SELECT $cols";
+	$sql .= "\nFROM $from" if $from;
+	$sql .= "\nWHERE $where" if $where;
 
-   if (exists $args{order})
-   {
-      $sql .= "\nORDER BY " . join ', ', map { $_->{expr} } @{$args{order}};
-   }
+	if (exists $args{order})
+	{
+		$sql .= "\nORDER BY " . join ', ', map { $_->{expr} } @{$args{order}};
+	}
 
-   my $self = $type->SUPER::new("($sql)", 'Tangram::Integer');
+	my $self = $type->SUPER::new(Tangram::Integer->instance, "($sql)");
 	
 	$self->{cols} = $args{cols};
 
@@ -593,8 +610,8 @@ sub where
 
 sub execute
 {
-   my ($self, $storage, $conn) = @_;
-   return Tangram::DataCursor->open($storage, $self, $conn);
+	my ($self, $storage, $conn) = @_;
+	return Tangram::DataCursor->open($storage, $self, $conn);
 }
 
 1;

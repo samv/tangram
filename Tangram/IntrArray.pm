@@ -164,8 +164,8 @@ sub prefetch
 	# also retrieve collection-side id and index of elmt in sequence
 
 	$cursor->retrieve($coll->{id},
-					  Tangram::Expr->new("t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}",
-										 'Tangram::Integer') );
+	    $storage->{dialect}->expr(Tangram::Integer->instance,
+			"t$ritem->{object}{table_hash}{$def->{class}}.$def->{slot}") );
 
 	$cursor->select($includes);
    

@@ -141,6 +141,8 @@ sub includes
 			);
 }
 
+use overload '<' => \&includes;
+
 package Tangram::IntrCollExpr;
 
 use base qw( Tangram::AbstractCollExpr );

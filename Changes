@@ -56,3 +56,12 @@ Revision history for Perl extension Tangram.
 	- added temporary hack in Makefile.PL to support Access
 	- added mapping for flat arrays
 	- factorized code common to Array & FlatArray
+
+1.07  Feb 29 2000 - interim version
+	- adapted test suite for Sybase and other NULL-picky databases
+	- added experimental support for vendor extensions (Dialect)
+	- added skeleton Dialect::Sybase with support for datepart
+	- did extensive rework on Expr instantiation
+	- began documenting Type
+	- added Storage::reload()
+

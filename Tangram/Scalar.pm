@@ -42,12 +42,9 @@ sub reschema
 
 sub query_expr
 {
-    my ($self, $obj, $memdefs, $tid) = @_;
-
-    map
-    {
-		Tangram::Expr->new("t$tid.$_", $self, $obj);
-    } keys %$memdefs;
+    my ($self, $obj, $memdefs, $tid, $storage) = @_;
+	my $dialect = $storage->{dialect};
+    return map { $dialect->expr($self, "t$tid.$_", $obj) } keys %$memdefs;
 }
 
 sub cols
@@ -93,7 +90,6 @@ sub save
 package Tangram::Integer;
 
 use base qw( Tangram::Number );
-
 $Tangram::Schema::TYPES{int} = Tangram::Integer->new;
 
 package Tangram::Real;

@@ -77,12 +77,9 @@ sub read
 
 sub query_expr
 {
-   my ($self, $obj, $memdefs, $tid) = @_;
-
-   map
-   {
-      Tangram::Expr->new("t$tid.$_", $self, $obj);
-   } keys %$memdefs;
+   my ($self, $obj, $memdefs, $tid, $storage) = @_;
+   my $dialect = $storage->{dialect};
+   return map { $self->expr("t$tid.$_", $obj) } keys %$memdefs;
 }
 
 sub refid

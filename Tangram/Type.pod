@@ -1,0 +1,36 @@
+=head1 NAME
+
+Tangram::Type - root of the Type hierarchy
+
+=head1 DESCRIPTION
+
+Tangram::Type is the root of a hierarchy of classes that are
+responsible mapping individual field to SQL entities (columns in the
+simplest cases).
+
+Adding support for new types amounts to adding subclasses to
+Tangram::Type.
+
+Type objects are singletons: there exists exactly one instance per
+Type concrete subclass.
+
+=head1 DISCLAIMER
+
+Some methods in the Type hierarchy are going to be reexamined and
+perhaps reworked. Only the methods documented here have a good chance
+to work in future releases.
+
+=head1 CLASS METHODS
+
+=head2 instance()
+
+Returns this Type's sole instance.
+
+=head1 INSTANCE METHODS
+
+=head2 expr($type, $expr, @remotes)
+
+Returns a new Expr object. See L<Tangram::Expr> for a description of
+the arguments.
+
+
