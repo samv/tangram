@@ -30,7 +30,7 @@ sub reschema
 			$def = $members->{$field} = { col => $schema->{normalize}->(($def || $field), 'fieldname') };
 		}
 
-		$self->field_reschema($field, $def);
+		$self->field_reschema($field, $def, $schema);
     }
 
     return keys %$members;
@@ -38,8 +38,8 @@ sub reschema
 
 sub field_reschema
   {
-	my ($self, $field, $def) = @_;
-	$def->{col} ||= $field;
+	my ($self, $field, $def, $schema) = @_;
+	$def->{col} ||= $schema->{normalize}->($field, 'colname');
   }
 
 sub query_expr

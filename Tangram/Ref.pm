@@ -47,10 +47,10 @@ $Tangram::Schema::TYPES{ref} = Tangram::Ref->new;
 
 sub field_reschema
   {
-	my ($self, $field, $def) = @_;
-	$self->SUPER::field_reschema($field, $def);
+	my ($self, $field, $def, $schema) = @_;
+	$self->SUPER::field_reschema($field, $def, $schema);
 	die unless $field;
-	$def->{type_col} ||= "${field}_type";
+	$def->{type_col} ||= $schema->{normalize}->("${field}_type", "colname");
   }
 
 sub get_export_cols
