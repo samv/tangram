@@ -582,7 +582,9 @@ sub new
 		$filter->{expr} ? "($filter->{expr})" : (),
 			map { $_->where } $objects->members;
 
-	my $sql = "SELECT $cols";
+	my $sql = "SELECT";
+	$sql .= ' DISTINCT' if $args{distinct};
+	$sql .= "  $cols";
 	$sql .= "\nFROM $from" if $from;
 	$sql .= "\nWHERE $where" if $where;
 

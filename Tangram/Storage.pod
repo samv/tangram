@@ -193,6 +193,8 @@ pairs. Currently Tangram recognizes the following directives:
 
 =item * filter
 
+=item * distinct
+
 =item * order
 
 =item * desc
@@ -201,6 +203,9 @@ pairs. Currently Tangram recognizes the following directives:
 
 Option C<filter> specifies a Filter that can be used to restrict the
 result set.
+
+Option C<distinct> specifies that each object in the result set must
+be unique (Tangram generates a SELECT DISTINCT).
 
 Option C<order> is an array of Expr; order result set by increasing
 value of Exprs.

@@ -43,6 +43,7 @@ sub select
 
 	$self->{-order} = $args{order};
 	$self->{-desc} = $args{desc};
+	$self->{-distinct} = $args{distinct};
 
 	$self->retrieve( @{ $args{retrieve} } ) if exists $args{retrieve};
 
@@ -192,7 +193,12 @@ sub build_select
 		$cols = join ', ', $cols, map { $_->{expr} } @$retrieve;
 	}
 
-	my $select = "SELECT $cols\n\tFROM $from\n\t" . ($where && "WHERE $where");
+	my $select = "SELECT";
+
+	$select .= ' DISTINCT' if $self->{-distinct};
+
+	$select .= " $cols\n\tFROM $from\n\t";
+	$select .= "WHERE $where" if $where;
 
 	if (my $order = $self->{-order})
 	{
