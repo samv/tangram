@@ -1,0 +1,23 @@
+#!perl
+use blib;
+use lib 't';
+use Springfield;
+use FindBin qw( $Bin );
+use DBI;
+use Tangram::Deploy;
+
+print "\nNow I will attempt to connect and prepare the database...";
+
+local $/;
+open CONFIG, "$Bin/t/CONFIG" or die "Cannot open '$Bin/t/CONFIG', reason: $!";
+
+my ($cs, $user, $passwd) = split "\n", <CONFIG>;
+
+if (my $dbh = DBI->connect( $cs, $user, $passwd ))
+{
+	my $rs = $Springfield::schema->relational_schema();
+	do { local $dbh->{PrintError}; $rs->retreat($dbh); };
+	$rs->deploy($dbh);
+	$dbh->disconnect;
+	print "ok\n";
+}
