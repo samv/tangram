@@ -3,17 +3,17 @@
 use FindBin qw( $Bin );
 chdir($Bin);
 
-system 'rm -f `find website/pod -name *.html -print`';
+system 'rm -f `find website/htdocs/pod -name *.html -print`';
 
 for my $pod (<*.pod>, <Tangram/*.pod>)
 {
 	my $html = $pod;
 	$html =~ s/\.pod$/.html/;
 	$html =~ s:Tangram/::;
-	system "pod2html --infile $pod --outfile website/pod/$html";
+	system "pod2html --infile $pod --outfile website/htdocs/pod/$html";
 }
 
-my @pods = <website/pod/*.html>;
+my @pods = <website/htdocs/pod/*.html>;
 
 sub improve (&)
 {
@@ -40,6 +40,6 @@ sub improve (&)
 improve
 {
 	s{<A HREF="/Tangram/}{<A HREF="}g;
-	s{<body>}{<body text=black bgcolor=white>}gi;
+	s{<body>}{<body text=black bgcolor=lightyellow>}gi;
 	s{(www.tangram-persistence.org)}{<a href="http://$1"> $1 </a>}g;
 };
