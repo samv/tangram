@@ -2,14 +2,22 @@
 
 Tangram - Store pure objects in standard relational databases
 
+=head1 SYNOPSIS
+
+See L<Tangram::Tour>
+
 =head1 DESCRIPTION
 
-Tangram is an I<object-relational mapper>.
+Tangram is an I<object-relational mapper>.  It is I<orthogonal>,
+meaning that it does not require anything of the objects stored in it
+(other than the common convention that base objects be based upon
+HASHes; individual columns can be anything).
 
-It consists of an I<schema language> that can be built around an
-object structure, or around an existing SQL schema (with some
-limitations).  This schema language is rich enough to express such
-common RDBMS features as links, foreign keys, and link tables.
+It consists of an I<schema language> that can describe or be built
+around an object structure, or so as to closely match an existing SQL
+schema (with some limitations).  This schema language is rich enough
+to express such common RDBMS features as links, foreign keys, and link
+tables.
 
 It also consists of a I<relational database storage> engine, which
 based on the schema structure, will make Perl structures persist in a
@@ -18,26 +26,49 @@ collections, as represented with foreign keys and link tables) may be
 loaded using I<on demand references> that `lazily' load data when it
 is needed.
 
-Tangram has soundly engineered transaction support, without
-sacrificing excellent data caching abilities.
+As of Tangram 2.08, the schema need not describe every single object
+property, so that you can map only the columns you intend to query.
+The rest of the object is then stored in a column via a serialiser,
+like L<Data::Dumper>, L<YAML> or L<Storable>.  These structures
+themselves may contain arbitrary references to other objects in
+storage.
 
-In short, it implements B<orthogonal object persistence>.
+Tangram has soundly engineered transaction support, without
+sacrificing excellent data caching abilities.  The general
+optimisation strategy of the code makes it most suited for OLTP (aka
+application servers) and other situations where it is better to select
+and update whole rows than to worry about which columns to
+retrieve/update or not retrieve/update.
 
 Once your object are persistent, you can build query expressions to
 find them in terms of the schema language that you used to put them
-in.  The schema data structure does not describe a data structure, it
-describes a I<data access pattern>.
+in.  Therefore, the schema data structure does not describe a data
+structure, it describes a I<data access pattern>.
+
+If you are not picky about which accessor module to use, preferring to
+specify the schema once only, then you can use the seperately
+distributed L<Class::Tangram::Generator> to make a set of classes from
+a Tangram schema structure.
 
 If you are looking for a tool that implements I<SQL abstraction> only,
 you have probably missed the point (of this module, anyway), and a
-well-supported module like L<Class::DBI> will likely suit your needs
-better.
+well-supported module like L<Class::DBI>, or an interactive SQL
+modeller like L<Alzabo> will likely suit your needs better.
 
 Tangram is beginning to include preliminary support for aggregation
 functions, and currently supports grouping, summing and counting.
+Joins must currently be in terms of integer primary key columns, to
+extend past this would require extra mapping types to be developed.
+Basic support for alternative join types is present, but in its
+infancy.
 
-Tangram currently contains no support for database-side updates, but
-support is planned.
+Tangram currently contains no support for database-side updates (ie,
+C<UPDATE foo SET bar = 'baz' where frop = 'blarg'>), but support is
+planned.
+
+There is no support for creating views based on existing classes to
+make new derived classes; you have to use your database SQL and create
+corresponding Tangram classes manually to do that.
 
 =head1 DOCUMENTATION INDEX
 
@@ -93,22 +124,25 @@ not required for core operation of Tangram.
 
 =head1 COMPATIBILITY
 
-Tangram is known to run in the following environments, however,
+Tangram has been known to run in the following environments, however,
 Tangram uses standard SQL and should be usable with any SQL-83
-compliant database.
+compliant database.  Most of the requirements are simply avoiding the
+worst bugs.
 
 Note that some functions (e.g. transactions and subselects) may not be
-available in some environments. This is reported during the test suite.
+available in some environments. This is reported during the test
+suite.
 
 =over 4
 
 =item *
 
-Perl 5.6.1
+Perl 5.005_03+, 5.6.1+, 5.8.1+ (5.8.0 had a nasty bug and doesn't work
+with Tangram)
 
 =item *
 
-Set::Object 1.04
+Set::Object 1.04 (though the latest version is highly recommended)
 
 =item *
 
@@ -128,6 +162,10 @@ DBD::Sybase 0.21
 
 =item *
 
+DBD::SQLite 1.07 (needs testing)
+
+=item *
+
 DBD::Pg 0.93
 
 =back
@@ -140,7 +178,12 @@ You can obtain a commercial license for old (2.04 and earlier)
 versions of Tangram from Sound Object Logic, see
 http://www.soundobjectlogic.com/tangram/licenses.html.
 
-TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.
+TANGRAM COMES WITHOUT ANY WARRANTY OF ANY KIND.  IT DOES NOT EVEN COME
+WITH ANY KIND OF VAGUE IMPLICATION THAT IT DOES ANYTHING MORE THAN
+GIVE YOUR COMPUTER HINTS ABOUT HOW TO TRY STIRRING ITS ELECTRONS.  THE
+AUTHORS ARE NOT RESPONSIBLE FOR THE RESULTANT ELECTRON CONFIGURATION
+IN ANY WAY INCLUDING TRANSMUTATIONS OF ELECTRONS INTO OTHER FIELDS
+SUCH AS MAGNETIC MEDIA OR PUNCH CARDS.
 
 =head1 SUPPORT
 
