@@ -9,7 +9,7 @@ Tangram::Relational - Orthogonal Object Persistence in Relational Databases
    $schema = Tangram::Relational->schema( $hashref );
 
    Tangram::Relational->deploy($schema, $dbh);
-      
+
    $storage = Tangram::Relational->connect( $schema,
       $data_source, $username, $password );
 
@@ -97,8 +97,8 @@ C<Foo> is the name of the DBI driver, as would be selected with the
 DBI connection string C<dbi:Foo:>), and derive C<Tangram::Relational>.
 
 For now, the existing back-ends should be used as examples of how to
-extend Tangram to support different databases, or utilise some of
-their more exotic features.
+extend Tangram to support different databases or utilise some of their
+more exotic features.
 
 =cut
 
