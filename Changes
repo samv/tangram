@@ -322,3 +322,15 @@ Revision history for Perl extension Tangram.
 
 2.07_05, 2.07_06
 	- lots of changes.  full list to follow in next release.
+
+2.07_06
+	- Support for SQL sequences.  See the Tangram::Schema man
+	  page.
+
+2.07_07
+	- added support for multiple test suites, each with their own
+	  schema, to end the ballooning schema madness that was
+	  affecting the springfield test suite.
+	- reworked the way the DBMS date formatting worked again,
+	  adding Tangram::CookedDateTime
+	- added support for Time::Piece and DateTime.
