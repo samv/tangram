@@ -54,7 +54,7 @@ sub demand
 		}
     }
 
-	$self->set_load_state($storage, $obj, $member, map { ($_ ? ($_ => ($coll{$_} && $storage->id( $coll{$_} ) ) ) : ()) } keys %coll );
+	$self->set_load_state($storage, $obj, $member, { map { ($_ ? ($_ => ($coll{$_} && $storage->id( $coll{$_} ) ) ) : ()) } keys %coll } );
 
     return \%coll;
 }
