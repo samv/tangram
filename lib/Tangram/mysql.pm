@@ -31,6 +31,35 @@ sub dbms_date {
     return $date;
 }
 
+sub sequence_sql {
+    my $self = shift;
+
+    my $sequence_name = shift;
+    # from the MySQL manual
+    # http://dev.mysql.com/doc/mysql/en/Information_functions.html
+    return("UPDATE seq_$sequence_name SET id=LAST_INSERT_ID(id+1);\n"
+	   ."SELECT LAST_INSERT_ID();");
+}
+
+sub mk_sequence_sql {
+    my $self = shift;
+    my $sequence_name = shift;
+
+    return("CREATE TABLE seq_$sequence_name (id INT NOT NULL);\n"
+	   ."INSERT INTO seq_$sequence_name VALUES (0);");
+}
+
+sub drop_sequence_sql {
+    my $self = shift if ref $_[0] and UNIVERSAL::isa($_[0], __PACKAGE__);
+    my $sequence_name = shift;
+    return "DROP TABLE seq_$sequence_name";
+}
+
+sub limit_sql {
+    my $self = shift;
+    return (limit => shift);
+}
+
 package Tangram::mysql::Storage;
 
 use Tangram::Storage;
