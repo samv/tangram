@@ -1,0 +1,5 @@
+dbi:mysql:database=tangram
+tangram
+tangram
+tx_do = 0
+subselects = 1

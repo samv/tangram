@@ -1,0 +1,5 @@
+dbi:Oracle:DEV
+samv
+fmianggo
+tx_do = 1
+subselects = 1

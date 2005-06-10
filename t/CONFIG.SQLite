@@ -1,0 +1,5 @@
+dbi:SQLite:dbname=t/sqlite.db
+
+
+tx_do = 1
+subselects = 1

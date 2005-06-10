@@ -1,0 +1,5 @@
+dbi:Pg:dbname=tangram
+samv
+
+tx_do = 1
+subselects = 1
