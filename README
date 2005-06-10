@@ -1,3 +1,5 @@
+README for Tangram 2.08
+~~~~~~~~~~~~~~~~~~~~~~~
 Tangram is an object-relational mapper. It makes objects persist in
 relational databases, and provides powerful facilities for retrieving
 and filtering them. Tangram fully supports object-oriented
@@ -16,3 +18,4 @@ procedure, and have Date::Manip installed.
 
 For more information, see the included POD files and
 http://www.tangram-persistence.org/
+
