@@ -56,6 +56,7 @@ sub reschema {
       local($Data::Dumper::Indent) = $def->{indent};
       local($Data::Dumper::Terse)  = $def->{terse};
       local($Data::Dumper::Purity) = $def->{purity};
+      local($Data::Dumper::Useqq) = 1;
       local($Data::Dumper::Varname) = '_t::v';
       Data::Dumper->$DumpMeth([@_], []);
     };
