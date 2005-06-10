@@ -445,9 +445,7 @@ sub deploy
 	my $timestamp = $schema->{sql}{timestamp_all_tables};
 
 	push @base_cols,("$id_col ".
-			 $driver->type("$schema->{sql}{id} NOT NULL")
-			 .",\n"
-			 ."PRIMARY KEY( $id_col )")
+			 $driver->type("$schema->{sql}{id} NOT NULL"))
 	    if exists $cols->{$id_col};
 	push @base_cols, "$class_col "
 	    .$driver->type("$schema->{sql}{cid} NOT NULL")
@@ -463,13 +461,33 @@ sub deploy
 	$do->("CREATE TABLE $table\n(\n  ",
 	      join( ",\n  ", (@base_cols,
 			      map { "$_ ".$driver->type($cols->{$_}) }
-			      keys %$cols) ),
+			      keys %$cols),
+		    ( exists $cols->{$id_col} 
+		      ? ("PRIMARY KEY( $id_col )")
+		      : () ),
+		  ),
 	      "\n) ".($type?" TYPE=$type":""));
+
+    }
+
+    my %made_sequence;
+
+    foreach my $class ( values %{$schema->{classes}} ) {
+	if ( my $sequence = $class->{oid_sequence} ) {
+	    $do->($driver->mk_sequence_sql($sequence))
+		unless $made_sequence{$sequence}++;
+	}
     }
 
     my $control = $schema->{control};
     my $table_type = $schema->{sql}{table_type};
 
+    if ( my $sequence = $schema->{sql}{oid_sequence} ) {
+
+	$do->($driver->mk_sequence_sql($sequence))
+	    unless $made_sequence{$sequence}++;
+
+    } else {
     $do->( <<SQL . ($table_type?" TYPE=$table_type":"") );
 CREATE TABLE $control
 (
@@ -481,7 +499,7 @@ mark INTEGER NOT NULL
 SQL
 
     my $info = $engine->get_deploy_info();
-    my ($l) = split '\.', $Tangram::VERSION;
+    #my ($l) = split '\.', $Tangram::VERSION;
 
     # Prevent additional records on redeploy.
     #  -- ks.perl@kurtstephens.com 2004/04/29
@@ -490,6 +508,8 @@ SQL
     $do->("INSERT INTO $control (layout, engine, engine_layout, mark)"
 	  ." VALUES ($info->{LAYOUT}, '$info->{ENGINE}', "
 	  ."$info->{ENGINE_LAYOUT}, 0)");
+
+    }
 }
 
 sub retreat
@@ -502,9 +522,25 @@ sub retreat
 
     my $do = _deploy_do($output);
 
-    for my $table (sort keys %$tables, $schema->{control})
+    my %dropped_sequences;
+    my $driver = $engine->{driver} || Tangram::Relational->new();
+
+    my $oid_sequence = $schema->{sql}{oid_sequence};
+    for my $table (sort keys %$tables,
+		   ($oid_sequence ? () : $schema->{control}))
     {
 		$do->( "DROP TABLE $table" );
+    }
+
+    for my $class ( values %{ $schema->{classes} } ) {
+	if ( my $sequence = $class->{oid_sequence} ) {
+	    $do->($driver->drop_sequence_sql($sequence))
+		unless $dropped_sequences{$sequence}++;
+	}
+    }
+
+    if ( $oid_sequence ) {
+	$do->($driver->drop_sequence_sql($oid_sequence));
     }
 }
 
@@ -526,7 +562,7 @@ sub new
 	bless [ @_ ], $class;
   }
 
-use Set::Scalar;
+use Set::Object;
 
 use vars qw($paren);
 $paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
@@ -564,7 +600,7 @@ sub instantiate {
 	$DB::single = 1; # ?
 
 	# make sure all grouped columns are selected
-	$selected = Set::Scalar->new(@cols, @$xcols);
+	$selected = Set::Object->new(@cols, @$xcols);
 
 	push @$xcols, (grep { $selected->insert($_) }
 		       map { ref $_ ? $_->expr : $_ } @$group);
@@ -572,7 +608,7 @@ sub instantiate {
 
     if (my $order = $o{order}) {
 	# ordering, make sure that all ordered columns are selected
-	$selected ||= Set::Scalar->new(@cols, @$xcols);
+	$selected ||= Set::Object->new(@cols, @$xcols);
 
 	push @$xcols, (grep {( $selected->has($_)
 			       ? undef
@@ -595,7 +631,7 @@ sub instantiate {
 	# order of joinedness.  Which means that we have to go and
 	# break up some joins.
 	#print STDERR "owhere: @$owhere\n";
-	$owhere = Set::Scalar->new(map {
+	$owhere = Set::Object->new(map {
 	    my @x;
 	    while ( s{^\(((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)\)$}{$1}is
 		    or s{^((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)$}{$1}is
@@ -608,7 +644,7 @@ sub instantiate {
 	} @{$o{owhere}});
 	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
 	#print STDERR "ofrom: @$ofrom\n";
-	$ofrom = Set::Scalar->new(@{$o{ofrom}});
+	$ofrom = Set::Object->new(@{$o{ofrom}});
 	#print STDERR "new ofrom: ".join("/",$ofrom->members)."\n";
 
 	# ugh ugh ugh
@@ -618,7 +654,7 @@ sub instantiate {
 	(my $tmp_sel = $select) =~ s{.*^FROM}{}ms;
 
 	# ook ook
-	my $seen_from = Set::Scalar->new( map { m{\b(tl?\d+)\b}sg }
+	my $seen_from = Set::Object->new( map { m{\b(tl?\d+)\b}sg }
 					  (@from, @$xfrom) );
 
 	my (@ofrom, @ojoin, %owhen);
@@ -657,9 +693,9 @@ sub instantiate {
 			# hooray!  SQL will accept it in this order!
 			$seen_from->insert($tnum);
 			#print STDERR "SEEN ADDED: $tnum\n";
-			$ofrom-= Set::Scalar->new($from);
+			$ofrom-= Set::Object->new($from);
 			#print STDERR "OFROM REMOVED: $from\n";
-			$owhere-= Set::Scalar->new($join);
+			$owhere-= Set::Object->new($join);
 
 			# we're joining in $from, so add all clauses
 			# that have nothing but seen tables and from
@@ -715,6 +751,8 @@ sub instantiate {
 
     my $max_len = 0;
 
+    #push @xwhere, @{$o{lwhere}} if $o{lwhere};
+
     foreach (@where, @xwhere) {
 
 	if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL <= 1) {
@@ -757,13 +795,22 @@ sub instantiate {
 			 @$order))."\n";
     }
 
-    # FIXME - this needs to be a subselect on Oracle
     if (defined $o{limit}) {
 	if (ref $o{limit}) {
 	    $select .= "LIMIT\n    ".join(",",@{ $o{limit} })."\n";
 	} else {
 	    $select .= "LIMIT\n    $o{limit}\n";
 	}
+    }
+
+    if ( defined $o{postfilter} ) {
+	$select = "SELECT\n    *\nFROM\n(\n$select\n)\n"
+	    .sprintf("WHERE\n%s\n",
+		     join("    AND\n", map {
+			 sprintf("    %-${max_len}s", $_)
+		     } @{$o{postfilter}}
+			 )
+		    );
     }
 
     $select;
@@ -777,8 +824,11 @@ sub extract {
     my $class_id = shift @$row;
 
     my $slice = $self->[-1]{$class_id}
-	or Carp::croak("unexpected class id '$class_id' (OK: "
-		       .(join(",",keys %{$self->[-1]})).")");
+	or do {
+	    kill 2, $$;
+	    Carp::croak("unexpected class id '$class_id' (OK: "
+			.(join(",",keys %{$self->[-1]})).")");
+	};
 
     my $state = [ @$row[ @$slice ] ];
 
