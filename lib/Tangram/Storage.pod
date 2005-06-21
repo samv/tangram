@@ -296,14 +296,17 @@ C<desc> specifies that the order should be descending. For example:
                       order => [ $remote_foo->{field1} ],
                       desc => 1  );
 
-would order DESC all the fields mentioned in the order. Passing a
+would order DESC (descending, high to low) all the fields listed in
+the C<order> clause.
+
+Passing:
 
                       desc => 0
 
-would order all the fields ASC.
+would order all the fields ASC (ascending, low to high).
 
-To specify which fields should order DESC and which ones should
-order ASC, pass an array ref to desc, like this:
+To specify which fields should be ordered DESC and which ones should be
+ordered ASC, pass an array ref to C<desc>, like this:
 
     $storage->select( $object, filter => (...),
                       order => [
@@ -313,7 +316,8 @@ order ASC, pass an array ref to desc, like this:
                                ],
                       desc => [ 1, 0, 1 ]  );
 
-would order field1 and field3 descending, and field2 ascending.
+This will order C<field1> and C<field3> descending, and C<field2>
+ascending.
 
 C<distinct> is a boolean; a true value specifies that the same object
 should ocur only once in the result set.  In general, this is a good
