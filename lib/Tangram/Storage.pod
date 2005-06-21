@@ -290,10 +290,30 @@ C<order> specifies attributes in terms of one or more of the remote
 objects - any that are being selected, or any that appear in the
 filter.
 
-C<desc> specifies that the order should be descending.  Order of which
-of the columns in the C<order> category, you might ask?  The last one
-for now :-}.  This syntax is therefore deprecated, to be replaced with
-a unary C<-> operator to order columns in some future Tangram release.
+C<desc> specifies that the order should be descending. For example:
+
+    $storage->select( $object, filter => (...),
+                      order => [ $remote_foo->{field1} ],
+                      desc => 1  );
+
+would order DESC all the fields mentioned in the order. Passing a
+
+                      desc => 0
+
+would order all the fields ASC.
+
+To specify which fields should order DESC and which ones should
+order ASC, pass an array ref to desc, like this:
+
+    $storage->select( $object, filter => (...),
+                      order => [
+                                $remote_foo->{field1},
+                                $remote_foo->{field2},
+                                $remote_foo->{field3},
+                               ],
+                      desc => [ 1, 0, 1 ]  );
+
+would order field1 and field3 descending, and field2 ascending.
 
 C<distinct> is a boolean; a true value specifies that the same object
 should ocur only once in the result set.  In general, this is a good
