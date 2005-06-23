@@ -664,7 +664,7 @@ sub in
 	my $storage = $self->{storage};
 
 	my @items;
-	while ( my $item = shift ) {
+	while ( defined(my $item = shift) ) {
 	    if ( ref $item eq "ARRAY" ) {
 		push @items, @$item;
 	    } elsif ( UNIVERSAL::isa($item, "Set::Object") ) {

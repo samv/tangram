@@ -45,6 +45,18 @@ sub to_date {
 sub from_blob { $_[1] }
 sub to_blob { $_[1] }
 
+sub limit_sql {
+    my $self = shift;
+    my $spec = shift;
+    if ( ref $spec ) {
+	die unless ref $spec eq "ARRAY";
+	die "Oracle cannot handle two part limits"
+	    unless $spec->[0] eq "0";
+	$spec = pop @$spec;
+    }
+    return (postfilter => ["rownum <= $spec"]);
+}
+
 package Tangram::Oracle::Storage;
 
 use Tangram::Storage;
@@ -64,7 +76,8 @@ sub connect
     $self->{db}->do
 	("ALTER SESSION SET CONSTRAINTS = DEFERRED");
     $self->{db}->{RaiseError} = 1;
-    $self->{db}->{LongTruncOk} = 1;
+    $self->{db}->{LongTruncOk} = 0;
+    $self->{db}->{LongReadLen} = 1024*1024;
     return $self;
 }
 

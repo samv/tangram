@@ -321,6 +321,8 @@ is(leaked, 0, "leaktest");
 SKIP:{
     skip "SQLite doesn't like IN having a non hard-coded list", 1
 	if DBConfig->dialect =~ /sqlite/i;
+    skip "Oracle doesn't like DISTINCT on CLOBs; we need a new test suite ;)", 1
+	if DBConfig->dialect =~ /oracle/i;
     my $storage = Springfield::connect;
     my ($parent, $child )
 	= $storage->remote(qw( NaturalPerson NaturalPerson ));

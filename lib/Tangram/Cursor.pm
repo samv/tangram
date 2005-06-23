@@ -68,6 +68,7 @@ sub select
 	$self->{-desc} = $args{desc};
 	$self->{-distinct} = $args{distinct};
 	$self->{-limit} = $args{limit};
+	$self->{-noexec} = $args{noexec};
 
 	# with outer queries, each remote object is either inside or
 	# outside the query.
@@ -152,7 +153,7 @@ sub select
 
 	$self->{position} = -1;
 
-	return $self->execute();
+	return $self->execute() unless delete $self->{-noexec};
 }
 
 sub execute
@@ -161,6 +162,29 @@ sub execute
 	return $self->{-current} if $self->{position} == 0;
 	$self->{cur_select} = [ @{ $self->{SELECTS} } ];
 	$self->prepare_next_statement() && $self->next();
+  }
+
+sub sql_string
+  {
+      my $self = shift;
+
+      if ( $self->{_last_sql} ) {
+	  print STDERR "RETURNING FROM _last_sql\n";
+	  return $self->{_last_sql};
+      }
+      elsif ( $self->{ACTIVE} ) {
+	  print STDERR "RETURNING FROM ACTIVE\n";
+	  return $self->{ACTIVE}[0];
+      }
+      elsif ( $self->{cur_select} and @{$self->{cur_select}} ) {
+	  print STDERR "RETURNING FROM CUR_SELECT\n";
+	  return $self->{cur_select}[0][0];
+      }
+      elsif ( $self->{SELECTS} ) {
+	  print STDERR "RETURNING FROM SELECTS\n";
+	  return $self->{SELECTS}[0][0];
+      }
+
   }
 
 sub prepare_next_statement
@@ -182,6 +206,7 @@ sub prepare_next_statement
 
 	$self->{sth} = $sth;
 
+
 	$sth->execute() or croak "Execute failed; $DBI::errstr";
 
 	return $sth;
@@ -197,15 +222,21 @@ sub build_select
 		@$cols = map { $_->{expr} } @$retrieve;
 	}
 
+	my @options;
+	# this needs a hack to get right...
+	if ( $self->{-limit} ) {
+	    @options = $self->{STORAGE}->limit_sql($self->{-limit});
+	}
+
 	my $select = $template->instantiate
 	    ( $self->{TARGET}, $cols, $from, $where,
 	      ( $self->{-group} ? (group => $self->{-group}) : () ),
 	      ( $self->{-order} ? (order => $self->{-order}) : () ),
 	      ( $self->{-distinct} ? (distinct => $self->{-distinct}) : () ),
-	      ( $self->{-limit} ? (limit => $self->{-limit}) : () ),
 	      ( $self->{-desc} ? (desc => $self->{-desc}) : () ),
 	      ( $ofrom ? ( ofrom => $ofrom ) : () ),
 	      ( $owhere ? ( owhere => $owhere ) : () ),
+	      @options,
 	    );
 	
 

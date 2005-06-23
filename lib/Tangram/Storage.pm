@@ -90,7 +90,9 @@ sub get_sequence {
     # the only database that has a non-trivial sequence sql fragment
     # also doesn't use " FROM DUAL"
     my $query = $self->sequence_sql($sequence_name).$self->from_dual;
-    my ($id) = map { @$_ } $self->{db}->selectall_arrayref($query);
+    my ($id) = (map { @{$_} }
+		map { @{$_} }
+		$self->{db}->selectall_arrayref($query));
 
     return $id;
 }
@@ -101,6 +103,13 @@ sub sequence_sql
 	my $driver = $self->{driver} or confess "no driver";
 	return $self->{driver}->sequence_sql(shift);
     }
+
+sub limit_sql {
+    my $self = shift;
+
+    my $driver = $self->{driver} or confess "no driver";
+    return $self->{driver}->limit_sql(@_);
+}
 
 sub _open
   {
@@ -174,7 +183,10 @@ sub _open
 
     $self->{get_id} = $schema->{get_id} || sub {
 	  my $obj = shift or warn "no object passed to get_id";
-	  my $address = Tangram::refaddr($obj);
+	  ref $obj or return undef;
+	  my $address = Tangram::refaddr($obj)
+	      or do { warn "Object $obj has no refaddr(?)";
+		      return undef };
 	  my $id = $self->{ids}{$address};
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
 		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
@@ -306,7 +318,8 @@ sub make_id
 	$id = $classdef->{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom per-class ($cname) make ID function returned ".(pretty($id))."\n" if $Tangram::TRACE;
     } elsif ( $classdef->{oid_sequence} ) {
-	$id = $self->get_sequence($classdef->{oid_sequence});
+	eval { $id = $self->get_sequence($classdef->{oid_sequence}) };
+	die "Failed to get sequence for Class `$cname'; $@" if $@;
     }
 
     # maybe the entire schema has its own ID generator
@@ -314,8 +327,11 @@ sub make_id
 	$id = $self->{schema}{sql}{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom schema make ID function returned "
 	    .(pretty($id))."\n" if $Tangram::TRACE;
-    } elsif ( my $seq = $self->{schema}{sql}{oid_sequence} ) {
-	$id = $self->get_sequence($seq);
+    } elsif ( !defined($id) &&
+	      (my $seq = $self->{schema}{sql}{oid_sequence}) ) {
+	eval { $id = $self->get_sequence($seq) };
+	die "Failed to get sequence for Class `$cname' via fallback $seq; $@"
+	    if $@;
     }
     if (defined($id)) {
 	return $self->combine_ids($id, $class_id);
@@ -409,7 +425,6 @@ sub class_id
     my $self = shift;
     $self->{class2id}{$_[0]} or do {
 	# crawl ISA tree...
-	kill 2, $$;
 	my @stack = \%{$_[0]."::"};
 	my $seen = Set::Object->new(@stack);
 	while ( my $stash = pop @stack ) {
@@ -1111,8 +1126,13 @@ sub count
     }
     else
     {
-	my $expr = shift;
-	$target = $expr->{expr};
+	my $expr = shift or croak "nothing supplied to count";
+	if ($expr->isa("Tangram::QueryObject")) {
+	    $target = "*";
+	    $expr = $expr->{id};
+	} else {
+	    $target = $expr->{expr};
+	}
 	$objects->insert($expr->objects);
 	$filter = shift;
     }

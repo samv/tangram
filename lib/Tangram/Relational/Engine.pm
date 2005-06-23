@@ -1,4 +1,4 @@
-
+# (c) Sound Object Logic 2000-2001
 
 use strict;
 use Tangram::Schema;
@@ -610,7 +610,7 @@ sub instantiate {
 	# ordering, make sure that all ordered columns are selected
 	$selected ||= Set::Object->new(@cols, @$xcols);
 
-	push @$xcols, (grep { $selected->insert($_) }
+	push @$xcols, (grep {  $selected->insert($_) }
 		       map { ref $_ ? $_->expr : $_ } @$order);
     }
 
@@ -637,11 +637,16 @@ sub instantiate {
 	    while ( s{^\(((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)\)$}{$1}is
 		    or s{^((?:[^(]+|$paren)*)\s+and\s((?:[^(]+|$paren)*)$}{$1}is
 		  ) {
+		#print STDERR "got: $2\n";
 		push @x, $2;
 	    }
+	    #print STDERR "left: $_\n";
 	    @x, $_
 	} @{$o{owhere}});
+	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
+	#print STDERR "ofrom: @$ofrom\n";
 	$ofrom = Set::Object->new(@{$o{ofrom}});
+	#print STDERR "new ofrom: ".join("/",$ofrom->members)."\n";
 
 	(my $tmp_sel = $select) =~ s{.*^FROM}{}ms;
 
@@ -743,6 +748,8 @@ sub instantiate {
 
     my $max_len = 0;
 
+    #push @xwhere, @{$o{lwhere}} if $o{lwhere};
+
     foreach (@where, @xwhere) {
 
 	if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL <= 1) {
@@ -785,13 +792,22 @@ sub instantiate {
 			 @$order))."\n";
     }
 
-    # FIXME - this needs to be a subselect on Oracle
     if (defined $o{limit}) {
 	if (ref $o{limit}) {
 	    $select .= "LIMIT\n    ".join(",",@{ $o{limit} })."\n";
 	} else {
 	    $select .= "LIMIT\n    $o{limit}\n";
 	}
+    }
+
+    if ( defined $o{postfilter} ) {
+	$select = "SELECT\n    *\nFROM\n(\n$select\n)\n"
+	    .sprintf("WHERE\n%s\n",
+		     join("    AND\n", map {
+			 sprintf("    %-${max_len}s", $_)
+		     } @{$o{postfilter}}
+			 )
+		    );
     }
 
     $select;

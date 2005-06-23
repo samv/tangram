@@ -55,6 +55,11 @@ sub drop_sequence_sql {
     return "DROP TABLE seq_$sequence_name";
 }
 
+sub limit_sql {
+    my $self = shift;
+    return (limit => shift);
+}
+
 package Tangram::mysql::Storage;
 
 use Tangram::Storage;

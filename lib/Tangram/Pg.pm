@@ -47,6 +47,11 @@ sub sequence_sql {
     return "SELECT nextval('$sequence_name')";
 }
 
+sub limit_sql {
+    my $self = shift;
+    return (limit => shift);
+}
+
 package Tangram::Pg::Storage;
 
 use Tangram::Storage;
