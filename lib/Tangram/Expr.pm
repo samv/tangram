@@ -261,7 +261,13 @@ sub new
 sub and
 {
 	my ($self, $other) = @_;
-	return op($self, 'AND', 10, $other);
+	if ( !ref $other and $other == 1 ) {
+	    $self;
+	} elsif ( !ref $self and $self == 1 ) {
+	    $other;
+	} else {
+	    op($self, 'AND', 10, $other);
+	}
 }
 
 sub and_perhaps
