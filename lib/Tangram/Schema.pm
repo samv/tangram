@@ -151,7 +151,7 @@ sub get_importer {
 
 	$import_source = ( "sub { my (\$obj, \$row, \$context) = \@_;"
 			   ."(ref(\$row) eq 'ARRAY') and (\@\$row) or Carp::confess('no row!');\n"
-			   .'# line 1 "foo.pl"'."\n"
+			   ."# line 1 'tangram-$self->{table}-to-$self->{name}.pl'\n"
 			   ."$copy_closures\n$import_source }" );
 
 	print $Tangram::TRACE "Compiling importer for $self->{name}...\n".($Tangram::DEBUG_LEVEL > 1 ? "$import_source\n" : "")."\n"
@@ -341,7 +341,8 @@ sub new
     while (my ($class, $classdef) = each %$class_hash)
     {
 		my $root = $class;
-	
+
+		confess "no bases for $root" unless ref $class_hash->{$root}{bases} eq "ARRAY";
 		while (@{$class_hash->{$root}{bases}})
 		{
 			$root = @{$class_hash->{$root}{bases}}[0];

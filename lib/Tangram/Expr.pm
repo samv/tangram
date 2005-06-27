@@ -613,7 +613,7 @@ sub binop
 	}
 	else
 	{
-		$op = $op eq '=' ? 'IS' : $op eq '<>' ? 'IS NOT' : Carp::confess;
+		$op = $op eq '=' ? 'IS' : $op eq '<>' ? 'IS NOT' : Carp::confess("unknown op $op");
 		$arg = 'NULL';
 	}
 

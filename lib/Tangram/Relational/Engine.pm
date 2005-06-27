@@ -597,8 +597,6 @@ sub instantiate {
     if ( my $group = $o{group} ) {
 	# grouping, (make sure that all columns are aggregate)
 
-	$DB::single = 1; # ?
-
 	# make sure all grouped columns are selected
 	$selected = Set::Object->new(@cols, @$xcols);
 

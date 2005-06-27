@@ -1,9 +1,9 @@
 
 
+package Tangram::Oracle;
+
 use strict;
 use Tangram::Core;
-
-package Tangram::Oracle;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -63,22 +63,22 @@ use Tangram::Storage;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Storage );
 
-sub connect
+sub open_connection
 {
-    my $class = shift;
+    my $self = shift;
 
-    my $self = $class->SUPER::connect(@_);
+    my $db = $self->SUPER::open_connection(@_);
 
     # Oracle doesn't really have a default date format (locale
     # dependant), so adjust it to use ISO-8601.
-    $self->{db}->do
+    $db->do
 	("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD\"T\"HH24:MI:SS'");
-    $self->{db}->do
+    $db->do
 	("ALTER SESSION SET CONSTRAINTS = DEFERRED");
-    $self->{db}->{RaiseError} = 1;
-    $self->{db}->{LongTruncOk} = 0;
-    $self->{db}->{LongReadLen} = 1024*1024;
-    return $self;
+    $db->{RaiseError} = 1;
+    $db->{LongTruncOk} = 0;
+    $db->{LongReadLen} = 1024*1024;
+    return $db;
 }
 
 
