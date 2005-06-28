@@ -349,6 +349,7 @@ Revision history for Perl extension Tangram.
 2.08 26 Mar 2005
 	- Release this version with a couple of minor bugfixes
 
-2.08_01 26 Mar 2005
+2.08_01 29 Jun 2005
 	- Remove redundant confusing copyright messages
 	- Fix link to Tangram site and mailing list
+	- Merge in a whole lotta Oracle fixes

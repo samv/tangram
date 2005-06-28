@@ -1,0 +1,16 @@
+\.svn
+^blib
+pm_to_blib
+~$
+\.bak$
+t/CONFIG
+t/sqlite.db
+^experiments
+installhtml
+layout_test.pl
+^Makefile(.old)?$
+metatest.pl
+mtest.pl
+t/layout1
+upload
+
