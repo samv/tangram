@@ -6,11 +6,10 @@ pm_to_blib
 t/CONFIG
 t/sqlite.db
 ^experiments
-installhtml
 layout_test.pl
 ^Makefile(.old)?$
 metatest.pl
 mtest.pl
 t/layout1
-upload
+^(upload|deploy|tour|installhtml)$
 

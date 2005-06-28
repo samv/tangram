@@ -1,11 +1,5 @@
-.cvsignore
 Changes
 COPYING
-debian/changelog
-debian/control
-debian/copyright
-debian/rules
-deploy
 lib/Tangram.pm
 lib/Tangram.pod
 lib/Tangram/AbstractArray.pm
@@ -85,9 +79,8 @@ lib/Tangram/YAML.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.yml			Module meta-data (added by MakeMaker)
+META.yml
 README
-t/.cvsignore
 t/Capture.pm
 t/DBConfig.pm
 t/Makefile
@@ -97,7 +90,6 @@ t/misc/RefImage.pm
 t/musicstore/00-deploy.t
 t/musicstore/01-simple.t
 t/musicstore/02-reorg.t
-t/musicstore/02-reorg.t.todo
 t/musicstore/03-reschema.t
 t/musicstore/CD.pm
 t/musicstore/insert_extra_data.pl
@@ -140,4 +132,3 @@ t/springfield/Springfield.pm
 t/springfield/zz-retreat.t
 t/test_manifest
 t/TestNeeds.pm
-tour
