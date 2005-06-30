@@ -56,6 +56,10 @@ fields:
 
 =item * col
 
+=item * type_col
+
+=item * class
+
 =item * null
 
 =item * deep_update
@@ -70,6 +74,15 @@ C<col> sets the name of the column that contains the target object's
 id. This field is optional, it default to the persistent field
 name. You need to specify a column name if the field name is not an
 allowed SQL column identifier.
+
+C<type_col> sets the name of the second column, that contains the
+target object's type id. This field is optional, it default to the
+value of C<col> with "C<_type>" appended.  Set to the empty string
+(C<"">) to disable this column, which requires that you also specify
+a class.
+
+C<class> specifies the base class of the reference, which
+automatically disables C<type_col> (currently unimplemented).
 
 C<null>, if present and set to true, directs deploy() to generate SQL
 code that allows NULL values for that column.

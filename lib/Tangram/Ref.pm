@@ -68,19 +68,20 @@ sub field_reschema
 	my ($self, $field, $def, $schema) = @_;
 	$self->SUPER::field_reschema($field, $def, $schema);
 	die unless $field;
-	$def->{type_col} ||= $schema->{normalize}->("${field}_type", "colname");
+	$def->{type_col} = $schema->{normalize}->("${field}_type", "colname")
+	    unless defined $def->{type_col};
   }
 
 sub get_export_cols
 {
     my ($self, $context) = @_;
-	return $context->{layout1} ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
+	return ($context->{layout1} ||! $self->{type_col}) ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
 }
 
 sub get_import_cols
 {
     my ($self, $context) = @_;
-	return $context->{layout1} ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
+	return ($context->{layout1} ||! $self->{type_col}) ? ( $self->{col} ) : ( $self->{col}, $self->{type_col} );
 }
 
 sub get_exporter
@@ -134,7 +135,7 @@ sub get_exporter
 	  }
 	}
 	
-	return sub {
+	my $sub = sub {
 	  
 	  my ($obj, $context) = @_;
 	  
@@ -173,8 +174,16 @@ sub get_exporter
 	  
 	  $storage->_save($ref, $context->{SAVING})
 		if $deep_update;
-	  
+
 	  return $storage->split_id($storage->id($ref) || $storage->_insert($ref, $context->{SAVING}));
+	};
+	if ( $self->{type_col} ) {
+	    return $sub;
+	} else {
+	    return sub {
+		my ($id, $type) = $sub->(@_);
+		return $id;
+	    };
 	}
   }
 
@@ -188,7 +197,11 @@ sub get_importer
 	
 	my $storage = $context->{storage};
 	my $rid = shift @$row;
-	my $cid = shift @$row unless $context->{layout1};
+	my $cid = shift @$row unless $context->{layout1} or !$self->{type_col};
+	if ($rid and !defined $cid) {
+	    kill 2, $$ ;
+	    $cid = $self->{foo};
+	}
 
 	if ($rid) {
 	  tie $obj->{$field}, 'Tangram::RefOnDemand', $storage, $context->{id}, $field, $storage->combine_ids($rid, $cid);
