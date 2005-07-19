@@ -57,6 +57,8 @@ sub split_id
 
 use Scalar::Util qw(looks_like_number);
 
+# Given a row's ID and a class's ID
+# Computes its OID and returns it
 sub combine_ids
   {
 	my $self = shift;
@@ -420,6 +422,7 @@ sub unknown_classid
 
 {
     no strict 'refs';
+# Given a class name ('Foo::Bar'), returns its Class ID.
 sub class_id
 {
     my $self = shift;
@@ -866,6 +869,27 @@ sub defer
     push @{$self->{defered}}, $action;
 }
 
+# Given a class' name and a row's ID (or more than one,)
+# computes the OIDs and returns them.
+sub make_oid
+{
+  my $self = shift;
+  my $class_name = shift;
+  my @ids = @_;
+	
+  my $class_id = $self->class_id($class_name);
+  
+  my @oids = map {$self->combine_ids($_,$class_id)} @ids;
+  
+  if ( wantarray ) {
+	return @oids;
+  } else {
+	return $oids[0];
+  }
+}
+
+# Given a class' name and a row's ID (or more than one,)
+# loads the object(s) from the DB and returns them.
 sub import_object
 {
     my $self = shift;
