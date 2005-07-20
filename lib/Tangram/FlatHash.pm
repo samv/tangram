@@ -2,60 +2,13 @@
 
 use strict;
 
-package Tangram::FlatHash::Expr;
-
-sub new
-{
-	my $pkg = shift;
-	bless [ @_ ], $pkg;
-}
-
-sub includes
-{
-	my ($self, $item) = @_;
-	my ($coll, $memdef) = @$self;
-
-	my $schema = $coll->{storage}{schema};
-
-	$item = Tangram::String::quote($item)
-		if $memdef->{string_type};
-
-	my $coll_tid = 't' . $coll->root_table;
-	my $data_tid = 't' . Tangram::Alias->new;
-
-	return Tangram::Filter->new
-		(
-		 expr => "$data_tid.coll = $coll_tid.$schema->{sql}{id_col} AND $data_tid.v = $item",
-		 tight => 100,      
-		 objects => Set::Object->new($coll, Tangram::Table->new($memdef->{table}, $data_tid) ),
-		 data_tid => $data_tid # for prefetch
-		);
-}
-
-sub exists
-{
-	my ($self, $item) = @_;
-	my ($coll, $memdef) = @$self;
-
-	my $schema = $coll->{storage}{schema};
-
-	$item = Tangram::String::quote($item)
-		if $memdef->{string_type};
-
-	my $coll_tid = 't' . $coll->root_table;
-
-	return Tangram::Filter->new
-		(
-		 expr => "EXISTS (SELECT * FROM $memdef->{table} WHERE coll = $coll_tid.$schema->{sql}{id_col} AND v = $item)",
-		 objects => Set::Object->new($coll),
-		);
-}
-
 package Tangram::FlatHash;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::AbstractHash );
 use Tangram::AbstractHash;
+
+use Tangram::Expr::FlatHash;
 
 $Tangram::Schema::TYPES{flat_hash} = Tangram::FlatHash->new;
 
@@ -284,13 +237,13 @@ sub coldefs
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
-	map { Tangram::FlatHash::Expr->new($obj, $_); } values %$members;
+	map { Tangram::Expr::FlatHash->new($obj, $_); } values %$members;
 }
 
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::FlatHash::Expr->new($obj, $self);
+	Tangram::Expr::FlatHash->new($obj, $self);
 }
 
 sub prefetch
