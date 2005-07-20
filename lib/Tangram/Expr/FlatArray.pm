@@ -10,7 +10,7 @@ sub new
 sub quote
   {
 	my $item = shift or return 'NULL';
-	$item =~ s/'/''/g;	# 'emacs ;
+	$item =~ s/'/''/g;
 	$item = "'$item'";
 	return $item;
   }

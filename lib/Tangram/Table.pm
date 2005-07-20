@@ -1,6 +1,8 @@
 
 package Tangram::Table;
 
+# This is a stub version of Tangram::CursorObject
+
 sub new
 {
 	my ($pkg, $name, $alias) = @_;

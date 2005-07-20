@@ -732,6 +732,7 @@ use Carp;
 
 sub new
 {
+    # $obj is a Tangram::RDBObject
 	my ($pkg, $obj) = @_;
 	bless $obj->expr_hash(), $pkg;
 }
