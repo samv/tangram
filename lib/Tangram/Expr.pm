@@ -2,24 +2,6 @@
 
 use strict;
 
-package Tangram::Table;
-
-sub new
-{
-	my ($pkg, $name, $alias) = @_;
-	bless [ $name, $alias ], $pkg;
-}
-
-sub from
-{
-	return "@{shift()}";
-}
-
-sub where
-{
-	()
-}
-
 package Tangram::CursorObject;
 use Carp;
 
@@ -443,6 +425,7 @@ sub objects
 }
 
 package Tangram::Expr;
+use Tangram::Table;
 use Set::Object qw(blessed);
 use Carp;
 
