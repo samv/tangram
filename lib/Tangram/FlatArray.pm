@@ -1,69 +1,13 @@
 
-
 use strict;
-
-package Tangram::FlatArray::Expr;
-
-sub new
-{
-	my $pkg = shift;
-	bless [ @_ ], $pkg;
-}
-
-sub quote
-  {
-	my $item = shift or return 'NULL';
-	$item =~ s/'/''/g;	# 'emacs ;
-	$item = "'$item'";
-	return $item;
-  }
-
-sub includes
-{
-	my ($self, $item) = @_;
-	my ($coll, $memdef) = @$self;
-
-	my $schema = $coll->{storage}{schema};
-
-	$item = quote($item)
-	  if $memdef->{string_type};
-
-	my $coll_tid = 't' . $coll->root_table;
-	my $data_tid = 't' . Tangram::Alias->new;
-
-	return Tangram::Filter->new
-		(
-		 expr => "$data_tid.coll = $coll_tid.$schema->{sql}{id_col} AND $data_tid.v = $item",
-		 tight => 100,      
-		 objects => Set::Object->new($coll, Tangram::Table->new($memdef->{table}, $data_tid) ),
-		 data_tid => $data_tid # for prefetch
-		);
-}
-
-sub exists
-{
-	my ($self, $item) = @_;
-	my ($coll, $memdef) = @$self;
-
-	my $schema = $coll->{storage}{schema};
-
-	$item = quote($item)
-	  if $memdef->{string_type};
-
-	my $coll_tid = 't' . $coll->root_table;
-
-	return Tangram::Filter->new
-		(
-		 expr => "EXISTS (SELECT * FROM $memdef->{table} WHERE coll = $coll_tid.$schema->{sql}{id_col} AND v = $item)",
-		 objects => Set::Object->new($coll),
-		);
-}
 
 package Tangram::FlatArray;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractArray );
+@ISA = qw( Tangram::AbstractArray );
 use Tangram::AbstractArray;
+
+use Tangram::Expr::FlatArray;
 
 $Tangram::Schema::TYPES{flat_array} = Tangram::FlatArray->new;
 
@@ -212,13 +156,13 @@ sub coldefs
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
-	map { Tangram::FlatArray::Expr->new($obj, $_); } values %$members;
+	map { Tangram::Expr::FlatArray->new($obj, $_); } values %$members;
 }
 
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::FlatArray::Expr->new($obj, $self);
+	Tangram::Expr::FlatArray->new($obj, $self);
 }
 
 sub prefetch
