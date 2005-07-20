@@ -36,7 +36,7 @@ while (my ($module, $min_ver) = each %required) {
     }
 }
 
-goto NOTESTS if $skip_tests or $bomb_out;
+do { $skip_tests = 1; goto NOTESTS } if $skip_tests or $bomb_out;
 
 use lib '.';
 
@@ -56,7 +56,7 @@ sub yeah_no  # it's an antipodean thing
 print q{Do you plan to run the test suite?
 (you will need to set up an *EMPTY* database)};
 
-goto NOTESTS unless yes();
+do { $skip_tests = 1; goto NOTESTS } unless yes();
 
 my $configured;
 
@@ -161,25 +161,31 @@ MSG
 }
 
 NOTESTS:
-eval "use Test::Manifest";
-
 my $tests;
+if ( $skip_tests ) {
+    print "TEST SUITE IS DISABLED\n";
+    $tests = "t/no_tests.t";
+} else {
+    eval "use Test::Manifest";
 
-if ( $@ ) {
-    open TESTS, "<t/test_manifest" or die $!;
-    $tests = join " ", map { chomp; "t/$_" } <TESTS>;
-    close TESTS;
-}
 
-else {
-    * ExtUtils::MM_Any::test_via_harness = sub
-	{
-	    my($self, $perl, $tests) = @_;
+    if ( $@ ) {
+	open TESTS, "<t/test_manifest" or die $!;
+	$tests = join " ", map { chomp; "t/$_" } <TESTS>;
+	close TESTS;
+    }
 
-	    return qq|\t$perl "-MTest::Manifest" | .
-		qq|"-e" "run_t_manifest(\$(TEST_VERBOSE), '\$(INST_LIB)', | .
-		    qq|'\$(INST_ARCHLIB)')"\n|;
-	};
+    else {
+	* ExtUtils::MM_Any::test_via_harness = sub
+	    {
+		my($self, $perl, $tests) = @_;
+
+		return (qq|\t$perl "-MTest::Manifest" | .
+			qq|"-e" "run_t_manifest(\$(TEST_VERBOSE), |.
+			qq|'\$(INST_LIB)', | .
+			qq|'\$(INST_ARCHLIB)')"\n|);
+	    };
+    }
 }
 
 WriteMakefile(
