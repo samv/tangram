@@ -283,6 +283,84 @@ directives:
 C<filter> specifies a Filter that can be used to restrict the result
 set.
 
+Filters are based on simple Perl expressions involving remote objects.
+The expression is eventually compiled into its SQL equivalent, becoming
+part of a WHERE-CLAUSE.
+
+For example:
+
+    my $remote_person = $storage->remote('Foo::Person');
+    my @martians = $storage->select(
+        $remote_person,
+        filter => ($remote_person->{location} eq 'Mars')
+    );
+
+Would retrieve all martians from the database.
+
+Note that the fields are accessed as hash reference keys instead of the
+(expected) method calls.
+
+In the previous example, C<-E<gt>{location}> is seen as a scalar from Perl
+and as some derivative of a VARCHAR/TEXT field on the database side.
+But filters can operate on many other types, including references to other
+persistent objects. For instance:
+
+    my $mars = Foo::Location->new( name => 'Mars'); # instantiate the obj
+    $storage->insert($mars);                        # add it to the DB
+
+    my $remote_person = $storage->remote('Foo::Person');
+    my @martians = $storage->select(
+        $remote_person,
+        filter => ($remote_person->{location} == $mars)
+    );
+
+In this case, having a reference to the persistent object $mars handy
+allows us to look for all objects that reference it. Keep in mind that
+these are introductory examples - the relationship between two classes
+of objects and how they behave depends a lot on the method used to
+create this relationship - whether it's a C<ref>, an C<array>,
+etc -- see Tangram::Schema and Tangram::Type for more information.
+
+Filters can also include boolean expressions:
+
+    my $r_user = $storage->remote('My::Users');
+    my @active_premium_users = $storage->select( $r_user,
+        filter => (
+                   ($r_user->{is_logged_in} eq 'Y') &    # "&" is not a typo
+                   ($r_user->{is_premium} eq 'Y' )
+                  )
+    );
+
+This select retrieves all the users currently logged in who also have a
+premium account. Note the use of B<&> instead of B<&&> (or B<and>) - this is
+due to a problem in the way Perl handles operator overloading.
+For the basic boolean operators, use C<&> as AND, C<|> as OR and C<!> as NOT.
+
+Other overloaded bits that work as expected are:
+
+    + - * / == eq != ne < lt <= le > gt >= ge cos sin acos
+
+...which are translated to their SQL counterparts as closely as possible.
+
+Tip: Filters can also be created beforehand by using this simple syntax:
+
+    my $new_filter = ($r_user->{is_logged_in} eq 'Y');
+
+Then you can add expressions to it by doing (for example):
+
+    $new_filter &= (r_user->{is_premium} eq 'Y');
+
+and use it in the expression like so:
+
+    my @active_premium_users = $storage->select( $r_user,
+        filter => $new_filter
+    );
+
+Note that it's not yet possible to create an empty filter in this
+way -- but we are working on it C<:)>
+
+See also C<Tangram::Expr>.
+
 C<distinct> specifies that each object in the result set must be
 unique (Tangram generates a SELECT DISTINCT).
 
