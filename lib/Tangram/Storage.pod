@@ -235,34 +235,35 @@ This method is valid in both L<scalar and list contexts>.
 
    @remote = $storage->remote( @classes );
 
-Returns a list of L<Tangram::Remote> objects of given classes.
-This method is valid in both L<scalar and list contexts>.
+Returns a list of C<Tangram::Remote> objects of given classes.  See
+L<Tangram::Remote> for a more detailed description.  These objects are
+called I<remote> objects in the documentation.
 
 =head2 select
 
-   @objs = select( $remote );
+   @objs = $storage->select( $remote );
 
-   @objs = select( $remote, $filter );
+   @objs = $storage->select( $remote, $filter );
 
-   @objs = select( $remote,
+   @objs = $storage->select( $remote,
       opt1 => val1, opt2 => val2, ...);
 
 Valid only in list context. Returns a list containing all the objects
-that satisfy $filter.
+that satisfy C<$filter>.
 
-$remote can be either a Remote object of an array of Remote
-objects. If it is a single Remote, a list of objects is returned. If
-it is an array, a list of array of objects is returned.
+$remote can be either a I<remote> object of an array of I<remote>
+objects. If it is a single I<remote> object, a list of objects is
+returned. If it is an array, a list of arrays of objects is returned.
 
 If one argument is passed, return all the objects of the given type.
 
 If two arguments are passed, the second argument must be a
-Filter. select() returns the objects that satisfy $filter and are
-type-compatible with the corresponding Remote.
+Filter. C<select()> returns the objects that satisfy C<$filter> and
+are type-compatible with the corresponding I<remote> object.
 
-If more than two arguments are passed, the arguments after $remote
- are treated as key/value pairs. Currently Tangram recognizes the following
-directives:
+If more than two arguments are passed, the arguments after C<$remote>
+are treated as key/value pairs.  Currently Tangram recognizes the
+following directives:
 
 =over 4
 
@@ -283,7 +284,7 @@ directives:
 C<filter> specifies a Filter that can be used to restrict the result
 set.
 
-Filters are based on simple Perl expressions involving remote objects.
+Filters are based on simple Perl expressions involving I<remote> objects.
 The expression is eventually compiled into its SQL equivalent, becoming
 part of a WHERE-CLAUSE.
 
@@ -305,8 +306,9 @@ and as some derivative of a VARCHAR/TEXT field on the database side.
 But filters can operate on many other types, including references to other
 persistent objects. For instance:
 
-    my $mars = Foo::Location->new( name => 'Mars'); # instantiate the obj
-    $storage->insert($mars);                        # add it to the DB
+    # instantiate the obj and add it to the DB
+    my $mars = Foo::Location->new( name => 'Mars');
+    $storage->insert($mars);
 
     my $remote_person = $storage->remote('Foo::Person');
     my @martians = $storage->select(
@@ -314,27 +316,29 @@ persistent objects. For instance:
         filter => ($remote_person->{location} == $mars)
     );
 
-In this case, having a reference to the persistent object $mars handy
-allows us to look for all objects that reference it. Keep in mind that
-these are introductory examples - the relationship between two classes
-of objects and how they behave depends a lot on the method used to
-create this relationship - whether it's a C<ref>, an C<array>,
-etc -- see Tangram::Schema and Tangram::Type for more information.
+In this case, having a reference to the persistent object C<$mars>
+handy allows us to look for all objects that reference it. Keep in
+mind that these are introductory examples - the relationship between
+two classes of objects and how they behave depends on defined
+relationships between them - whether it's a C<ref>, an C<array>, etc
+-- see L<Tangram::Schema> and L<Tangram::Type> for more information on
+relationship types.
 
-Filters can also include boolean expressions:
+Filters can also be joined together with boolean expressions:
 
     my $r_user = $storage->remote('My::Users');
     my @active_premium_users = $storage->select( $r_user,
-        filter => (
-                   ($r_user->{is_logged_in} eq 'Y') &    # "&" is not a typo
+        filter => (# "&" is not a typo - see below
+                   ($r_user->{is_logged_in} eq 'Y') &
                    ($r_user->{is_premium} eq 'Y' )
                   )
     );
 
-This select retrieves all the users currently logged in who also have a
-premium account. Note the use of B<&> instead of B<&&> (or B<and>) - this is
-due to a problem in the way Perl handles operator overloading.
-For the basic boolean operators, use C<&> as AND, C<|> as OR and C<!> as NOT.
+This select retrieves all the users currently logged in who also have
+a premium account. Note the use of C<&> instead of C<&&> (or C<and>) -
+this is due to a problem in the way Perl handles operator overloading
+(C<&&> may not be overloaded).  For the basic boolean operators, use
+C<&> as AND, C<|> as OR and C<!> as NOT.
 
 Other overloaded bits that work as expected are:
 
@@ -352,12 +356,13 @@ Then you can add expressions to it by doing (for example):
 
 and use it in the expression like so:
 
-    my @active_premium_users = $storage->select( $r_user,
-        filter => $new_filter
-    );
+    my @active_premium_users = $storage->select
+        ( $r_user,
+          filter => $new_filter
+        );
 
-Note that it's not yet possible to create an empty filter in this
-way -- but we are working on it C<:)>
+As of Tangram 2.08_02, The scalar value C<1> may be used as an
+"identity" filter.
 
 See also C<Tangram::Expr>.
 
