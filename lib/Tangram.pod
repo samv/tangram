@@ -207,11 +207,14 @@ list, but not sent to rt.cpan.org.
 
 =head1 AUTHORS
 
-All the code and documentation for_versions 2.04 and earlier, as well
+All the code and documentation for versions 2.04 and earlier, as well
 as some changes in the 2.05 release, were written by Jean-Louis Leroy
 (jll@soundobjectlogic.com) and Sound Object Logic.
 
 Sam Vilain <sam@vilain.net> is the author of the derived work that is
 Tangram 2.05 and later.
+
+Andres Kievsky <ank@cpan.org> has contributed to the Tangram code
+starting with Tangram 2.08.
 
 =cut

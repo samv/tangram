@@ -1,5 +1,6 @@
-
 package Tangram::Table;
+
+use strict;
 
 # This is a stub version of Tangram::CursorObject
 
