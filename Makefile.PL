@@ -11,7 +11,7 @@ my %required =
      "Class::Date" => 0,
      #"DateTime" => 0,
      "Scalar::Util" => 0,
-     "Data::Lazy" => 0.06,
+     "Data::Lazy" => 0.6,
      DBI => 0,
     );
 

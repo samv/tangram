@@ -166,7 +166,7 @@ it :).
 
 =cut
 
-use Data::Lazy 0.06;
+use Data::Lazy 0.6;
 
 sub unflatten {
     my $storage = shift;
@@ -205,7 +205,9 @@ sub unflatten {
 		my @members = @{${$_[0]}};
 		tie $_[0], "Data::Lazy",
 		    sub {
-			Set::Object->new(@members);
+			my $x = Set::Object->new(@members);
+			@members=();
+			$x;
 		    }, \$_[0];
 
 		push @obj_stack, \@members;
