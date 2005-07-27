@@ -54,6 +54,11 @@ L<"unload">.
 
 In either case, Tangram will I<not> break circular structures for you.
 
+Note that caching objects between transactions is a great way to ruin
+the transactional guarantees that your database (hopefully) provides.
+
+That being said, be sure to check out the C<unload_all()> method.
+
 =head1 INTERNAL CONNECTION
 
 Except in the implementation of cursor(), Tangram uses a single DBI
