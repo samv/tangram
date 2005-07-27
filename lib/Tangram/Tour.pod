@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram - Guided Tour
+Tangram::Tour - Guided Tour
 
 =head1 INTRODUCTION
 
