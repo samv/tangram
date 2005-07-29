@@ -22,14 +22,18 @@ sub import {
     }
 
     if ( @missing ) {
-	print("0..0 # Skipping test suite due to missing/broken "
-	      ."dependancies\n");
-	while ( my ($pkg, $args, $err) = splice @missing, 0, 3 ) {
-	    print STDERR ("ERROR - pre-requisite $pkg "
-			  .($args ? "$args " : "")
-			  ."failed to load ($err)\n");
+	print("1..0 # Skip missing/broken dependancies");
+	if ( 0 and -t STDOUT ) {
+	    print "\n";
+	    while ( my ($pkg, $args, $err) = splice @missing, 0, 3 ) {
+		print STDERR ("ERROR - pre-requisite $pkg "
+			      .($args ? "$args " : "")
+			      ."failed to load ($err)\n");
+	    }
+	} else {
+	    print "; ".join(", ", grep { !($i++ % 3) } @missing)."\n";
 	}
-	exit(1);
+	exit(0);
     }
 
 }
