@@ -123,13 +123,13 @@ sub cursor
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::CollExpr->new($obj, $self);
+	Tangram::Expr::Coll::FromMany->new($obj, $self);
 }
 
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
-	map { Tangram::CollExpr->new($obj, $_); } values %$members;
+	map { Tangram::Expr::Coll::FromMany->new($obj, $_); } values %$members;
 }
 
 sub prefetch

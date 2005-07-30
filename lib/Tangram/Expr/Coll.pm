@@ -1,6 +1,8 @@
 
 package Tangram::Expr::Coll;
 
+use strict;
+
 sub new
 {
 	my $pkg = shift;
