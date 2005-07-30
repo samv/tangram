@@ -1,10 +1,10 @@
 
-
+package Tangram::Type::Scalar;
 use strict;
+use Tangram::Type::Number;
+use Tangram::Type::Number;
 
 use Tangram::Type;
-
-package Tangram::Scalar;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type );
@@ -91,24 +91,9 @@ sub content
     shift;
 }
 
-package Tangram::Number;
-
-use vars qw(@ISA);
- @ISA = qw( Tangram::Scalar );
-
-sub get_export_cols
-{
-    my ($self) = @_;
-    return exists $self->{automatic} ? () : ($self->{col});
-}
-
-package Tangram::Integer;
-
-use vars qw(@ISA);
- @ISA = qw( Tangram::Number );
-$Tangram::Schema::TYPES{int} = Tangram::Integer->new;
-
 package Tangram::Real;
+use Tangram::Type;
+use strict;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Number );
@@ -116,6 +101,8 @@ use vars qw(@ISA);
 $Tangram::Schema::TYPES{real} = Tangram::Real->new;
 
 package Tangram::String;
+use Tangram::Type;
+use strict;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Scalar );

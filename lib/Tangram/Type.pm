@@ -1,9 +1,6 @@
-
-
-use strict;
-
 package Tangram::Type;
 
+use strict;
 use Carp;
 
 my %instances;
