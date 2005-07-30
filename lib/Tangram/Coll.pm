@@ -6,6 +6,7 @@ use strict;
 use Tangram::Expr::Coll;
 use Tangram::Expr::Coll::FromMany;
 use Tangram::Expr::Coll::FromOne;
+use Tangram::Lazy::Coll;
 
 use Tangram::Type;
 use Tangram::Ref;
@@ -26,7 +27,7 @@ sub get_importer
   
   return sub {
 	my ($obj, $row, $context) = @_;
-	tie $obj->{$field}, 'Tangram::CollOnDemand', $self, $self, $context->{storage}, $context->{id}, $self->{name}, $class;
+	tie $obj->{$field}, 'Tangram::Lazy::Coll', $self, $self, $context->{storage}, $context->{id}, $self->{name}, $class;
 	}
 }
 
@@ -36,7 +37,7 @@ sub read
 
 	foreach my $member (keys %$members)
 	{
-		tie $obj->{$member}, 'Tangram::CollOnDemand',
+		tie $obj->{$member}, 'Tangram::Lazy::Coll',
 			$self, $members->{$member}, $storage, $storage->id($obj), $member, $class;
 	}
 }
@@ -97,47 +98,6 @@ sub where
 {
 	confess unless wantarray;
 	()
-}
-
-package Tangram::CollOnDemand;
-
-use Carp qw(confess);
-
-sub TIESCALAR
-{
-	my $pkg = shift;
-	return bless [ @_ ], $pkg;	# [ $type, $storage, $id, $member, $class ]
-}
-
-sub FETCH
-{
-	my $self = shift;
-	my ($type, $def, $storage, $id, $member, $class) = @$self;
-	my $obj = $storage->{objects}{$id}
-	    or confess "FETCH failed to get object $id!";
-	my $coll = $type->demand($def, $storage, $obj, $member, $class);
-	untie $obj->{$member};
-	$obj->{$member} = $coll;
-	my ($pkg,$fn,$l) = caller;
-	return $coll;
-}
-
-sub STORE
-{
-	my ($self, $coll) = @_;
-	my ($type, $def, $storage, $id, $member, $class) = @$self;
-	my $obj = $storage->{objects}{$id}
-	    or confess "FETCH failed to get object $id!";
-	$type->demand($def, $storage, $obj, $member, $class);
-
-	untie $obj->{$member};
-
-	$obj->{$member} = $coll;
-}
-
-sub storage {
-    my ($self) = (@_);
-    return $self->[2];
 }
 
 package Tangram::CollCursor;
