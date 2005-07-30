@@ -1,8 +1,9 @@
-
+package Tangram::Storage;
 
 use strict;
 
-package Tangram::Storage;
+use Tangram::Storage::Statement;
+
 use DBI;
 use Carp;
 use Tangram::Core;
@@ -1576,31 +1577,6 @@ sub DESTROY
     } else {
 	print $Tangram::TRACE __PACKAGE__.": destroyed; no active handle\n"
 	    if $Tangram::TRACE;
-    }
-}
-
-package Tangram::Storage::Statement;
-
-sub new
-{
-    my $class = shift;
-    bless { @_ }, $class;
-}
-
-sub fetchrow
-{
-    return shift->{statement}->fetchrow;
-}
-
-sub close
-{
-    my $self = shift;
-
-    if ($self->{storage})
-    {
-	$self->{statement}->finish;
-	$self->{storage}->close_connection($self->{connection});
-	%$self = ();
     }
 }
 
