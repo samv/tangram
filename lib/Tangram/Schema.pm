@@ -3,6 +3,8 @@
 package Tangram::Schema;
 
 use Tangram::Schema::ClassHash;
+use Tangram::Schema::Class;
+
 use strict;
 #our @ISA = qw( SelfLoader );
 use Carp;
