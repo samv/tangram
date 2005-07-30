@@ -4,7 +4,7 @@ use strict;
 use Tangram::Schema;
 
 use vars qw(@ISA);
-@ISA = qw( Tangram::Node );
+@ISA = qw( Tangram::Schema::Node );
 use Carp qw(confess);
 
 sub new {
