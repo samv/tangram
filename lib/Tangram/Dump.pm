@@ -89,7 +89,7 @@ sub flatten {
 
     my $check = sub {
 	if (my $x = tied $_[0] ) {
-	    if ( $x->isa("Tangram::RefOnDemand") ) {
+	    if ( $x->isa("Tangram::Lazy::Ref") ) {
 		# FIXME - code path not covered by test suite
 		my ($id,$cid) = $storage->split_id($x->id);
 		$id.=",$cid";
@@ -183,7 +183,7 @@ sub unflatten {
     my $seen = Set::Object->new(@obj_stack);
 
     my $check = sub {
-	if ( tied $_[0] and tied($_[0]) =~ m/^Tangram::RefOnDemand/ ) {
+	if ( tied $_[0] and tied($_[0]) =~ m/^Tangram::Lazy::Ref/ ) {
 	    # already a demand paged reference - ignore
 	} else {
 	    if ( blessed $_[0] and $_[0]->isa("Tangram::Memento") ) {
@@ -191,12 +191,12 @@ sub unflatten {
 		my ($id, $cid) = ${$_[0]} =~ m{(\d+),(\d+)};
 		$id = $storage->combine_ids($id,$cid);
 
-		(DEBUG>1) && debug "setting up RefOnDemand($id)";
+		(DEBUG>1) && debug "setting up Lazy::Ref($id)";
 
 		if ( defined($storage->{objects}{$id}) ) {
 		    $_[0] = $storage->{objects}{$id};
 		} else {
-		    tie $_[0], 'Tangram::RefOnDemand',
+		    tie $_[0], 'Tangram::Lazy::Ref',
 			$storage, undef, \$_[0], $id;
 		}
 

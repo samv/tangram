@@ -115,9 +115,8 @@ fields to a package that will demand-load the final value of the field
 - if it's ever needed. The exact procedure for achieving this is not
 imposed by Tangram itself, in fact, a Type has the liberty of doing
 just anything it sees fit, if it can manage it with the arguments that
-it gets passed by the higher layer. Ref ties a field to the
-RefOnDemand package, and Collections tie to CollOnDemand. These two
-packages will probably merge at someday.
+it gets passed by the higher layer. Ref ties a field to the Lazy::Ref
+package, and Collections tie to Lazy::Coll.
 
 Ref and those collections that contain references to other objects
 must deal cycles. This can be done quite easily but I don't have to go

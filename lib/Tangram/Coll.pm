@@ -105,26 +105,6 @@ sub DESTROY
 	# $self->{-storage}->free_table($self->{-coll_tid});
 }
 
-package Tangram::BackRefOnDemand;
-
-use vars qw(@ISA);
- @ISA = qw( Tangram::RefOnDemand );
-
-sub FETCH
-{
-	my $self = shift;
-	my ($storage, $id, $member, $refid, $class, $field) = @$self;
-	my $obj = $storage->{objects}{$id};
-
-	my $owner = $storage->remote($class);
-	my ($refobj) = $storage->select($owner, $owner->{$field}->includes($obj));
-#	my $refobj = $storage->load($refid);
-
-	untie $obj->{$member};
-	$obj->{$member} = $refobj;	# weak
-	return $refobj;
-}
-
 package Tangram::BackRef;
 
 use vars qw(@ISA);
@@ -152,7 +132,7 @@ sub get_importer
 	my $rid = shift @$row;
 
 	if ($rid) {
-	  tie $obj->{$field}, 'Tangram::BackRefOnDemand', $context->{storage}, $context->{id}, $self->{name}, $rid, $self->{class}, $self->{field};
+	  tie $obj->{$field}, 'Tangram::Lazy::BackRef', $context->{storage}, $context->{id}, $self->{name}, $rid, $self->{class}, $self->{field};
 	} else {
 	  $obj->{$field} = undef;
 	}

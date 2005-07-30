@@ -156,7 +156,7 @@ Mom and Dad. Pulling any single Person would eventually retrieve
 everybody up to Adam and Eve! If Tangram did work that way, that is...
 
 Instead, Tangram ties all the fields that are declared as outgoing
-references to a package (Tangram::RefOnDemand). The underlying object
+references to a package (Tangram::Lazy::Ref). The underlying object
 keeps track of the source object's OID, the Storage object, and the
 name of the persistent field.
 
