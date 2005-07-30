@@ -182,33 +182,6 @@ sub relational_schema
 }
 
 #---------------------------------------------------------------------
-#  Tangram::Scalar->_coldefs($cols, $members, $sql, $schema)
-#
-# Adds entries to the current table mapping for the columns for a
-# single class of a given type.  Inheritance is not in the picture
-# yet.
-#
-# $cols is the columns definition for the current table mapping
-# $members is the `members' property of the current class (ie, the
-#          members for a particular data type, eg string => $members)
-# $sql is the SQL type to default columns to
-# $schema is the Tangram::Schema object
-#---------------------------------------------------------------------
-sub Tangram::Scalar::_coldefs
-{
-    my ($self, $cols, $members, $sql, $schema) = @_;
-
-    for my $def (values %$members)
-	{
-	    $cols->{ $def->{col} } =
-		(
-		 $def->{sql} ||
-		 "$sql " . ($schema->{sql}{default_null} || "")
-		);
-	}
-}
-
-#---------------------------------------------------------------------
 #  Tangram::Integer->coldefs($cols, $members, $schema)
 #  Tangram::Real->coldefs($cols, $members, $schema)
 #  Tangram::String->coldefs($cols, $members, $schema)
@@ -219,12 +192,6 @@ sub Tangram::Integer::coldefs
 {
     my ($self, $cols, $members, $schema) = @_;
     $self->_coldefs($cols, $members, 'INT', $schema);
-}
-
-sub Tangram::Real::coldefs
-{
-    my ($self, $cols, $members, $schema) = @_;
-    $self->_coldefs($cols, $members, 'REAL', $schema);
 }
 
 sub Tangram::String::coldefs

@@ -1,7 +1,9 @@
 
 package Tangram::Type::Scalar;
+
 use strict;
-use Tangram::Type::Number;
+use Tangram::Type::Real;
+use Tangram::Type::Integer;
 use Tangram::Type::Number;
 
 use Tangram::Type;
@@ -91,31 +93,31 @@ sub content
     shift;
 }
 
-package Tangram::Real;
-use Tangram::Type;
-use strict;
+#---------------------------------------------------------------------
+#  Tangram::Scalar->_coldefs($cols, $members, $sql, $schema)
+#
+# Adds entries to the current table mapping for the columns for a
+# single class of a given type.  Inheritance is not in the picture
+# yet.
+#
+# $cols is the columns definition for the current table mapping
+# $members is the `members' property of the current class (ie, the
+#          members for a particular data type, eg string => $members)
+# $sql is the SQL type to default columns to
+# $schema is the Tangram::Schema object
+#---------------------------------------------------------------------
+sub _coldefs
+{
+    my ($self, $cols, $members, $sql, $schema) = @_;
 
-use vars qw(@ISA);
- @ISA = qw( Tangram::Number );
-
-$Tangram::Schema::TYPES{real} = Tangram::Real->new;
-
-package Tangram::String;
-use Tangram::Type;
-use strict;
-
-use vars qw(@ISA);
- @ISA = qw( Tangram::Scalar );
-
-$Tangram::Schema::TYPES{string} = Tangram::String->new;
-
-sub literal
-  {
-    my ($self, $lit, $storage) = @_;
-    return $storage->{db}->quote($lit);
+    for my $def (values %$members)
+	{
+	    $cols->{ $def->{col} } =
+		(
+		 $def->{sql} ||
+		 "$sql " . ($schema->{sql}{default_null} || "")
+		);
+	}
 }
 
 1;
-
-
-

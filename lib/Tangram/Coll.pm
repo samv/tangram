@@ -12,6 +12,8 @@ use Tangram::Expr::LinkTable;
 
 use Tangram::Type;
 use Tangram::Ref;
+use Tangram::BackRef;
+use Tangram::Type::BackRef;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type );
@@ -103,40 +105,6 @@ sub DESTROY
 	my ($self) = @_;
 	#print "@{[ keys %$self ]}\n";
 	# $self->{-storage}->free_table($self->{-coll_tid});
-}
-
-package Tangram::BackRef;
-
-use vars qw(@ISA);
- @ISA = qw( Tangram::Scalar );
-
-$Tangram::Schema::TYPES{backref} = Tangram::BackRef->new;
-
-sub get_export_cols
-  {
-	()
-  }
-
-sub get_exporter
-  {
-  }
-
-sub get_importer
-{
-  my ($self, $context) = @_;
-  my $field = $self->{name};
-
-  return sub {
-	my ($obj, $row, $context) = @_;
-
-	my $rid = shift @$row;
-
-	if ($rid) {
-	  tie $obj->{$field}, 'Tangram::Lazy::BackRef', $context->{storage}, $context->{id}, $self->{name}, $rid, $self->{class}, $self->{field};
-	} else {
-	  $obj->{$field} = undef;
-	}
-  }
 }
 
 package Tangram::Alias;
