@@ -1,11 +1,12 @@
 
 
+package Tangram::Coll;
 use strict;
+
+use Tangram::Expr::Coll;
 
 use Tangram::Type;
 use Tangram::Ref;
-
-package Tangram::Coll;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type );
@@ -75,40 +76,10 @@ sub array_diff
 	return ($common, \@changed);
 }
 
-package Tangram::AbstractCollExpr;
-
-sub new
-{
-	my $pkg = shift;
-	bless [ @_ ], $pkg;
-}
-
-sub exists
-{
-	my ($self, $expr, $filter) = @_;
-	my ($coll) = @$self;
-
-	if ($expr->isa('Tangram::QueryObject'))
-	{
-		$expr = Tangram::Select->new
-			(
-			 cols => [ $expr->{id} ],
-			 exclude => [ $coll ],
-			 filter => $self->includes($expr)->and_perhaps($filter)
-			);
-	}
-
-	my $expr_str = $expr->{expr};
-	$expr_str =~ tr/\n/ /;
-
-	return Tangram::Filter->new( expr => "exists $expr_str", tight => 100,
-								 objects => Set::Object->new( $expr->objects() ) );
-}
-
 package Tangram::CollExpr;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractCollExpr );
+ @ISA = qw( Tangram::Expr::Coll );
 
 sub includes
 {
@@ -213,7 +184,7 @@ use overload
 package Tangram::IntrCollExpr;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractCollExpr );
+ @ISA = qw( Tangram::Expr::Coll );
 
 sub includes
 {
