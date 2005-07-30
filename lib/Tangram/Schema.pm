@@ -1,19 +1,8 @@
 
 
-use strict;
-
-package Tangram::ClassHash;
-
-use Carp;
-
-sub class
-{
-   my ($self, $class) = @_;
-   $self->{$class} or croak "unknown class '$class'";
-}
-
 package Tangram::Node;
 
+use strict;
 sub get_bases
   {
 	@{ shift->{BASES} }
@@ -163,6 +152,7 @@ sub get_importer {
 }
 
 package Tangram::Class;
+use strict;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Node );
 
@@ -199,6 +189,9 @@ sub get_export_cols {
 }
 
 package Tangram::Schema;
+
+use Tangram::Schema::ClassHash;
+use strict;
 #our @ISA = qw( SelfLoader );
 use Carp;
 
