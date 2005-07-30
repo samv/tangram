@@ -1,4 +1,5 @@
 
+package Prerequisites;
 use lib "t";
 use DBConfig;
 use TestNeeds qw(Test::More

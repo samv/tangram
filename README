@@ -10,7 +10,10 @@ utility class.
 
 Tangram builds upon DBI, so you'll need to install DBI and at least
 one DBD driver if that is not done already. You will also need
-Set::Object, Scalar::Util.  These modules are available from CPAN.
+Set::Object, Scalar::Util, and Data::Lazy 0.6.  These modules are
+available from CPAN, though currently Data::Lazy 0.6 has not been
+indexed, as the namespace hasn't been handed over - this will probably
+need to be installed manually.
 
 If you intend to run the regression tests (recommended), you will also
 need to prepare an empty database before starting the installation

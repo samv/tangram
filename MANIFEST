@@ -132,3 +132,16 @@ t/springfield/Springfield.pm
 t/springfield/zz-retreat.t
 t/test_manifest
 t/TestNeeds.pm
+
+t/musicstore/00-deploy.t
+t/musicstore/01-simple.t
+t/musicstore/02-reorg.t
+t/musicstore/03-reschema.t
+t/musicstore/zz-retreat.t
+t/musicstore/CD.pm
+t/musicstore/MusicStore.pm
+t/musicstore/Prerequisites.pm
+t/musicstore/insert_extra_data.pl
+
+t/rt/RT.pm
+t/rt/RT.pod

@@ -199,8 +199,7 @@ sub get_importer
 	my $rid = shift @$row;
 	my $cid = shift @$row unless $context->{layout1} or !$self->{type_col};
 	if ($rid and !defined $cid) {
-	    kill 2, $$ ;
-	    $cid = $self->{foo};
+	    $cid = $context->{storage}->class_id($self->{class});
 	}
 
 	if ($rid) {
