@@ -1,45 +1,5 @@
 
 
-package Tangram::Class;
-
-use strict;
-
-use Tangram::Schema::Node;
-use vars qw(@ISA);
- @ISA = qw( Tangram::Schema::Node );
-
-sub members
-{
-   my ($self, $type) = @_;
-   return @{$self->{$type}};
-}
-
-sub is_root
-  {
-	!@{ shift->{BASES} }
-  }
-
-sub get_direct_fields
-  {
-	map { values %$_ } values %{ shift->{fields} }
-  }
-
-sub get_table { shift->{table} }
-
-*direct_fields = \&get_direct_fields;
-
-sub get_import_cols {
-  my ($self, $context) = @_;
-  my $table = $self->{table};
-  map { map { [ $table, $_ ] } $_->get_import_cols($context) } $self->get_direct_fields()
-}
-
-sub get_export_cols {
-  my ($self, $context) = @_;
-  my $table = $self->{table};
-  map { map { [ $table, $_ ] } $_->get_export_cols($context) } $self->get_direct_fields()
-}
-
 package Tangram::Schema;
 
 use Tangram::Schema::ClassHash;
@@ -94,7 +54,7 @@ sub new
     my @class_list = reftype($self->{'classes'}) eq 'HASH' ? %{ $self->{'classes'} } : @{ $self->{'classes'} };
     my $class_hash = $self->{'classes'} = {};
 
-    bless $class_hash, 'Tangram::ClassHash';
+    bless $class_hash, 'Tangram::Schema::ClassHash';
 
     my $autoid = 0;
 
@@ -109,7 +69,7 @@ sub new
 		  $classdef->{id} = ++$autoid;
 		}
 
-		bless $classdef, 'Tangram::Class';
+		bless $classdef, 'Tangram::Schema::Class';
 
 		$classdef->{name} = $class;
 		$classdef->{table} ||= $self->{normalize}->($class, 'tablename');

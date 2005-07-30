@@ -20,7 +20,7 @@ sub fracture {
 sub initialize {
     my ($self, $engine, $class, $mapping) = @_;
     ref($self->{CLASS} = $class)
-	&& UNIVERSAL::isa($class, "Tangram::Class")
+	&& UNIVERSAL::isa($class, "Tangram::Schema::Class")
 	    or confess "not class but $class";
     $self->{MAPPING} = $mapping;
     $self->{BASES} = [
