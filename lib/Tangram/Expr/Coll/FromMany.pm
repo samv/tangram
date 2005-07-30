@@ -22,7 +22,7 @@ sub includes
 	my $objects = Set::Object->new
 	    (
 	     $coll,
-	     Tangram::LinkTable->new($memdef->{table}, $link_tid)
+	     Tangram::Expr::LinkTable->new($memdef->{table}, $link_tid)
 	    );
 	my $target;
 
@@ -65,7 +65,7 @@ sub includes_or {
 
     my $objects = Set::Object->new
 	($coll,
-	 Tangram::LinkTable->new($memdef->{table}, $link_tid)
+	 Tangram::Expr::LinkTable->new($memdef->{table}, $link_tid)
 	);
     my @targets;
 

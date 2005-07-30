@@ -8,6 +8,8 @@ use Tangram::Expr::Coll::FromMany;
 use Tangram::Expr::Coll::FromOne;
 use Tangram::Lazy::Coll;
 
+use Tangram::Expr::LinkTable;
+
 use Tangram::Type;
 use Tangram::Ref;
 
@@ -77,27 +79,6 @@ sub array_diff
 	my @changed = grep { $differ->($old_state->[$_], $new_state->[$_]) } 0 .. ($common-1);
 
 	return ($common, \@changed);
-}
-
-package Tangram::LinkTable;
-use Carp;
-
-sub new
-{
-	my ($pkg, $name, $alias) = @_;
-	bless [ $name, $alias ], $pkg;
-}
-
-sub from
-{
-	my ($name, $alias) = @{shift()};
-	"$name t$alias"
-}
-
-sub where
-{
-	confess unless wantarray;
-	()
 }
 
 package Tangram::CollCursor;
