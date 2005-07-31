@@ -36,7 +36,7 @@ package Tangram::Relational::Engine;
 use strict;
 use Tangram::Schema;
 use Tangram::Relational::TableSet;
-use Tangram::RelationalSchema;
+use Tangram::Relational::Schema;
 use Tangram::Relational::PolySelectTemplate;
 use Tangram::Relational::Engine::Class;
 
@@ -178,7 +178,7 @@ sub relational_schema
 		    keys %$tables
 		   };
 
-    return bless [ $tables, $self ], 'Tangram::RelationalSchema';
+    return bless [ $tables, $self ], 'Tangram::Relational::Schema';
 }
 
 #---------------------------------------------------------------------

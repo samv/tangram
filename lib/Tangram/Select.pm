@@ -74,7 +74,7 @@ sub where
 sub execute
 {
 	my ($self, $storage, $conn) = @_;
-	return Tangram::DataCursor->open($storage, $self, $conn);
+	return Tangram::Cursor::Data->open($storage, $self, $conn);
 }
 
 

@@ -1,4 +1,4 @@
-package Tangram::RelationalSchema;
+package Tangram::Relational::Schema;
 
 use strict;
 use Tangram::Schema;
