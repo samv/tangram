@@ -2,14 +2,13 @@
 
 use strict;
 
-use Tangram::Scalar;
+package Tangram::Type::Date::Raw;
 
-package Tangram::RawDate;
-
+use Tangram::Type::String;
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 
-$Tangram::Schema::TYPES{rawdate} = Tangram::RawDate->new;
+$Tangram::Schema::TYPES{rawdate} = __PACKAGE__->new;
 
 sub Tangram::RawDate::coldefs
 {

@@ -109,6 +109,9 @@ sub test_mapping
 		},
 	       ] } );
 
+	use YAML;
+	#diag(Dump $schema);
+
     SKIP: {
 	    my $dbh = DBI->connect($Springfield::cs, $Springfield::user,
 				   $Springfield::passwd, { PrintError => 0 });

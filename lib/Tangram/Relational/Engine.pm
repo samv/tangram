@@ -316,16 +316,6 @@ sub Tangram::IntrHash::coldefs
 }
 
 #---------------------------------------------------------------------
-#  Tangram::BackRef->coldefs(...)
-#
-#  BackRefs do not set up any columns by default.
-#---------------------------------------------------------------------
-sub Tangram::BackRef::coldefs
-{
-    return ();
-}
-
-#---------------------------------------------------------------------
 #  $engine->get_class_engine($ClassDef)
 #
 #  Returns the Engine for a particular Class - the class definition is

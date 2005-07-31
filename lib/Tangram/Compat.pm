@@ -4,11 +4,16 @@
 # first major change: Tangram::Scalar => Tangram::Type::Scalar, etc
 
 package Tangram::Compat;
+
 use Tangram::Compat::Stub;
 
 use constant REMAPPED =>
     qw( Tangram::Scalar   Tangram::Type::Scalar
-	Tangram::RawDate  Tangram::Type::RawDate
+	Tangram::RawDate  Tangram::Type::Date::Raw
+	Tangram::String   Tangram::Type::String
+	Tangram::Integer  Tangram::Type::Integer
+	Tangram::Real     Tangram::Type::Real
+	Tangram::Number   Tangram::Type::Number
       );
 
 use strict 'vars', 'subs';
@@ -23,7 +28,7 @@ BEGIN { $stub = $INC{'Tangram/Compat/Stub.pm'} };
 # this method is called when you "use" something.  This is a "Chain of
 # Command Patte<ETOOMUCHBS>
 
-sub INC {
+sub Tangram::Compat::INC {
     my $self = shift;
     my $fn = shift;
 
@@ -53,20 +58,28 @@ sub setup {
     carp "deprecated package $pkg used by ".caller().", auto-loading $target";
 
     debug_out("using $target") if (DEBUG);
-    eval "use $target"; die $@ if $@;
-    my $eval = "package $pkg; \@ISA = qw($target)";
-    debug_out("creating $pkg with: $eval") if (DEBUG);
-    eval $eval; die $@ if $@;
-    #@{"${pkg}::ISA"} = $target;
+    #kill 2, $$;
+    eval "use $target";
+    #kill 2, $$;
+    debug_out("using $target yielded \$\@ = '$@'") if DEBUG;
+    die $@ if $@;
+    #kill 2, $$;
+    #my $eval = "package $pkg; \@ISA = qw($target)";
+    #debug_out("creating $pkg with: $eval") if (DEBUG);
+    #eval $eval; die $@ if $@;
+    #$
+    @{"${pkg}::ISA"} = $target;
+    #debug_out("creating package yielded \$\@ = '$@'") if DEBUG;
     if ( @_ ) {
 	my $method = shift;
-	$method =~ s{.*::}{};
+	($pkg, $method) = $method =~ m{(.*)::(.*)};
 	@_ = @{(shift)};
-	my $code = $target->can($method)
+	my $code = $pkg->can($method)
 	    or do {
 		debug_out("pkg is $pkg, its ISA is ".join(",",@{"${pkg}::ISA"})) if (DEBUG);
-		croak "$target->can't($method)";
+		croak "$pkg->can't($method)";
 	    };
+	debug_out("Calling $pkg->$method(@_)") if DEBUG;
 	goto $code;
     }
 }
@@ -88,10 +101,24 @@ sub new {
 	    goto &setup;
 	};
     }
+    return $self;
 }
 
+sub DESTROY {
+    my $self = shift;
+    @INC = grep { defined and 
+		      (!ref($_) or refaddr($_) ne refaddr($self)) }
+	@INC;
+}
+
+use Devel::Symdump;
 BEGIN {
-    unshift @INC, __PACKAGE__ ->new( REMAPPED );
+    my $loader = __PACKAGE__->new(REMAPPED);
+    #unshift @INC, __PACKAGE__->new( REMAPPED );
+    #print STDERR "INC is now: @INC\n";
+    #my $sd = Devel::Symdump->new("Tangram::Compat");
+    #print STDERR "Compat is: ".$sd->as_string;
+    unshift @INC, $loader;
 }
 
 1;

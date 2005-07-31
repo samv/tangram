@@ -3,6 +3,8 @@ use strict;
 use Set::Object;
 
 use Tangram::Compat;
+BEGIN {
+}
 
 use Tangram::Scalar;
 use Tangram::Ref;

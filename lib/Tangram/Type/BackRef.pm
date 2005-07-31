@@ -35,4 +35,14 @@ sub get_importer
   }
 }
 
+#---------------------------------------------------------------------
+#  Tangram::BackRef->coldefs(...)
+#
+#  BackRefs do not set up any columns by default.
+#---------------------------------------------------------------------
+sub coldefs
+{
+    return ();
+}
+
 1;
