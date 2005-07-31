@@ -165,14 +165,12 @@ sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
 	map { Tangram::Expr::Coll::FromOne->new($obj, $_); } values %$members;
-}->new($obj, $_); } values %$members;
 }
 
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::Expr::Coll::FromOne->new($obj, $_); } values %$members;
-}->new($obj, $self);
+	Tangram::Expr::Coll::FromOne->new($obj, $self);
 }
 
 sub prefetch

@@ -2,14 +2,15 @@
 package Tangram::Type::Scalar;
 
 use strict;
-use Tangram::Type::Real;
-use Tangram::Type::Integer;
-use Tangram::Type::Number;
-
 use Tangram::Type;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Type );
+BEGIN { @ISA = qw( Tangram::Type ); }
+
+use Tangram::Type::Real;
+use Tangram::Type::Integer;
+use Tangram::Type::Number;
+use Tangram::Type::String;
 
 sub reschema
 {

@@ -188,18 +188,6 @@ sub relational_schema
 #
 # Setup column defines for the root column types
 #---------------------------------------------------------------------
-sub Tangram::Integer::coldefs
-{
-    my ($self, $cols, $members, $schema) = @_;
-    $self->_coldefs($cols, $members, 'INT', $schema);
-}
-
-sub Tangram::String::coldefs
-{
-    my ($self, $cols, $members, $schema) = @_;
-    $self->_coldefs($cols, $members, 'VARCHAR(255)', $schema);
-}
-
 #---------------------------------------------------------------------
 #  Tangram::Set->coldefs($cols, $members, $schema, $class, $tables)
 #

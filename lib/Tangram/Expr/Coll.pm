@@ -31,3 +31,4 @@ sub exists
 								 objects => Set::Object->new( $expr->objects() ) );
 }
 
+1;

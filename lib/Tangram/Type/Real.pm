@@ -1,10 +1,14 @@
 
 package Tangram::Type::Real;
-use Tangram::Type;
+use Tangram::Type::Number;
 use strict;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Type::Number );
+ BEGIN { @ISA = qw( Tangram::Type::Number ); }
+
+#use Class::ISA;
+#use YAML;
+#print YAML::Dump([Class::ISA::super_path(__PACKAGE__)]);
 
 $Tangram::Schema::TYPES{real} = __PACKAGE__->new;
 

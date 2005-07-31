@@ -15,6 +15,12 @@ sub literal
     return $storage->{db}->quote($lit);
 }
 
+sub coldefs
+{
+    my ($self, $cols, $members, $schema) = @_;
+    $self->_coldefs($cols, $members, 'VARCHAR(255)', $schema);
+}
+
 1;
 
 

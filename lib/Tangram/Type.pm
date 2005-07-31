@@ -11,7 +11,10 @@ sub instance
 	return $instances{$pkg} ||= bless { }, $pkg;
 }
 
-*new = \&instance;
+sub new {
+    my $inv = shift;
+    return $inv->instance(@_);
+}
 
 sub reschema
 {
