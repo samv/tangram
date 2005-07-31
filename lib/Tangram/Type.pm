@@ -89,8 +89,5 @@ sub get_export_cols
 sub get_intrusions {
 }
 
-sub coldefs {
-
-}
 
 1;
