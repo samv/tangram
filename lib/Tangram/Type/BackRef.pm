@@ -1,6 +1,7 @@
 
 package Tangram::Type::BackRef;
 
+use Tangram::Lazy::BackRef;
 use strict;
 
 use vars qw(@ISA);
