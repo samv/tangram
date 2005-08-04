@@ -353,3 +353,5 @@ Revision history for Perl extension Tangram.
 	- Remove redundant confusing copyright messages
 	- Fix link to Tangram site and mailing list
 	- Merge in a whole lotta Oracle fixes
+
+2.08_02 ...
