@@ -114,8 +114,8 @@ sub tx_rollback
 
 my %improved_date =
   (
-   'Tangram::RawDateTime' => 'Tangram::mysql::DateExpr',
-   'Tangram::RawDate' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type/DateTime' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type/Date' => 'Tangram::mysql::DateExpr',
   );
 
 sub expr

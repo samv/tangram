@@ -10,7 +10,7 @@ use vars qw(@ISA);
 
 $Tangram::Schema::TYPES{rawdate} = __PACKAGE__->new;
 
-sub Tangram::RawDate::coldefs
+sub Tangram::Type/Date::coldefs
 {
     my ($self, $cols, $members, $schema) = @_;
     $self->_coldefs($cols, $members, "DATE $schema->{sql}{default_null}");

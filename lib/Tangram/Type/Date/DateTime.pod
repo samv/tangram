@@ -7,8 +7,8 @@ Tangram::Type/Date/DateTime - map date & time fields
    use Tangram;
 
    # any of:
-   use Tangram::RawDate;
-   use Tangram::RawTime;
+   use Tangram::Type/Date;
+   use Tangram::Type/Time;
    use Tangram::RawType/Date/DateTime;
    use Tangram::CookedType/Date/DateTime;
    use Tangram::DMType/Date/DateTime;
