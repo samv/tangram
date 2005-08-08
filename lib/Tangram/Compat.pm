@@ -93,7 +93,9 @@ sub setup {
     my $target = delete $self->{map}{$pkg};
     confess "no target package" unless $target;
 
-    carp "deprecated package $pkg used by ".caller().", auto-loading $target";
+    my @c = caller();
+    carp "deprecated package $pkg used by $c[1]:$c[2] auto-loading $target"
+	if $^W;
 
     debug_out("using $target") if (DEBUG);
     #kill 2, $$;
