@@ -1,11 +1,11 @@
 =head1 NAME
 
-Tangram::FlatArray - map Perl array of strings or numbers
+Tangram::Type/Array/Scalar - map Perl array of strings or numbers
 
 =head1 SYNOPSIS
 
    use Tangram::Core;
-   use Tangram::FlatArray; # always
+   use Tangram::Type/Array/Scalar; # always
 
    $schema = Tangram::Schema->new(
       classes => { NaturalPerson => { fields => {

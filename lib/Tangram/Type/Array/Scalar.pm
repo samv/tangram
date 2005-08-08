@@ -1,15 +1,15 @@
 
 use strict;
 
-package Tangram::FlatArray;
+package Tangram::Type/Array/Scalar;
 
 use vars qw(@ISA);
 @ISA = qw( Tangram::Type::Abstract::Array );
 use Tangram::Type::Abstract::Array;
 
-use Tangram::Expr::FlatArray;
+use Tangram::Expr::Type/Array/Scalar;
 
-$Tangram::Schema::TYPES{flat_array} = Tangram::FlatArray->new;
+$Tangram::Schema::TYPES{flat_array} = Tangram::Type/Array/Scalar->new;
 
 sub reschema
 {
@@ -156,13 +156,13 @@ sub coldefs
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
-	map { Tangram::Expr::FlatArray->new($obj, $_); } values %$members;
+	map { Tangram::Expr::Type/Array/Scalar->new($obj, $_); } values %$members;
 }
 
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::Expr::FlatArray->new($obj, $self);
+	Tangram::Expr::Type/Array/Scalar->new($obj, $self);
 }
 
 sub prefetch

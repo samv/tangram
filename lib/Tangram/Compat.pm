@@ -30,6 +30,8 @@ use constant REMAPPED =>
 	Tangram::IntrSet		Tangram::Type::Set::FromOne
 	Tangram::IntrHash		Tangram::Type::Hash::FromOne
 	Tangram::IntrArray		Tangram::Type::Array::FromOne
+	Tangram::FlatHash		Tangram::Type::Hash::Scalar
+	Tangram::FlatArray		Tangram::Type::Array::Scalar
       );
 
 use strict 'vars', 'subs';
