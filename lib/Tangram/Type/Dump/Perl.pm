@@ -69,7 +69,7 @@ sub get_importer
 {
 	my ($self, $context) = @_;
 	return("\$obj->{$self->{name}} = eval shift \@\$row;"
-	       ."Tangram::Dump::unflatten(\$context->{storage}, "
+	       ."Tangram::Type::Dump::unflatten(\$context->{storage}, "
 	       ."\$obj->{$self->{name}})");
   }
 
@@ -80,11 +80,9 @@ sub get_exporter
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  Tangram::Dump::flatten($context->{storage},
-				 $obj->{$field});
+	  flatten($context->{storage}, $obj->{$field});
 	  my $text = $self->{dumper}->($obj->{$field});
-	  Tangram::Dump::unflatten($context->{storage},
-				   $obj->{$field});
+	  unflatten($context->{storage}, $obj->{$field});
 	  return $text;
 	};
   }

@@ -67,7 +67,7 @@ print \$Tangram::TRACE \"THAWING (length = \".(length(\$data)).\":\".Data::Dumpe
    if \$Tangram::TRACE and \$Tangram::DEBUG_LEVEL > 2;
 my \$ref = Storable::thaw(\$context->{storage}->from_dbms('blob', \$data)) or die \"thaw failed on data (\".(length(\$data)).\") = \".Data::Dumper::Dumper(\$data);
 \$obj->{$self->{name}} = \$ref->[0];\n"
-	       ."Tangram::Dump::unflatten(\$context->{storage}, "
+	       ."Tangram::Type::Dump::unflatten(\$context->{storage}, "
 	       ."\$obj->{$self->{name}});\n");
   }
 
@@ -78,11 +78,9 @@ sub get_exporter
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  Tangram::Dump::flatten($context->{storage},
-				 $obj->{$field});
+	  flatten($context->{storage}, $obj->{$field});
 	  my $text = $self->{dumper}->($obj->{$field});
-	  Tangram::Dump::unflatten($context->{storage},
-				   $obj->{$field});
+	  unflatten($context->{storage}, $obj->{$field});
 	  return $context->{storage}->to_dbms('blob', $text);
 	};
   }
@@ -98,9 +96,9 @@ sub save {
     next if $memdef->{automatic};
     
     push @$cols, $memdef->{col};
-    Tangram::Dump::flatten($storage, $obj->{$member});
+    flatten($storage, $obj->{$member});
     push @$vals, $dbh->quote(&{$memdef->{dumper}}($obj->{$member}));
-    Tangram::Dump::unflatten($storage, $obj->{$member});
+    unflatten($storage, $obj->{$member});
   }
 }
 

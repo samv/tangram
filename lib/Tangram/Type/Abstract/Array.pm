@@ -138,7 +138,7 @@ sub defered_save
 	my $old_state = $self->get_load_state($storage, $obj, $field) || [];
 	my $old_size = @$old_state;
 	
-	my ($common, $changed) = Tangram::Coll::array_diff($new_state, $old_state, $ne);
+	my ($common, $changed) = Tangram::Type::Abstract::Coll::array_diff($new_state, $old_state, $ne);
 	
 	for my $slot (@$changed)
 	  {
