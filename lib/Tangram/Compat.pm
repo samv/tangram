@@ -17,6 +17,9 @@ use constant REMAPPED =>
 	Tangram::AbstractSet		Tangram::Type::Abstract::Set
 	Tangram::AbstractHash		Tangram::Type::Abstract::Hash
 	Tangram::AbstractArray		Tangram::Type::Abstract::Array
+	Tangram::Coll			Tangram::Type::Abstract::Coll
+	Tangram::Alias			Tangram::Expr::TableAlias
+	Tangram::CollCursor		Tangram::Cursor::Coll
       );
 
 use strict 'vars', 'subs';

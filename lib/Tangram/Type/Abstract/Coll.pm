@@ -1,6 +1,6 @@
 
 
-package Tangram::Coll;
+package Tangram::Type::Abstract::Coll;
 use strict;
 
 use Tangram::Expr::Coll;
@@ -105,15 +105,6 @@ sub DESTROY
 	my ($self) = @_;
 	#print "@{[ keys %$self ]}\n";
 	# $self->{-storage}->free_table($self->{-coll_tid});
-}
-
-package Tangram::Alias;
-
-my $top = 1_000;
-
-sub new
-{
-	'l' . ++$top
 }
 
 1;
