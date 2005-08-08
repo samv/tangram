@@ -97,7 +97,7 @@ sub update_id_in_tx
 
 my %improved =
   (
-   'Tangram::Type/DateTime' => 'Tangram::Sybase::DateExpr',
+   'Tangram::Type/TimeAndDate' => 'Tangram::Sybase::DateExpr',
    'Tangram::Type/Date' => 'Tangram::Sybase::DateExpr',
   );
 

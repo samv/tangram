@@ -3,9 +3,9 @@
 package Tangram::Type::Date::Cooked;
 
 use strict;
-use Tangram::Type/DateTime;
+use Tangram::Type/TimeAndDate;
 use vars qw(@ISA);
-@ISA = qw( Tangram::Type/DateTime );
+@ISA = qw( Tangram::Type/TimeAndDate );
 
 $Tangram::Schema::TYPES{cookeddatetime} = Tangram::Type::Date::Cooked->new;
 

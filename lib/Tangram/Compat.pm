@@ -9,9 +9,9 @@ use Tangram::Compat::Stub;
 
 use constant REMAPPED =>
     qw( Tangram::Scalar			Tangram::Type::Scalar
-	Tangram::RawDate		Tangram::Type::Date
-	Tangram::RawDateTime		Tangram::Type::DateTime
 	Tangram::RawTime		Tangram::Type::Time
+	Tangram::RawDate		Tangram::Type::Date
+	Tangram::RawDateTime		Tangram::Type::TimeAndDate
 	Tangram::CookedDateTime		Tangram::Type::Date::Cooked
 	Tangram::DMDateTime		Tangram::Type::Date::Manip
 	Tangram::TimePiece		Tangram::Type::Date::TimePiece
