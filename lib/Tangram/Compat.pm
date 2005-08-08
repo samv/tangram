@@ -9,32 +9,43 @@ use Tangram::Compat::Stub;
 
 use constant REMAPPED =>
     qw( Tangram::Scalar			Tangram::Type::Scalar
-	Tangram::RawTime		Tangram::Type::Time
-	Tangram::RawDate		Tangram::Type::Date
-	Tangram::RawDateTime		Tangram::Type::TimeAndDate
-	Tangram::CookedDateTime		Tangram::Type::Date::Cooked
-	Tangram::DMDateTime		Tangram::Type::Date::Manip
-	Tangram::TimePiece		Tangram::Type::Date::TimePiece
-	Tangram::DateTime		Tangram::Type::Date::DateTime
+
 	Tangram::String			Tangram::Type::String
 	Tangram::Integer		Tangram::Type::Integer
 	Tangram::Real			Tangram::Type::Real
 	Tangram::Number			Tangram::Type::Number
+
+	Tangram::RawTime		Tangram::Type::Time
+	Tangram::RawDate		Tangram::Type::Date
+	Tangram::RawDateTime		Tangram::Type::TimeAndDate
+
+	Tangram::CookedDateTime		Tangram::Type::Date::Cooked
+	Tangram::DMDateTime		Tangram::Type::Date::Manip
+	Tangram::TimePiece		Tangram::Type::Date::TimePiece
+	Tangram::DateTime		Tangram::Type::Date::DateTime
+
+	Tangram::Coll			Tangram::Type::Abstract::Coll
 	Tangram::AbstractSet		Tangram::Type::Abstract::Set
 	Tangram::AbstractHash		Tangram::Type::Abstract::Hash
 	Tangram::AbstractArray		Tangram::Type::Abstract::Array
-	Tangram::Coll			Tangram::Type::Abstract::Coll
-	Tangram::BackRef		Tangram::Type::BackRef
-	Tangram::Alias			Tangram::Expr::TableAlias
-	Tangram::CollCursor		Tangram::Cursor::Coll
+
 	Tangram::Set			Tangram::Type::Set::FromMany
 	Tangram::Hash			Tangram::Type::Hash::FromMany
 	Tangram::Array			Tangram::Type::Array::FromMany
+	Tangram::Ref			Tangram::Type::Ref::FromMany
+
 	Tangram::IntrSet		Tangram::Type::Set::FromOne
 	Tangram::IntrHash		Tangram::Type::Hash::FromOne
 	Tangram::IntrArray		Tangram::Type::Array::FromOne
+	Tangram::IntrRef		Tangram::Type::Ref::FromOne
+
+	Tangram::BackRef		Tangram::Type::BackRef
+
 	Tangram::FlatHash		Tangram::Type::Hash::Scalar
 	Tangram::FlatArray		Tangram::Type::Array::Scalar
+
+	Tangram::Alias			Tangram::Expr::TableAlias
+	Tangram::CollCursor		Tangram::Cursor::Coll
       );
 
 use strict 'vars', 'subs';

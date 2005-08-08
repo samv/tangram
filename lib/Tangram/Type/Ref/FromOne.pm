@@ -4,7 +4,7 @@
 
 use strict;
 
-package Tangram::IntrRef;
+package Tangram::Type::Ref::FromOne;
 
 use vars qw(@ISA);
 
@@ -171,6 +171,6 @@ sub get_intrusions {
   return [ $self->{class}, $context->{mapping}->get_home_table($self->{class}) ];
 }
 
-$Tangram::Schema::TYPES{iref} = Tangram::IntrRef->new;
+$Tangram::Schema::TYPES{iref} = Tangram::Type::Ref::FromOne->new;
 
 1;

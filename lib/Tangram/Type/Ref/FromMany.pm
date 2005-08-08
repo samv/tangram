@@ -1,6 +1,6 @@
 
 
-package Tangram::Ref;
+package Tangram::Type::Ref::FromMany;
 use strict;
 
 use Tangram::Lazy::Ref;
@@ -8,7 +8,7 @@ use Tangram::Lazy::Ref;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Scalar );
 
-$Tangram::Schema::TYPES{ref} = Tangram::Ref->new;
+$Tangram::Schema::TYPES{ref} = Tangram::Type::Ref::FromMany->new;
 
 sub field_reschema
   {
@@ -173,7 +173,7 @@ sub refid
 {
    my ($storage, $obj, $member) = @_;
    
-   Carp::carp "Tangram::Ref::refid( \$storage, \$obj, \$member )" unless !$^W
+   Carp::carp "Tangram::Type::Ref::FromMany::refid( \$storage, \$obj, \$member )" unless !$^W
       && eval { $storage->isa('Tangram::Storage') }
       && eval { $obj->isa('UNIVERSAL') }
       && !ref($member);
