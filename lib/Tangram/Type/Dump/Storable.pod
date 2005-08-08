@@ -1,11 +1,11 @@
 =head1 NAME
 
-Tangram::Storable - map any Perl object as scalar dump via Storable
+Tangram::Type::Dump::Storable - map any Perl object as scalar dump via Storable
 
 =head1 SYNOPSIS
 
    use Tangram::Core;
-   use Tangram::Storable; # always
+   use Tangram::Type::Dump::Storable; # always
 
    $schema = Tangram::Schema->new(
       classes => { NaturalPerson => { fields => {

@@ -27,7 +27,7 @@ persistence backend.
 =head1 ERRATA
 
 For reasons similar to the L<Tangram::Pg> module, this back-end
-automatically encodes L<Tangram::Storable> objects via L<MIME::Base64>
+automatically encodes L<Tangram::Type::Dump::Storable> objects via L<MIME::Base64>
 to avoid truncation of values on NUL bytes.
 
 Also, note that despite what is mentioned on the front page of

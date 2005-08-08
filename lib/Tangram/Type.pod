@@ -23,13 +23,13 @@ C<date>, C<time>, C<datetime>, C<dmdatetime>: see L<Tangram::Type/Date/Type/Date
 
 =item B<Compound Structure types>
 
-C<perl_dump>: see L<Tangram::PerlDump>.  A C<perl_dump> structure may
+C<perl_dump>: see L<Tangram::Type::Dump::Perl>.  A C<perl_dump> structure may
 contain any structure which Data::Dumper can dump successfully.
 
-C<storable>: see L<Tangram::Storable>.  Very much like C<perl_dump>,
+C<storable>: see L<Tangram::Type::Dump::Storable>.  Very much like C<perl_dump>,
 but implemented via the `Storable' serialisation engine.
 
-C<yaml>: see L<Tangram::YAML>.  Very much like C<perl_dump>, but
+C<yaml>: see L<Tangram::Type::Dump::YAML>.  Very much like C<perl_dump>, but
 implemented via the `YAML' serialisation engine.  Doesn't currently
 work, due to inadequacies in the current Perl YAML implementation.
 

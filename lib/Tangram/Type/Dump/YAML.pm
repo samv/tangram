@@ -1,14 +1,14 @@
 
-package Tangram::YAML;
+package Tangram::Type::Dump::YAML;
 
 =head1 NAME
 
-Tangram::YAML - serialise fields of an object via YAML to a column
+Tangram::Type::Dump::YAML - serialise fields of an object via YAML to a column
 
 =head1 SYNOPSIS
 
    use Tangram::Core;
-   use Tangram::YAML;
+   use Tangram::Type::Dump::YAML;
 
    $schema = Tangram::Schema->new(
       classes => { NaturalPerson => { fields => {
@@ -36,7 +36,7 @@ Tangram::YAML - serialise fields of an object via YAML to a column
 
 =head1 DESCRIPTION
 
-Tangram::YAML is very much like Tangram::PerlDump, only serialisation
+Tangram::Type::Dump::YAML is very much like Tangram::PerlDump, only serialisation
 is achieved via YAML and not Data::Dumper.
 
 This is currently untested, but is known to have bugs, largely to do
@@ -54,7 +54,7 @@ use vars qw(@ISA);
 
 use Set::Object qw(reftype);
 
-$Tangram::Schema::TYPES{yaml} = Tangram::YAML->new;
+$Tangram::Schema::TYPES{yaml} = Tangram::Type::Dump::YAML->new;
 
 sub reschema {
 

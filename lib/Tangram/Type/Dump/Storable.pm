@@ -3,7 +3,7 @@
 # This program is free software; you may use it and/or distribute it
 # under the same terms as Perl itself.
 
-package Tangram::Storable;
+package Tangram::Type::Dump::Storable;
 
 use strict;
 

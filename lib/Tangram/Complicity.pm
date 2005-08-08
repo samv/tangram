@@ -23,7 +23,7 @@ Tangram::Complicity - How to make Tangram-friendly classes
 B<Tangram::Complicity> does not exist.  To make matters worse, it
 isn't even implemented.  This page is a big FIXME for the code it
 refers to.  This page merely documents the API that classes must
-implement to be safely stored by C<Tangram::Dump::flatten>.
+implement to be safely stored by C<Tangram::Type::Dump::flatten>.
 
 Note that to avoid unnecessary copying of memory structures from A to
 B, this method operates "in-place".

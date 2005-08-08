@@ -12,7 +12,7 @@ use strict;
 
 use Tangram::Scalar;
 
-package Tangram::PerlDump;
+package Tangram::Type::Dump::Perl;
 
 use Tangram::Dump qw(flatten unflatten);
 
@@ -21,7 +21,7 @@ use vars qw(@ISA);
 use Data::Dumper;
 use Set::Object qw(reftype);
 
-$Tangram::Schema::TYPES{perl_dump} = Tangram::PerlDump->new;
+$Tangram::Schema::TYPES{perl_dump} = Tangram::Type::Dump::Perl->new;
 
 my $DumpMeth = (defined &Data::Dumper::Dumpxs) ? 'Dumpxs' : 'Dump';
 

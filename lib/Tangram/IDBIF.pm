@@ -35,8 +35,8 @@ Tangram::IDBIF - Intuitive DataBase InterFace
 =head1 DESCRIPTION
 
 The B<idbif> mapping type collates multiple data members into a single
-B<perl_dump> (see L<Tangram::PerlDump>), B<storable> (see
-L<Tangram::Storable>) or B<yaml> (see L<Tangram::YAML>) column.
+B<perl_dump> (see L<Tangram::Type::Dump::Perl>), B<storable> (see
+L<Tangram::Type::Dump::Storable>) or B<yaml> (see L<Tangram::Type::Dump::YAML>) column.
 
 For instance, with the schema definition in the example, all the
 columns in the example would be serialised via Data::Dumper.
@@ -80,7 +80,7 @@ be reconstituted, it is called as:
 
   SomeClass->px_thaw(@data)
 
-See L<Tangram::Dump> for more details on the complicity API.
+See L<Tangram::Type::Dump> for more details on the complicity API.
 
 Please set RETVAL to be the thawed object.  (that is, return a single
 scalar).
@@ -115,7 +115,7 @@ not anything to do with L<Pixie>. ]
 
 =cut
 
-use Tangram::Dump qw(flatten unflatten);
+use Tangram::Type::Dump qw(flatten unflatten);
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
@@ -226,7 +226,7 @@ sub get_importer
 	    return $obj;
 	};
 	#print STDERR "Got `$tmpobj'\n";
-	Tangram::Dump::unflatten($storage, $tmpobj);
+	Tangram::Type::Dump::unflatten($storage, $tmpobj);
 	if ($self->{save_all}) {
 	    for my $member (keys %$tmpobj) {
 		$obj->{$member} = delete $tmpobj->{$member};
@@ -267,14 +267,14 @@ sub get_exporter
 		    if exists $obj->{$member};
 	    }
 	}
-	Tangram::Dump::flatten($context2->{storage}, $tmpobj);
+	Tangram::Type::Dump::flatten($context2->{storage}, $tmpobj);
 	my $text = $context2->{storage}->to_dbms
 	    ("blob", $self->{dumper}->($tmpobj));
 
 	print $Tangram::TRACE "IDBIF - storing: ".Data::Dumper::Dumper($tmpobj)
 	    if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2;
 
-	Tangram::Dump::unflatten($context2->{storage}, $tmpobj);
+	Tangram::Type::Dump::unflatten($context2->{storage}, $tmpobj);
 	%$tmpobj = ();
 	bless $tmpobj, "nothing";
 	return $text;

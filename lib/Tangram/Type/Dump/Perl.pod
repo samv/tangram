@@ -1,11 +1,11 @@
 =head1 NAME
 
-Tangram::PerlDump - map any Perl object as scalar dump 
+Tangram::Type::Dump::Perl - map any Perl object as scalar dump 
 
 =head1 SYNOPSIS
 
    use Tangram::Core;
-   use Tangram::PerlDump; # always
+   use Tangram::Type::Dump::Perl; # always
 
    $schema = Tangram::Schema->new(
       classes => { NaturalPerson => { fields => {

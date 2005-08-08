@@ -1,13 +1,13 @@
 
-package Tangram::Dump;
+package Tangram::Type::Dump;
 
 =head1 NAME
 
-Tangram::Dump - Handy functions for Pixie-like dumping of data
+Tangram::Type::Dump - Handy functions for Pixie-like dumping of data
 
 =head1 SYNOPSIS
 
-  use Tangram::Dump qw(flatten unflatten UNflatten nuke);
+  use Tangram::Type::Dump qw(flatten unflatten UNflatten nuke);
 
   use YAML qw(freeze thaw); # for instance
 
