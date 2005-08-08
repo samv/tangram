@@ -210,7 +210,7 @@ schema covering their mapping.
 The default value is C<Storable> (see L<Storable>), seeing as Storable
 is something like the "native" serialisation mechanism for Perl.
 Currently, this setting only applies to the B<idbif> mapping type (see
-L<Tangram::IDBIF>).
+L<Tangram::Type::Dump::Any>).
 
 It would make more sense for the default to be C<YAML>, but
 unfortunately YAML doesn't support dumping the entire range of native

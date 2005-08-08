@@ -46,6 +46,12 @@ use constant REMAPPED =>
 
 	Tangram::Alias			Tangram::Expr::TableAlias
 	Tangram::CollCursor		Tangram::Cursor::Coll
+
+        Tangram::Dump			Tangram::Type::Dump
+        Tangram::IDBIF			Tangram::Type::Dump::Any
+        Tangram::PerlDump		Tangram::Type::Dump::Perl
+        Tangram::Storable		Tangram::Type::Dump::Storable
+        Tangram::YAML			Tangram::Type::Dump::YAML
       );
 
 use strict 'vars', 'subs';

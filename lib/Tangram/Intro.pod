@@ -60,7 +60,7 @@ Enough banter, let's see some code; here's a project schema:
 
  use Heritable::Types;
  use Tangram::Core;
- use Tangram::IDBIF;
+ use Tangram::Type::Dump::Any;
 
  our $schema =
      Tangram::Schema->new

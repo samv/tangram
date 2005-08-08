@@ -35,7 +35,7 @@ work, due to inadequacies in the current Perl YAML implementation.
 
 B<NEW in Tangram 2.08>:
 
-C<idbif>: see L<Tangram::IDBIF>.  Like the above, but can combine
+C<idbif>: see L<Tangram::Type::Dump::Any>.  Like the above, but can combine
 multiple object properties into a single database column.
 
 =item B<`Flat' Array & Hash types>

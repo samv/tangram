@@ -5,11 +5,11 @@
 
 use strict;
 use Tangram::Scalar;
-package Tangram::IDBIF;
+package Tangram::Type::Dump::Any;
 
 =head1 NAME
 
-Tangram::IDBIF - Intuitive DataBase InterFace
+Tangram::Type::Dump::Any - Intuitive DataBase InterFace
 
 =head1 SYNOPSIS
 
@@ -104,7 +104,7 @@ for C<-options>, so you can write:
       },
     }
 
-[ You see, Tangram::IDBIF isn't actually an intuitive DB interface.
+[ You see, Tangram::Type::Dump::Any isn't actually an intuitive DB interface.
 No, an intuitive DB interface is a user interface component, and that
 title is reserved for Visual Tangram.  VT expects to pick up the title
 with any luck by the end of the 21st century^W RSN!
@@ -121,7 +121,7 @@ use vars qw(@ISA);
  @ISA = qw( Tangram::String );
 use Set::Object qw(reftype blessed);
 
-$Tangram::Schema::TYPES{idbif} = Tangram::IDBIF->new;
+$Tangram::Schema::TYPES{idbif} = Tangram::Type::Dump::Any->new;
 
 # for the reschema for this particular attribute, we reschema all of
 # the attributes mentioned to a single column
