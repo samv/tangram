@@ -2,7 +2,7 @@
 
 use strict;
 
-package Tangram::Hash;
+package Tangram::Type::Hash::FromMany;
 
 use Tangram::Type::Abstract::Hash;
 use vars qw(@ISA);
@@ -192,6 +192,6 @@ sub prefetch
 	return $prefetch;
 }
 
-$Tangram::Schema::TYPES{hash} = Tangram::Hash->new;
+$Tangram::Schema::TYPES{hash} = Tangram::Type::Hash::FromMany->new;
 
 1;

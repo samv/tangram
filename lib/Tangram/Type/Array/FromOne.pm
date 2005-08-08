@@ -2,7 +2,7 @@
 
 use strict;
 
-package Tangram::IntrArray;
+package Tangram::Type::Array::FromOne;
 
 use Tangram::Type::Abstract::Array;
 use vars qw(@ISA);
@@ -192,6 +192,6 @@ sub prefetch
 	return $prefetch;
 }
 
-$Tangram::Schema::TYPES{iarray} = Tangram::IntrArray->new;
+$Tangram::Schema::TYPES{iarray} = Tangram::Type::Array::FromOne->new;
 
 1;

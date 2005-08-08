@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Set - maps Set::Object using a link table
+Tangram::Type::Set::FromMany - maps Set::Object using a link table
 
 =head1 SYNOPSIS
 
@@ -8,7 +8,7 @@ Tangram::Set - maps Set::Object using a link table
 
    # or
    use Tangram::Core;
-   use Tangram::Set;
+   use Tangram::Type::Set::FromMany;
 
    $schema = Tangram::Schema->new(
 

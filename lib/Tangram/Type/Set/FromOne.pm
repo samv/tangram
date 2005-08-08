@@ -4,7 +4,7 @@ use strict;
 
 use Tangram::Type::Abstract::Set;
 
-package Tangram::IntrSet;
+package Tangram::Type::Set::FromOne;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type::Abstract::Set );
@@ -80,7 +80,7 @@ sub defered_save
 		 if ($def->{aggreg}) {
 		     my $id = shift;
 		     my $oid = shift;
-		     print $Tangram::TRACE "Tangram::IntrSet: removing oid $oid\n"
+		     print $Tangram::TRACE "Tangram::Type::Set::FromOne: removing oid $oid\n"
 			 if $Tangram::TRACE;
 		     # FIXME - use dummy object
 		     $storage->erase( $storage->load( $oid ));
@@ -201,6 +201,6 @@ sub get_intrusions {
   return [ $self->{class}, $context->{mapping}->get_home_table($self->{class}) ];
 }
 
-$Tangram::Schema::TYPES{iset} = Tangram::IntrSet->new;
+$Tangram::Schema::TYPES{iset} = Tangram::Type::Set::FromOne->new;
 
 1;

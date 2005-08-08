@@ -2,7 +2,7 @@
 
 # not implemented yet
 
-package Tangram::IntrHash;
+package Tangram::Type::Hash::FromOne;
 
 use base qw( Tangram::Type::Abstract::Hash );
 
@@ -181,6 +181,6 @@ sub prefetch
    }
 }
 
-$Tangram::Schema::TYPES{ihash} = Tangram::IntrHash->new;
+$Tangram::Schema::TYPES{ihash} = Tangram::Type::Hash::FromOne->new;
 
 1;

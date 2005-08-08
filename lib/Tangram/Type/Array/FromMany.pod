@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-Tangram::Array - map Perl arrays using a link table
+Tangram::Type::Array::FromMany - map Perl arrays using a link table
 
 =head1 SYNOPSIS
 
@@ -10,7 +10,7 @@ Tangram::Array - map Perl arrays using a link table
 
    # or
    use Tangram::Core;
-   use Tangram::Array;
+   use Tangram::Type::Array::FromMany;
 
    $schema = Tangram::Schema->new(
 

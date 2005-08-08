@@ -20,6 +20,12 @@ use constant REMAPPED =>
 	Tangram::Coll			Tangram::Type::Abstract::Coll
 	Tangram::Alias			Tangram::Expr::TableAlias
 	Tangram::CollCursor		Tangram::Cursor::Coll
+	Tangram::Set			Tangram::Type::Set::FromMany
+	Tangram::Hash			Tangram::Type::Hash::FromMany
+	Tangram::Array			Tangram::Type::Array::FromMany
+	Tangram::IntrSet		Tangram::Type::Set::FromOne
+	Tangram::IntrHash		Tangram::Type::Hash::FromOne
+	Tangram::IntrArray		Tangram::Type::Array::FromOne
       );
 
 use strict 'vars', 'subs';
@@ -69,11 +75,6 @@ sub setup {
     #kill 2, $$;
     debug_out("using $target yielded \$\@ = '$@'") if DEBUG;
     die $@ if $@;
-    #kill 2, $$;
-    #my $eval = "package $pkg; \@ISA = qw($target)";
-    #debug_out("creating $pkg with: $eval") if (DEBUG);
-    #eval $eval; die $@ if $@;
-    #$
     @{"${pkg}::ISA"} = $target;
     #debug_out("creating package yielded \$\@ = '$@'") if DEBUG;
     if ( @_ ) {

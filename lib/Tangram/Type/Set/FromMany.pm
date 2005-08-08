@@ -4,7 +4,7 @@ use strict;
 
 use Tangram::Type::Abstract::Set;
 
-package Tangram::Set;
+package Tangram::Type::Set::FromMany;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type::Abstract::Set );
@@ -188,6 +188,6 @@ sub remote_expr
 	Tangram::Expr::Coll::FromMany->new($obj, $self);
 }
 
-$Tangram::Schema::TYPES{set} = Tangram::Set->new;
+$Tangram::Schema::TYPES{set} = Tangram::Type::Set::FromMany->new;
 
 1;
