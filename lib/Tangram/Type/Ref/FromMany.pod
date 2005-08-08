@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Ref - map references to persistent objects
+Tangram::Type::Ref::FromMany - map references to persistent objects
 
 =head1 SYNOPSIS
 
@@ -8,7 +8,7 @@ Tangram::Ref - map references to persistent objects
 
    # or
    use Tangram::Core;
-   use Tangram::Ref;
+   use Tangram::Type::Ref::FromMany;
 
    $schema = Tangram::Schema->new(
        classes => { Company => { fields => {
