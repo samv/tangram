@@ -1,7 +1,7 @@
 
 package Tangram::Lazy::Ref;
 
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 use strict;
 
 sub TIESCALAR

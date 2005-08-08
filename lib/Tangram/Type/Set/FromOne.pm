@@ -203,4 +203,25 @@ sub get_intrusions {
 
 $Tangram::Schema::TYPES{iset} = Tangram::Type::Set::FromOne->new;
 
+#---------------------------------------------------------------------
+#  Tangram::IntrSet->coldefs($cols, $members, $schema, $class,
+#                            $tables)
+#
+#  Setup column mappings for one to many unordered mappings (foreign
+#  key)
+#---------------------------------------------------------------------
+sub coldefs
+{
+    my ($self, $cols, $members, $schema, $class, $tables) = @_;
+
+    foreach my $member (values %$members)
+    {
+	my $table =
+	    $tables->{ $schema->{classes}{$member->{class}}{table} }
+		||= {};
+	$table->{COLS}{$member->{coll}}
+	    = "$schema->{sql}{id} $schema->{sql}{default_null}";
+    }
+}
+
 1;

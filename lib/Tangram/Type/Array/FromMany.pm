@@ -174,4 +174,24 @@ sub prefetch
 
 $Tangram::Schema::TYPES{array} = Tangram::Type::Array::FromMany->new;
 
+#---------------------------------------------------------------------
+#  Tangram::Array->coldefs($cols, $members, $schema, $class, $tables)
+#
+#  Setup column mappings for many to many unordered mappings (link
+#  table with integer category)
+#---------------------------------------------------------------------
+sub coldefs
+{
+    my ($self, $cols, $members, $schema, $class, $tables) = @_;
+
+    foreach my $member (values %$members)
+    {
+	my $COLS = $tables->{ $member->{table} }{COLS} ||= { };
+
+	$COLS->{$member->{coll}} = $schema->{sql}{id};
+	$COLS->{$member->{item}} = $schema->{sql}{id};
+	$COLS->{$member->{slot}} = "INT $schema->{sql}{default_null}";
+    }
+}
+
 1;

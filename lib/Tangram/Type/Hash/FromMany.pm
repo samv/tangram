@@ -194,4 +194,26 @@ sub prefetch
 
 $Tangram::Schema::TYPES{hash} = Tangram::Type::Hash::FromMany->new;
 
+#---------------------------------------------------------------------
+#  Tangram::Hash->coldefs($cols, $members, $schema, $class, $tables)
+#
+#  Setup column mappings for many to many indexed mappings (link
+#  table with string category)
+#---------------------------------------------------------------------
+sub coldefs
+{
+    my ($self, $cols, $members, $schema, $class, $tables) = @_;
+
+    foreach my $member (values %$members)
+    {
+	$tables->{ $member->{table} }{COLS} =
+	    {
+	     $member->{coll} => $schema->{sql}{id},
+	     $member->{item} => $schema->{sql}{id},
+	     # XXX - hardcoded slot type
+	     $member->{slot} => "VARCHAR(255) $schema->{sql}{default_null}"
+	    };
+    }
+}
+
 1;

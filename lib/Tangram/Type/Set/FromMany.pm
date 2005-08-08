@@ -190,4 +190,23 @@ sub remote_expr
 
 $Tangram::Schema::TYPES{set} = Tangram::Type::Set::FromMany->new;
 
+#---------------------------------------------------------------------
+#  Tangram::Set->coldefs($cols, $members, $schema, $class, $tables)
+#
+#  Setup column mappings for many to many unordered mappings (link
+#  table)
+#---------------------------------------------------------------------
+sub coldefs
+{
+    my ($self, $cols, $members, $schema, $class, $tables) = @_;
+
+    foreach my $member (values %$members)
+    {
+	my $COLS = $tables->{ $member->{table} }{COLS} ||= { };
+
+	$COLS->{$member->{coll}} = $schema->{sql}{id};
+	$COLS->{$member->{item}} = $schema->{sql}{id};
+    }
+}
+
 1;

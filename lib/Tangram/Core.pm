@@ -6,8 +6,8 @@ use Tangram::Compat;
 BEGIN {
 }
 
-use Tangram::Scalar;
-use Tangram::Ref;
+use Tangram::Type::Scalar;
+use Tangram::Type::Ref::FromMany;
 
 use Tangram::Schema;
 use Tangram::Cursor;

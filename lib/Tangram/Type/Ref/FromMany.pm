@@ -6,7 +6,7 @@ use strict;
 use Tangram::Lazy::Ref;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Scalar );
+ @ISA = qw( Tangram::Type::Scalar );
 
 $Tangram::Schema::TYPES{ref} = Tangram::Type::Ref::FromMany->new;
 
