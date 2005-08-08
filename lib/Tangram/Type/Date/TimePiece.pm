@@ -1,6 +1,6 @@
 # (c) Sam Vilain, 2004
 
-package Tangram::TimePiece;
+package Tangram::Type::Date::TimePiece;
 
 use strict;
 use Tangram::CookedDateTime;
@@ -9,7 +9,7 @@ use vars qw(@ISA);
 
 use Time::Piece;
 
-$Tangram::Schema::TYPES{timepiece} = Tangram::TimePiece->new;
+$Tangram::Schema::TYPES{timepiece} = Tangram::Type::Date::TimePiece->new;
 
 #
 # Convert SQL DATETIME format to Date::Manip internal format; assume

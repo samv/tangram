@@ -1,17 +1,17 @@
 # (c) Sam Vilain, 2004
 
-package Tangram::DateTime;
+package Tangram::Type/Date/DateTime;
 
 use strict;
-use Tangram::CookedDateTime;
+use Tangram::CookedType/Date/DateTime;
 use vars qw(@ISA);
-@ISA = qw( Tangram::CookedDateTime );
+@ISA = qw( Tangram::CookedType/Date/DateTime );
 
-use DateTime;
+use Type/Date/DateTime;
 
 use Carp qw(confess);
 
-$Tangram::Schema::TYPES{datetime} = Tangram::DateTime->new;
+$Tangram::Schema::TYPES{datetime} = Tangram::Type/Date/DateTime->new;
 
 #
 sub get_importer
@@ -23,7 +23,7 @@ sub get_importer
        sub { my($iso)=shift;
 	     $iso =~ m/^(\d{4})-(\d\d)-(\d\d)T ?(\d?\d):(\d\d):(\d\d)$/
 		 or confess "bad ISO format from internal; $iso";
-	     return DateTime->new( year => $1,
+	     return Type/Date/DateTime->new( year => $1,
 				   month => $2,
 				   day => $3,
 				   hour => $4,

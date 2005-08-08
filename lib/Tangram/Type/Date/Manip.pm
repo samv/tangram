@@ -1,6 +1,6 @@
 
 
-package Tangram::DMDateTime;
+package Tangram::Type::Date::Manip;
 
 use strict;
 use Tangram::CookedDateTime;
@@ -8,7 +8,7 @@ use vars qw(@ISA);
 @ISA = qw( Tangram::CookedDateTime );
 use Date::Manip qw(ParseDate UnixDate);
 
-$Tangram::Schema::TYPES{dmdatetime} = Tangram::DMDateTime->new;
+$Tangram::Schema::TYPES{dmdatetime} = Tangram::Type::Date::Manip->new;
 
 #
 # Convert iso8601 format to Date::Manip internal format

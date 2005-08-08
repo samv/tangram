@@ -1,13 +1,13 @@
 # (c) Sam Vilain, 2004
 
-package Tangram::CookedDateTime;
+package Tangram::Type::Date::Cooked;
 
 use strict;
 use Tangram::RawDateTime;
 use vars qw(@ISA);
 @ISA = qw( Tangram::RawDateTime );
 
-$Tangram::Schema::TYPES{cookeddatetime} = Tangram::CookedDateTime->new;
+$Tangram::Schema::TYPES{cookeddatetime} = Tangram::Type::Date::Cooked->new;
 
 sub get_importer
 {

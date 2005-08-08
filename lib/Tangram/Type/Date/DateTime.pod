@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::DateTime - map date & time fields
+Tangram::Type/Date/DateTime - map date & time fields
 
 =head1 SYNOPSIS
 
@@ -9,11 +9,11 @@ Tangram::DateTime - map date & time fields
    # any of:
    use Tangram::RawDate;
    use Tangram::RawTime;
-   use Tangram::RawDateTime;
-   use Tangram::CookedDateTime;
-   use Tangram::DMDateTime;
-   use Tangram::TimePiece;
-   use Tangram::DateTime;
+   use Tangram::RawType/Date/DateTime;
+   use Tangram::CookedType/Date/DateTime;
+   use Tangram::DMType/Date/DateTime;
+   use Tangram::Type::Date::Type::Date::Type::Date::TimePiece;
+   use Tangram::Type/Date/DateTime;
 
    Tangram::Schema->new(
       classes => {
