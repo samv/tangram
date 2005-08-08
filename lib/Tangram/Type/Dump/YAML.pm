@@ -101,7 +101,7 @@ sub get_importer
         return("{ my \$x = '--- ' . ((shift \@\$row)||'~').'\n';
                 \$obj->{$self->{name}} = eval { YAML::thaw(\$x) };\n"
 	       .'die("YAML error; `$@` loading: |\n$x\n...\n") if $@;'
-               ."Tangram::Dump::unflatten(\$context->{storage}, "
+               ."Tangram::Type::Dump::unflatten(\$context->{storage}, "
                ."\$obj->{$self->{name}}) }");
   }
 
@@ -112,11 +112,11 @@ sub get_exporter
 
 	return sub {
 	  my ($obj, $context) = @_;
-	  Tangram::Dump::flatten($context->{storage},
+	  Tangram::Type::Dump::flatten($context->{storage},
 				 $obj->{$field});
 	  my $text = $self->{dumper}->($obj->{$field});
           $text =~ s{\A--- *|\n\Z}{}g;
-	  Tangram::Dump::unflatten($context->{storage},
+	  Tangram::Type::Dump::unflatten($context->{storage},
 				   $obj->{$field});
 	  return $text;
 	};

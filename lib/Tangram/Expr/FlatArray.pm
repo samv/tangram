@@ -1,5 +1,5 @@
 
-package Tangram::Expr::Type/Array/Scalar;
+package Tangram::Expr::FlatArray;
 
 sub new
 {

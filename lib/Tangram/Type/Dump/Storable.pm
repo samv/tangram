@@ -8,7 +8,7 @@ package Tangram::Type::Dump::Storable;
 use strict;
 
 use Tangram::Scalar;
-use Tangram::Dump qw(flatten unflatten);
+use Tangram::Type::Dump qw(flatten unflatten);
 
 use Storable qw(freeze thaw);
 

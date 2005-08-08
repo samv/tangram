@@ -1,5 +1,5 @@
 
-package Tangram::Expr::Type/Hash/Scalar;
+package Tangram::Expr::FlatHash;
 
 sub new
 {

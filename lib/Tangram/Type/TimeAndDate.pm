@@ -4,12 +4,12 @@ use strict;
 
 use Tangram::Scalar;
 
-package Tangram::Type/TimeAndDate;
+package Tangram::Type::TimeAndDate;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
 
-$Tangram::Schema::TYPES{rawdatetime} = Tangram::Type/TimeAndDate->new;
+$Tangram::Schema::TYPES{rawdatetime} = Tangram::Type::TimeAndDate->new;
 
 sub coldefs
 {

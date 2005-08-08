@@ -2,15 +2,15 @@
 
 use strict;
 
-package Tangram::Type/Hash/Scalar;
+package Tangram::Type::Hash::Scalar;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Type::Abstract::Hash );
 use Tangram::Type::Abstract::Hash;
 
-use Tangram::Expr::Type/Hash/Scalar;
+use Tangram::Expr::FlatHash;
 
-$Tangram::Schema::TYPES{flat_hash} = Tangram::Type/Hash/Scalar->new;
+$Tangram::Schema::TYPES{flat_hash} = Tangram::Type::Hash::Scalar->new;
 
 sub reschema
 {
@@ -237,13 +237,13 @@ sub coldefs
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
-	map { Tangram::Expr::Type/Hash/Scalar->new($obj, $_); } values %$members;
+	map { Tangram::Expr::FlatHash->new($obj, $_); } values %$members;
 }
 
 sub remote_expr
 {
 	my ($self, $obj, $tid) = @_;
-	Tangram::Expr::Type/Hash/Scalar->new($obj, $self);
+	Tangram::Expr::FlatHash->new($obj, $self);
 }
 
 sub prefetch

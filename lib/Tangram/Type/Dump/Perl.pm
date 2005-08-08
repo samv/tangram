@@ -14,7 +14,7 @@ use Tangram::Scalar;
 
 package Tangram::Type::Dump::Perl;
 
-use Tangram::Dump qw(flatten unflatten);
+use Tangram::Type::Dump qw(flatten unflatten);
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::String );
