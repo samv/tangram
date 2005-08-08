@@ -24,6 +24,7 @@ use constant REMAPPED =>
 	Tangram::AbstractHash		Tangram::Type::Abstract::Hash
 	Tangram::AbstractArray		Tangram::Type::Abstract::Array
 	Tangram::Coll			Tangram::Type::Abstract::Coll
+	Tangram::BackRef		Tangram::Type::BackRef
 	Tangram::Alias			Tangram::Expr::TableAlias
 	Tangram::CollCursor		Tangram::Cursor::Coll
 	Tangram::Set			Tangram::Type::Set::FromMany
