@@ -4,9 +4,9 @@ use strict;
 
 package Tangram::Hash;
 
-use Tangram::AbstractHash;
+use Tangram::Type::Abstract::Hash;
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractHash );
+ @ISA = qw( Tangram::Type::Abstract::Hash );
 
 use Carp;
 

@@ -4,8 +4,8 @@ use strict;
 package Tangram::FlatArray;
 
 use vars qw(@ISA);
-@ISA = qw( Tangram::AbstractArray );
-use Tangram::AbstractArray;
+@ISA = qw( Tangram::Type::Abstract::Array );
+use Tangram::Type::Abstract::Array;
 
 use Tangram::Expr::FlatArray;
 

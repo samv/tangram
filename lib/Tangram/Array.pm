@@ -4,9 +4,9 @@ use strict;
 
 package Tangram::Array;
 
-use Tangram::AbstractArray;
+use Tangram::Type::Abstract::Array;
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractArray );
+ @ISA = qw( Tangram::Type::Abstract::Array );
 
 use Carp;
 

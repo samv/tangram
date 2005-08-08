@@ -8,12 +8,15 @@ package Tangram::Compat;
 use Tangram::Compat::Stub;
 
 use constant REMAPPED =>
-    qw( Tangram::Scalar   Tangram::Type::Scalar
-	Tangram::RawDate  Tangram::Type::Date::Raw
-	Tangram::String   Tangram::Type::String
-	Tangram::Integer  Tangram::Type::Integer
-	Tangram::Real     Tangram::Type::Real
-	Tangram::Number   Tangram::Type::Number
+    qw( Tangram::Scalar			Tangram::Type::Scalar
+	Tangram::RawDate		Tangram::Type::Date::Raw
+	Tangram::String			Tangram::Type::String
+	Tangram::Integer		Tangram::Type::Integer
+	Tangram::Real			Tangram::Type::Real
+	Tangram::Number			Tangram::Type::Number
+	Tangram::AbstractSet		Tangram::Type::Abstract::Set
+	Tangram::AbstractHash		Tangram::Type::Abstract::Hash
+	Tangram::AbstractArray		Tangram::Type::Abstract::Array
       );
 
 use strict 'vars', 'subs';

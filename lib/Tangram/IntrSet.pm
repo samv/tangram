@@ -2,12 +2,12 @@
 
 use strict;
 
-use Tangram::AbstractSet;
+use Tangram::Type::Abstract::Set;
 
 package Tangram::IntrSet;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractSet );
+ @ISA = qw( Tangram::Type::Abstract::Set );
 
 use Carp;
 

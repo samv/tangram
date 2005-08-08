@@ -5,8 +5,8 @@ use strict;
 package Tangram::FlatHash;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::AbstractHash );
-use Tangram::AbstractHash;
+ @ISA = qw( Tangram::Type::Abstract::Hash );
+use Tangram::Type::Abstract::Hash;
 
 use Tangram::Expr::FlatHash;
 

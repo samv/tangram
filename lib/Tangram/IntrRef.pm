@@ -4,12 +4,9 @@
 
 use strict;
 
-#use Tangram::AbstractSet;
-
 package Tangram::IntrRef;
 
 use vars qw(@ISA);
-# @ISA = qw( Tangram::AbstractSet );
 
 use Carp;
 

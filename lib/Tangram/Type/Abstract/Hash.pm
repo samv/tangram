@@ -2,7 +2,7 @@
 
 use strict;
 
-package Tangram::AbstractHash;
+package Tangram::Type::Abstract::Hash;
 
 use Tangram::Coll;
 use vars qw(@ISA);

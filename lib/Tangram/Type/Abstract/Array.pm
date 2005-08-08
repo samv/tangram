@@ -4,7 +4,7 @@ use strict;
 
 use Tangram::Coll;
 
-package Tangram::AbstractArray;
+package Tangram::Type::Abstract::Array;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Coll );

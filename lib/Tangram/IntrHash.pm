@@ -4,7 +4,7 @@
 
 package Tangram::IntrHash;
 
-use base qw( Tangram::AbstractHash );
+use base qw( Tangram::Type::Abstract::Hash );
 
 use strict;
 

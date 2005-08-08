@@ -4,7 +4,7 @@ use strict;
 
 use Tangram::Coll;
 
-package Tangram::AbstractSet;
+package Tangram::Type::Abstract::Set;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Coll );
@@ -37,7 +37,7 @@ sub get_exporter
 		  $storage->_save($item, $context->{SAVING});
 		}
 		
-		print $Tangram::TRACE "Tangram::AbstractSet: defering members save of $obj.$field\n" if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 1;
+		print $Tangram::TRACE "Tangram::Type::Abstract::Set: defering members save of $obj.$field\n" if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 1;
 		$storage->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );
 		
 		return ();
@@ -68,7 +68,7 @@ sub get_exporter
 	      }
 	  }
 
-	  print $Tangram::TRACE "Tangram::AbstractSet: defering members save of $obj.$field\n" if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 1;
+	  print $Tangram::TRACE "Tangram::Type::Abstract::Set: defering members save of $obj.$field\n" if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 1;
 	  $storage->defer(sub { $self->defered_save(shift, $obj, $field, $self) } );
 	  
 	  return ();
@@ -86,7 +86,7 @@ sub update
     if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2 ) {
 	require YAML;
 	print $Tangram::TRACE
-	    ("Tangram::AbstractSet->update(".ref($obj).
+	    ("Tangram::Type::Abstract::Set->update(".ref($obj).
 	     "[$coll_id].$member); old state: ".YAML::Dump($old_state));
     }
     my %new_state = ();
@@ -96,7 +96,7 @@ sub update
 	    || croak "member $item has no id";
 
 	unless (exists $old_state->{$item_id}) {
-	    print $Tangram::TRACE "Tangram::AbstractSet->update(".ref($obj).
+	    print $Tangram::TRACE "Tangram::Type::Abstract::Set->update(".ref($obj).
 		"[$coll_id].$member): adding $item_id\n"
 		if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2 );
 	    $insert->($storage->{export_id}->($item_id), $item_id);
@@ -108,13 +108,13 @@ sub update
     my $gone;
     foreach my $del (keys %$old_state) {
 	next if $new_state{$del};
-	print $Tangram::TRACE "Tangram::AbstractSet->update(".ref($obj).
+	print $Tangram::TRACE "Tangram::Type::Abstract::Set->update(".ref($obj).
 	    "[$coll_id].$member): removing $del\n"
 		if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2 );
 	$remove->($storage->{export_id}->($del), $del);
 	$gone++;
     }
-    print $Tangram::TRACE "Tangram::AbstractSet->update(".ref($obj).
+    print $Tangram::TRACE "Tangram::Type::Abstract::Set->update(".ref($obj).
 	"[$coll_id].$member): removed $gone rows\n"
 	    if ( $Tangram::TRACE and $gone and $Tangram::DEBUG_LEVEL > 2 );
 
@@ -126,7 +126,7 @@ sub update
 
     if ( $Tangram::TRACE  and $Tangram::DEBUG_LEVEL > 2 ) {
 	print $Tangram::TRACE
-	    ("Tangram::AbstractSet->update(".ref($obj).
+	    ("Tangram::Type::Abstract::Set->update(".ref($obj).
 	     "[$coll_id].$member); new: ".YAML::Dump(\%new_state));
     }
 }
@@ -144,7 +144,7 @@ sub remember_state
 	if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 2 ) {
 	    require 'YAML.pm';
 	    print $Tangram::TRACE
-		"Tangram::AbstractSet->remember(".ref($self)."[".$storage->id($obj)."].$member); new: ".YAML::Dump(\%new_state);
+		"Tangram::Type::Abstract::Set->remember(".ref($self)."[".$storage->id($obj)."].$member); new: ".YAML::Dump(\%new_state);
 	}
 	$self->set_load_state($storage, $obj, $member, \%new_state);
 
