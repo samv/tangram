@@ -30,6 +30,13 @@ The resulting Schema object becomes the owner of the schema hash
 passed to new(). The hash may not be modified afterwards, and no
 assumptions can be made regarding its content.
 
+B<note>: No corresponding Perl classes are generated from calling
+C<Tangram::Schema-E<gt>new>.  If you want that, and like the behaviour
+of the seperately distributed C<Class::Tangram> module, then you
+should pass the C<$hashref> in the above example to the
+C<Class::Tangram::Generator-E<gt>new()> constructor.  See
+L<Class::Tangram::Generator> for more information.
+
 =head1 CLASS METHODS
 
 =head2 new
