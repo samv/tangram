@@ -354,4 +354,9 @@ Revision history for Perl extension Tangram.
 	- Fix link to Tangram site and mailing list
 	- Merge in a whole lotta Oracle fixes
 
-2.08_02 ...
+2.08_02 16 Aug 2005
+	- Fix Data::Lazy dependency version number
+	- Allow one-column Tangram::Ref
+	- add $storage->make_oid()
+	- Various documentation fixes from Andres Kievsky
+	- Make test suite fail gracefully (skip all) if disabled
