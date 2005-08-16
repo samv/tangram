@@ -41,11 +41,11 @@ String expression objects can be compared using the operators eq, ne,
 lt, gt, le, and ge.  The other operand must be either a string
 expression object or any Perl scalar value. Tangram will automatically
 quote the operand as required by the SQL syntax.  The result of the
-comparison is a Tangram::Filter.
+comparison is a Tangram::Expr::Filter.
 
 String expression objects also support the method like($str), where
 $str is a string that may contain SQL wildcards. The result is a
-Tangram::Filter that translates to a SQL C<LIKE $str> predicate.
+Tangram::Expr::Filter that translates to a SQL C<LIKE $str> predicate.
 
 =head1 REFERENCE EXPRESSIONS
 
@@ -58,7 +58,7 @@ comparison is a Filter.
 
 Collection expression objects represents a collection inside an
 object. It supports the includes() and exists() methods, which returns
-a Tangram::Filter stating that the collection must contain the
+a Tangram::Expr::Filter stating that the collection must contain the
 operand. exists() uses a subselect.
 
 It also supports the includes_or() methods, which accepts a list and

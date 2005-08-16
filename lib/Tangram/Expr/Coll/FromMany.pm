@@ -1,4 +1,3 @@
-
 package Tangram::Expr::Coll::FromMany;
 
 use strict;
@@ -43,7 +42,7 @@ sub includes
 		$target = $item;
 	    }
 
-	Tangram::Filter->new
+	Tangram::Expr::Filter->new
 		(
 		 expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND t$link_tid.$item_col = $target",
 		 tight => 100,      
@@ -92,7 +91,7 @@ object"
 
     my $joined_targets = join(',', @targets);
     
-        Tangram::Filter->new
+        Tangram::Expr::Filter->new
         (
          expr => "t$link_tid.$coll_col = t$coll_tid.$schema->{sql}{id_col} AND t$link_tid.$item_col IN ($joined_targets)",
          tight => 100,      

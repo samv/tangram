@@ -1,4 +1,3 @@
-
 package Tangram::Expr::Coll::FromOne;
 
 use strict;
@@ -24,7 +23,7 @@ sub includes
 		{
 			my $item_tid = $item->object->table($item_class);
 
-			return Tangram::Filter->new
+			return Tangram::Expr::Filter->new
 				(
 				 expr => "t$item_tid.$memdef->{coll} = t$coll_tid.$schema->{sql}{id_col}",
 				 tight => 100,
@@ -86,7 +85,7 @@ sub includes_or
 	if (@targets_fwd) {
 	    my  $joined_targets = join(',', @targets_fwd);
 	    $expr =
-	    Tangram::Filter->new
+	    Tangram::Expr::Filter->new
 		    (
 		     expr => "(t$coll_tid.$schema->{sql}{id_col} IN ($joined_targets))",
 		     tight => 120,
@@ -101,7 +100,7 @@ sub includes_or
 
 	    my $joined_targets = join(',', @targets_rev);
 	    my $new_expr = 
-		Tangram::Filter->new
+		Tangram::Expr::Filter->new
 			(
 			 expr => "(t$item_tid.$schema->{sql}{id_col} in ($joined_targets))",
 			 tight => 100,

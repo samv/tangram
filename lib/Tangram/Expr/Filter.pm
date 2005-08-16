@@ -1,4 +1,4 @@
-package Tangram::Filter;
+package Tangram::Expr::Filter;
 
 use strict;
 use Carp;
@@ -40,7 +40,7 @@ sub not
 {
 	my ($self) = @_;
 
-	Tangram::Filter->new(
+	Tangram::Expr::Filter->new(
 						 expr => "NOT ($self->{expr})",
 						 tight => 100,
 						 objects => Set::Object->new(
@@ -94,7 +94,7 @@ sub binop
 	    $rtight = $arg->{'tight'};
 	    $arg = $arg->{'expr'};
 	}
-	if ( $arg->isa('Tangram::Filter') ) {
+	if ( $arg->isa('Tangram::Expr::Filter') ) {
 	    $objects->insert($arg->objects);
 	    $rtight = $arg->{'tight'};
 	    $arg = $arg->{'expr'};
@@ -115,7 +115,7 @@ sub binop
     }
     # $DB::single = $swap;
 
-    return new Tangram::Filter(expr => "$self $op $arg", tight => $tight,
+    return new Tangram::Expr::Filter(expr => "$self $op $arg", tight => $tight,
 			       objects => $objects );
 }
 
@@ -162,7 +162,7 @@ sub op
 	my $lexpr = $tight > $left->{tight} ? "($left->{expr})" : $left->{expr};
 	my $rexpr = $tight > $right->{tight} ? "($right->{expr})" : $right->{expr};
 
-	return Tangram::Filter->new(
+	return Tangram::Expr::Filter->new(
 								expr => "$lexpr $op $rexpr",
 								tight => $tight,
 								objects => Set::Object->new(

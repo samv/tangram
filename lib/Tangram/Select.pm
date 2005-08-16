@@ -1,7 +1,7 @@
 package Tangram::Select;
 
 use strict;
-use Tangram::Filter;
+use Tangram::Expr::Filter;
 use Carp;
 
 use vars qw(@ISA);
@@ -17,7 +17,7 @@ sub new
 		$_->{expr};
 	} @{$args{cols}};
 
-	my $filter = $args{filter} || $args{where} || Tangram::Filter->new;
+	my $filter = $args{filter} || $args{where} || Tangram::Expr::Filter->new;
 
 	my $objects = Set::Object->new();
 

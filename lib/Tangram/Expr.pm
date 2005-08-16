@@ -4,7 +4,7 @@ use strict;
 use Tangram::Table;
 use Tangram::CursorObject;
 use Tangram::RDBObject;
-use Tangram::Filter;
+use Tangram::Expr::Filter;
 use Tangram::Expr;
 use Tangram::QueryObject;
 use Tangram::Select;
@@ -133,7 +133,7 @@ sub unaop
     my $objects = Set::Object->new(@objects);
     my $storage = $self->{storage};
     
-    return new Tangram::Filter(expr => "$op($self->{expr})", tight => $tight || 100,
+    return new Tangram::Expr::Filter(expr => "$op($self->{expr})", tight => $tight || 100,
 			       objects => $objects );
 }
 
@@ -186,7 +186,7 @@ sub binop
 	my ($l, $r) = $swap ? ($arg, $self->{expr}) : ($self->{expr}, $arg);
 	$tight ||= 100;
 
-	return new Tangram::Filter(expr => "$l $op $r", tight => $tight,
+	return new Tangram::Expr::Filter(expr => "$l $op $r", tight => $tight,
 							   objects => $objects );
 }
 # END ks.perl@kurtstephens.com 2002/06/25
@@ -196,7 +196,7 @@ sub like
 {
 	my ($self, $val) = @_;
 	$val =~ s{'}{''}g;
-	return new Tangram::Filter(expr => "$self->{expr} like '$val'", tight => 100,
+	return new Tangram::Expr::Filter(expr => "$self->{expr} like '$val'", tight => 100,
 				   objects => Set::Object->new($self->objects) );
 }
 
@@ -205,7 +205,7 @@ sub regexp_like
 {
 	my ($self, $val) = @_;
 	$val =~ s{'}{''}g;
-	return new Tangram::Filter(expr => "regexp_like($self->{expr}, '$val')", tight => 0,
+	return new Tangram::Expr::Filter(expr => "regexp_like($self->{expr}, '$val')", tight => 0,
 				   objects => Set::Object->new($self->objects) );
 }
 
@@ -255,7 +255,7 @@ sub in
 	    $expr = ("$self->{expr} IS NULL");
 	}
 
-	Tangram::Filter->new(
+	Tangram::Expr::Filter->new(
 			     expr => $expr,
 			     tight => 100,
 			     objects => $self->{objects},

@@ -52,6 +52,8 @@ use constant REMAPPED =>
         Tangram::PerlDump		Tangram::Type::Dump::Perl
         Tangram::Storable		Tangram::Type::Dump::Storable
         Tangram::YAML			Tangram::Type::Dump::YAML
+
+		Tangram::Filter			Tangram::Expr::Filter
       );
 
 use strict 'vars', 'subs';

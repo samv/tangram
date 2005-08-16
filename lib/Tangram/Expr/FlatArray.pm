@@ -1,4 +1,3 @@
-
 package Tangram::Expr::FlatArray;
 
 sub new
@@ -28,7 +27,7 @@ sub includes
 	my $coll_tid = 't' . $coll->root_table;
 	my $data_tid = 't' . Tangram::Alias->new;
 
-	return Tangram::Filter->new
+	return Tangram::Expr::Filter->new
 		(
 		 expr => "$data_tid.coll = $coll_tid.$schema->{sql}{id_col} AND $data_tid.v = $item",
 		 tight => 100,      
@@ -49,7 +48,7 @@ sub exists
 
 	my $coll_tid = 't' . $coll->root_table;
 
-	return Tangram::Filter->new
+	return Tangram::Expr::Filter->new
 		(
 		 expr => "EXISTS (SELECT * FROM $memdef->{table} WHERE coll = $coll_tid.$schema->{sql}{id_col} AND v = $item)",
 		 objects => Set::Object->new($coll),

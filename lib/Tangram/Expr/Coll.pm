@@ -1,4 +1,3 @@
-
 package Tangram::Expr::Coll;
 
 use strict;
@@ -27,7 +26,7 @@ sub exists
 	my $expr_str = $expr->{expr};
 	$expr_str =~ tr/\n/ /;
 
-	return Tangram::Filter->new( expr => "exists $expr_str", tight => 100,
+	return Tangram::Expr::Filter->new( expr => "exists $expr_str", tight => 100,
 								 objects => Set::Object->new( $expr->objects() ) );
 }
 

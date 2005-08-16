@@ -520,8 +520,8 @@ Expr objects that represent collections have an C<include> methods
 that take a persistent object, a Remote object or an ID.
 
 The result of comparing Exprs (or calling C<include>) is a
-Tangram::Filter that will translate into part of the SQL where-clause
-that will be passed to the RDBMS.
+Tangram::Expr::Filter that will translate into part of the SQL
+where-clause that will be passed to the RDBMS.
 
 For more information on remote objects, see L<Tangram::Remote>.
 

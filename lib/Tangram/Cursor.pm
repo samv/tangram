@@ -85,7 +85,7 @@ sub select
 	my (@filter_from, @filter_where);
 	$inner_objects->insert($target->object) if $target;
 
-	my $filter = Tangram::Filter->new( tight => 100,
+	my $filter = Tangram::Expr::Filter->new( tight => 100,
 					   objects => $inner_objects );
 	my ($seen_inner, $outer);
 
@@ -107,7 +107,7 @@ sub select
 				       @$forced_outer);
 	    }
 
-	    $outer = Tangram::Filter->new( tight => 100,
+	    $outer = Tangram::Expr::Filter->new( tight => 100,
 					   objects => $outer_objects );
 	    $outer->{expr} = $outer_filter->{expr};
 	    $outer->{objects}->insert($outer_filter->{objects}->members);

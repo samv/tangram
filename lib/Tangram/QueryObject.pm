@@ -1,7 +1,7 @@
 package Tangram::QueryObject;
 
 use strict;
-use Tangram::Filter;
+use Tangram::Expr::Filter;
 use Carp;
 
 sub new
@@ -54,7 +54,7 @@ sub is_kind_of
 	my $root = $object->{tables}[0][1];
 	my $storage = $object->{storage};
 
-	Tangram::Filter->new(
+	Tangram::Expr::Filter->new(
 						 expr => "t$root.$storage->{class_col} IN (" . join(', ', $storage->_kind_class_ids($class) ) . ')',
 						 tight => 100,
 						 objects => Set::Object->new( $object ) );
@@ -98,7 +98,7 @@ sub in
 	    $expr = ("t$root.$storage->{id_col} IS NULL");
 	}
 
-	Tangram::Filter->new(
+	Tangram::Expr::Filter->new(
 			     expr => $expr,
 			     tight => 100,
 			     objects => Set::Object->new( $object )
