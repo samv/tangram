@@ -1,6 +1,39 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
+=head1 RELEASE 2.10, xxx 2005
+
+This release is a major re-release of Tangram, which is mostly
+API-backwards compatible.
+
+However, the following caveats need to be considered carefully;
+
+=over
+
+=item *
+
+Various classes, such as C<Tangram::Scalar>, C<Tangram::Set>, etc, are
+now called L<Tangram::Type::Scalar>, L<Tangram::Type::Coll::Set>, etc.
+
+However, so long as you C<use Tangram::Core> (or C<use Tangram>)
+before any of these old names are used, then the L<Tangram::Compat>
+class should be able to catch the inclusion and load the correct
+module instead.
+
+=back
+
+=head2 DEV. RELEASE 2.09_01, xx Aug 2005
+
+=over
+
+=item *
+
+Many, many module renames and splitting of combined modules into
+seperate files.  Currently the full list is visible in the source of
+L<Tangram::Compat>.
+
+=back
+
 =head1 RELEASE 2.09, August 2005
 
 (not yet released; however no new features are planned for this
