@@ -13,9 +13,9 @@ sub exists
 	my ($self, $expr, $filter) = @_;
 	my ($coll) = @$self;
 
-	if ($expr->isa('Tangram::QueryObject'))
+	if ($expr->isa('Tangram::Expr::QueryObject'))
 	{
-		$expr = Tangram::Select->new
+		$expr = Tangram::Expr::Select->new
 			(
 			 cols => [ $expr->{id} ],
 			 exclude => [ $coll ],

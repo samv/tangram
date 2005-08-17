@@ -3,9 +3,9 @@
 package Tangram::Type::Date::TimePiece;
 
 use strict;
-use Tangram::CookedDateTime;
+use Tangram::Type::Date::Cooked;
 use vars qw(@ISA);
-@ISA = qw( Tangram::CookedDateTime );
+@ISA = qw( Tangram::Type::Date::Cooked );
 
 use Time::Piece;
 

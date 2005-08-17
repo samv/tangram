@@ -307,7 +307,7 @@ The typetag not only specifies the type of a field, but also the way
 in which it should be mapped to SQL constructs. Sometimes the same
 Perl type lends itself to more than one mapping, for example there are
 at least two plausible ways of mapping a Perl array
-(see L<Tangram::Array> and L<Tangram::IntrArray>).
+(see L<Tangram::Type::Array::FromMany> and L<Tangram::Type::Array::FromOne>).
 
 Tangram's persistent type system is extensible, allowing you to mount
 your own types and make them persistent. All you have to do is to
@@ -315,13 +315,13 @@ register your type and provide mapping code. See L<Tangram::Type>.
 
 Tangram comes with built-in support for the following types:
 
-* string, int, real: see L<Tangram::Scalar>
+* string, int, real: see L<Tangram::Type::Scalar>
 
-* reference : see L<Tangram::Ref>
+* reference : see L<Tangram::Type::Ref::FromMany>
 
-* array : see L<Tangram::Array>, L<Tangram::IntrArray>
+* array : see L<Tangram::Type::Array::FromMany>, L<Tangram::Type::Array::FromOne>
 
-* Set::Object : see L<Tangram::Set>, L<Tangram::IntrSet>
+* Set::Object : see L<Tangram::Type::Set::FromMany>, L<Tangram::Type::Set::FromOne>
 
 =head1 INSTANCE METHODS
 

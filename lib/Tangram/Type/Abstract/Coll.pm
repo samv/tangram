@@ -3,6 +3,7 @@
 package Tangram::Type::Abstract::Coll;
 use strict;
 
+use Tangram::Expr::TableAlias;
 use Tangram::Expr::Coll;
 use Tangram::Expr::Coll::FromMany;
 use Tangram::Expr::Coll::FromOne;
@@ -11,8 +12,8 @@ use Tangram::Lazy::Coll;
 use Tangram::Expr::LinkTable;
 
 use Tangram::Type;
-use Tangram::Ref;
-use Tangram::BackRef;
+use Tangram::Type::Ref::FromMany;
+use Tangram::Type::BackRef;
 use Tangram::Type::BackRef;
 
 use vars qw(@ISA);
@@ -83,9 +84,9 @@ sub array_diff
 	return ($common, \@changed);
 }
 
-package Tangram::CollCursor;
+package Tangram::Cursor::Coll;
 
-@Tangram::CollCursor::ISA = 'Tangram::Cursor';
+@Tangram::Cursor::Coll::ISA = 'Tangram::Cursor';
 
 sub build_select
 {

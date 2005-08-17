@@ -2,12 +2,12 @@
 
 use strict;
 
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 
 package Tangram::Type::Date;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 
 $Tangram::Schema::TYPES{rawdate} = Tangram::Type::Date->new;
 

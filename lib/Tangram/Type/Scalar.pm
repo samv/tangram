@@ -95,7 +95,7 @@ sub content
 }
 
 #---------------------------------------------------------------------
-#  Tangram::Scalar->_coldefs($cols, $members, $sql, $schema)
+#  Tangram::Type::Scalar->_coldefs($cols, $members, $sql, $schema)
 #
 # Adds entries to the current table mapping for the columns for a
 # single class of a given type.  Inheritance is not in the picture

@@ -3,7 +3,7 @@ package Tangram::Expr::LinkTable;
 
 use strict;
 
-# This looks quite a bit like a Tangram::CursorObject
+# This looks quite a bit like a Tangram::Expr::CursorObject
 
 use Carp;
 

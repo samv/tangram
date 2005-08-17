@@ -63,7 +63,7 @@ sub sum
 
   # $DB::single = 1;
 
-  Tangram::Expr->new(Tangram::Number->instance,
+  Tangram::Expr->new(Tangram::Type::Number->instance,
 		     "SUM(" . $self->{expr} . ")",
 		     $self->objects,
 		     );
@@ -99,7 +99,7 @@ sub binop
 	    $rtight = $arg->{'tight'};
 	    $arg = $arg->{'expr'};
 	}
-	elsif ( $arg->isa('Tangram::QueryObject') ) {
+	elsif ( $arg->isa('Tangram::Expr::QueryObject') ) {
 	    $objects->insert($arg->object);
 	    $rtight = $arg->{'tight'};
 	    $arg = $arg->{'id'}->{'expr'};

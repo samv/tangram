@@ -28,7 +28,7 @@ a hash under the C<array> key in the field hash.
 
 The array may contain only 'simple' scalars like integers, strings
 or real numbers. It may not contain references. For arrays of
-objects, see L<Tangram::Array> and L<Tangram::IntrArray>.
+objects, see L<Tangram::Type::Array::FromMany> and L<Tangram::Type::Array::FromOne>.
 
 Tangram uses a table to save the state of the collection. The table
 has three columns, which contain

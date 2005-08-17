@@ -2,12 +2,12 @@
 
 use strict;
 
-use Tangram::Coll;
+use Tangram::Type::Abstract::Coll;
 
 package Tangram::Type::Abstract::Array;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Coll );
+ @ISA = qw( Tangram::Type::Abstract::Coll );
 
 use Carp;
 
@@ -100,7 +100,7 @@ sub check_content
 	my ($obj, $field, $coll, $class) = @_;
 
 	foreach my $item ($obj->{$field}) {
-	  Tangram::Coll::bad_type($obj, $field, $class, $item)
+	  Tangram::Type::Abstract::Coll::bad_type($obj, $field, $class, $item)
 		unless $item->isa($class);
 	}
   }

@@ -154,8 +154,8 @@ sub expr_hash
 	my %hash =
 		(
 		 _object => $self, 
-		 id => Tangram::Number->expr("t$self->{root}.$storage->{id_col}", $self),
-		 type => Tangram::Number->expr("t$self->{root}.$storage->{class_col}", $self),
+		 id => Tangram::Type::Number->expr("t$self->{root}.$storage->{id_col}", $self),
+		 type => Tangram::Type::Number->expr("t$self->{root}.$storage->{class_col}", $self),
 		);
 
 	$hash{_IID_} = $hash{_ID_} = $hash{id};

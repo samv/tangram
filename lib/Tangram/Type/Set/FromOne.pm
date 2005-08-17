@@ -38,7 +38,7 @@ sub reschema
 					 col => $def->{coll},
 					 class => $class,
 					 field => $member
-					}, 'Tangram::BackRef';
+					}, 'Tangram::Type::BackRef';
 		}
 	}
    
@@ -112,7 +112,7 @@ sub demand
 	    print $Tangram::TRACE "demanding ".$storage->id($obj)
 		.".$member from storage\n" if $Tangram::TRACE;
 
-		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+		my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
 		my $tid = $cursor->{TARGET}->object->{table_hash}{$def->{class}}; # leaf_table;
@@ -204,7 +204,7 @@ sub get_intrusions {
 $Tangram::Schema::TYPES{iset} = Tangram::Type::Set::FromOne->new;
 
 #---------------------------------------------------------------------
-#  Tangram::IntrSet->coldefs($cols, $members, $schema, $class,
+#  Tangram::Type::Set::FromOne->coldefs($cols, $members, $schema, $class,
 #                            $tables)
 #
 #  Setup column mappings for one to many unordered mappings (foreign

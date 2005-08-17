@@ -3,9 +3,9 @@
 package Tangram::Type::Date::Manip;
 
 use strict;
-use Tangram::CookedDateTime;
+use Tangram::Type::Date::Cooked;
 use vars qw(@ISA);
-@ISA = qw( Tangram::CookedDateTime );
+@ISA = qw( Tangram::Type::Date::Cooked );
 use Date::Manip qw(ParseDate UnixDate);
 
 $Tangram::Schema::TYPES{dmdatetime} = Tangram::Type::Date::Manip->new;

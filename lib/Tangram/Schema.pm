@@ -14,7 +14,7 @@ use vars qw( %TYPES );
 %TYPES = 
 (
    %TYPES,
-#   ref      => new Tangram::Ref,
+#   ref      => new Tangram::Type::Ref::FromMany,
 );
 
 use Scalar::Util qw(reftype);

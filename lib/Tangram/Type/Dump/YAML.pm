@@ -36,7 +36,7 @@ Tangram::Type::Dump::YAML - serialise fields of an object via YAML to a column
 
 =head1 DESCRIPTION
 
-Tangram::Type::Dump::YAML is very much like Tangram::PerlDump, only serialisation
+Tangram::Type::Dump::YAML is very much like Tangram::Type::Dump::Perl, only serialisation
 is achieved via YAML and not Data::Dumper.
 
 This is currently untested, but is known to have bugs, largely to do
@@ -46,11 +46,11 @@ L<http://rt.cpan.org/NoAuth/Bug.html?id=4784>).
 =cut
 
 use strict;
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 use YAML qw(freeze thaw);
 
 use vars qw(@ISA);
-@ISA = qw( Tangram::String );
+@ISA = qw( Tangram::Type::String );
 
 use Set::Object qw(reftype);
 

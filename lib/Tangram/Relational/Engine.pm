@@ -182,9 +182,9 @@ sub relational_schema
 }
 
 #---------------------------------------------------------------------
-#  Tangram::Integer->coldefs($cols, $members, $schema)
-#  Tangram::Real->coldefs($cols, $members, $schema)
-#  Tangram::String->coldefs($cols, $members, $schema)
+#  Tangram::Type::Integer->coldefs($cols, $members, $schema)
+#  Tangram::Type::Real->coldefs($cols, $members, $schema)
+#  Tangram::Type::String->coldefs($cols, $members, $schema)
 #
 # Setup column defines for the root column types
 #---------------------------------------------------------------------

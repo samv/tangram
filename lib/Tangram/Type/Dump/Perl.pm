@@ -10,14 +10,14 @@
 
 use strict;
 
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 
 package Tangram::Type::Dump::Perl;
 
 use Tangram::Type::Dump qw(flatten unflatten);
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 use Data::Dumper;
 use Set::Object qw(reftype);
 
@@ -98,9 +98,9 @@ sub save {
     next if $memdef->{automatic};
     
     push @$cols, $memdef->{col};
-    Tangram::Dump::flatten($storage, $obj->{$member});
+    Tangram::Type::Dump::flatten($storage, $obj->{$member});
     push @$vals, $dbh->quote(&{$memdef->{dumper}}($obj->{$member}));
-    Tangram::Dump::unflatten($storage, $obj->{$member});
+    Tangram::Type::Dump::unflatten($storage, $obj->{$member});
   }
 }
 

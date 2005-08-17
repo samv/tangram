@@ -7,7 +7,7 @@ package Tangram::Type::Dump::Storable;
 
 use strict;
 
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 use Tangram::Type::Dump qw(flatten unflatten);
 
 use Storable qw(freeze thaw);
@@ -15,7 +15,7 @@ use Storable qw(freeze thaw);
 use Set::Object qw(reftype);
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 
 $Tangram::Schema::TYPES{storable} = __PACKAGE__->new;
 

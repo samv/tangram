@@ -17,7 +17,7 @@ sub new
 		$_->{expr};
 	} @{$args{cols}};
 
-	my $filter = $args{filter} || $args{where} || Tangram::Filter->new;
+	my $filter = $args{filter} || $args{where} || Tangram::Expr::Filter->new;
 
 	my $objects = Set::Object->new();
 
@@ -53,7 +53,7 @@ sub new
 		$sql .= "\nORDER BY " . join ', ', map { $_->{expr} } @{$args{order}};
 	}
 
-	my $self = $type->SUPER::new(Tangram::Integer->instance, "($sql)");
+	my $self = $type->SUPER::new(Tangram::Type::Integer->instance, "($sql)");
 	
 	$self->{cols} = $args{cols};
 

@@ -4,7 +4,7 @@
 # terms as Perl itself
 
 use strict;
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 package Tangram::Type::Dump::Any;
 
 =head1 NAME
@@ -118,7 +118,7 @@ not anything to do with L<Pixie>. ]
 use Tangram::Type::Dump qw(flatten unflatten);
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 use Set::Object qw(reftype blessed);
 
 $Tangram::Schema::TYPES{idbif} = Tangram::Type::Dump::Any->new;

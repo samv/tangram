@@ -40,7 +40,7 @@ sub reschema {
 		       col => $def->{coll},
 		       class => $class,
 		       field => $member
-		      }, 'Tangram::BackRef';
+		      }, 'Tangram::Type::BackRef';
 	}
     }
 
@@ -122,7 +122,7 @@ sub cursor
 {
    my ($self, $def, $storage, $obj, $member) = @_;
 
-   my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+   my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
    my $item_col = $def->{coll};
    my $slot_col = $def->{slot};
@@ -166,7 +166,7 @@ sub prefetch
 
    $cursor->retrieve
        ($coll->{id},
-	$storage->expr(Tangram::Scalar->instance,
+	$storage->expr(Tangram::Type::Scalar->instance,
 		       "t$ritem->{_object}{table_hash}{$def->{class}}"
 		       .".$def->{slot}")
        );
@@ -184,7 +184,7 @@ sub prefetch
 $Tangram::Schema::TYPES{ihash} = Tangram::Type::Hash::FromOne->new;
 
 #---------------------------------------------------------------------
-#  Tangram::IntrHash->coldefs($cols, $members, $schema, $class,
+#  Tangram::Type::Hash::FromOne->coldefs($cols, $members, $schema, $class,
 #                             $tables)
 #
 #  Setup column mappings for one to many indexed mappings (foreign

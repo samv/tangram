@@ -30,7 +30,7 @@ a hash under the C<flat_hash> key in the field hash.
 
 The hash may contain as keys and values only 'simple' scalars like
 integers, strings or real numbers. It may not contain references. For
-hashs of objects, see L<Tangram::Hash> and L<Tangram::IntrHash>.
+hashs of objects, see L<Tangram::Type::Hash::FromMany> and L<Tangram::Type::Hash::FromOne>.
 
 Tangram uses a table to save the state of the collection. The table
 has three columns, which contain

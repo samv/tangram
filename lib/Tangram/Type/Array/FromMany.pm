@@ -103,7 +103,7 @@ sub cursor
 {
 	my ($self, $def, $storage, $obj, $member) = @_;
 
-	my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+	my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
 	my $coll_id = $storage->export_object($obj);
 	my $coll_tid = $storage->alloc_table;
@@ -158,7 +158,7 @@ sub prefetch
 
 	# also retrieve collection-side id and index of elmt in sequence
 	$cursor->retrieve($coll->{id},
-        Tangram::Number->expr("t$includes->{link_tid}.$def->{slot}") );
+        Tangram::Type::Number->expr("t$includes->{link_tid}.$def->{slot}") );
 
 	$cursor->select($filter ? $filter & $includes : $includes);
    
@@ -175,7 +175,7 @@ sub prefetch
 $Tangram::Schema::TYPES{array} = Tangram::Type::Array::FromMany->new;
 
 #---------------------------------------------------------------------
-#  Tangram::Array->coldefs($cols, $members, $schema, $class, $tables)
+#  Tangram::Type::Array::FromMany->coldefs($cols, $members, $schema, $class, $tables)
 #
 #  Setup column mappings for many to many unordered mappings (link
 #  table with integer category)

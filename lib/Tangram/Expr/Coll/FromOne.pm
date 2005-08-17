@@ -19,7 +19,7 @@ sub includes
 
 	if (ref($item))
 	{
-		if ($item->isa('Tangram::QueryObject'))
+		if ($item->isa('Tangram::Expr::QueryObject'))
 		{
 			my $item_tid = $item->object->table($item_class);
 
@@ -62,7 +62,7 @@ sub includes_or
 	foreach my $item (@items) {
 	    if (ref($item))
 		{
-		    if ($item->isa('Tangram::QueryObject'))
+		    if ($item->isa('Tangram::Expr::QueryObject'))
 			{
 			    $item_tid = $item->object->table($item_class);
 			    push @targets_fwd, ("t".$item_tid.".$memdef->{coll}");

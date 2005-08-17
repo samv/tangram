@@ -37,7 +37,7 @@ sub reschema {
 		       col => $def->{coll},
 		       class => $class,
 		       field => $member
-		      }, 'Tangram::BackRef';
+		      }, 'Tangram::Type::BackRef';
 	}
     }
 
@@ -138,7 +138,7 @@ sub cursor
 {
 	my ($self, $def, $storage, $obj, $member) = @_;
 
-	my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+	my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
 	my $item_col = $def->{coll};
 	my $slot_col = $def->{slot};
@@ -177,7 +177,7 @@ sub prefetch
 
 	# also retrieve collection-side id and index of elmt in sequence
 	$cursor->retrieve($coll->{id},
-	    $storage->expr(Tangram::Integer->instance,
+	    $storage->expr(Tangram::Type::Integer->instance,
 			"t$ritem->{_object}{table_hash}{$def->{class}}.$def->{slot}") );
 
 	$cursor->select($includes);
@@ -195,7 +195,7 @@ sub prefetch
 $Tangram::Schema::TYPES{iarray} = Tangram::Type::Array::FromOne->new;
 
 #---------------------------------------------------------------------
-#  Tangram::IntrArray->coldefs($cols, $members, $schema, $class,
+#  Tangram::Type::Array::FromOne->coldefs($cols, $members, $schema, $class,
 #                              $tables)
 #
 #  Setup column mappings for one to many ordered mappings (foreign

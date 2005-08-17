@@ -37,7 +37,7 @@ restore, the scalar value will be L<eval>'d to reconstruct the
 original data structure. 
 
 As of Tangram 2.07.1, persistent references are safely handled via the
-L<Tangram::Dump> utility class.
+L<Tangram::Type::Dump> utility class.
 
 The field names are passed in a hash that associates a field name with
 a field descriptor. The field descriptor may be either a hash or a

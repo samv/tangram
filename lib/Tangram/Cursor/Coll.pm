@@ -1,7 +1,7 @@
 
-package Tangram::CollCursor;
+package Tangram::Cursor::Coll;
 
-@Tangram::CollCursor::ISA = 'Tangram::Cursor';
+@Tangram::Cursor::Coll::ISA = 'Tangram::Cursor';
 
 sub build_select
 {

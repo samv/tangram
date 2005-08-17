@@ -107,7 +107,7 @@ NULL values.
 
 =head2 INHERITANCE
 
-Ref directly inherits from Tangram::Scalar, and indirectly from Type.
+Ref directly inherits from Tangram::Type::Scalar, and indirectly from Type.
 
 =head2 STORING REFERENCES
 

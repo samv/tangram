@@ -1,13 +1,13 @@
 package Tangram::Expr;
 
 use strict;
-use Tangram::Table;
-use Tangram::CursorObject;
-use Tangram::RDBObject;
+use Tangram::Expr::Table;
+use Tangram::Expr::CursorObject;
+use Tangram::Expr::RDBObject;
 use Tangram::Expr::Filter;
 use Tangram::Expr;
-use Tangram::QueryObject;
-use Tangram::Select;
+use Tangram::Expr::QueryObject;
+use Tangram::Expr::Select;
 
 use Set::Object qw(blessed);
 use Carp;
@@ -156,7 +156,7 @@ sub binop
 				$arg = $arg->{expr};
 			}
    
-			elsif ($arg->isa('Tangram::QueryObject'))
+			elsif ($arg->isa('Tangram::Expr::QueryObject'))
 			{
 				$objects->insert($arg->object);
 				$arg = $arg->{id}->{expr};
@@ -213,7 +213,7 @@ sub count
 {
 	my ($self, $val) = @_;
 	$self->{storage}
-		->expr(Tangram::Integer->instance, "COUNT($self->{expr})",
+		->expr(Tangram::Type::Integer->instance, "COUNT($self->{expr})",
 				$self->objects );
 }
 

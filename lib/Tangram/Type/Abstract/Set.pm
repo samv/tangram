@@ -2,12 +2,12 @@
 
 use strict;
 
-use Tangram::Coll;
+use Tangram::Type::Abstract::Coll;
 
 package Tangram::Type::Abstract::Set;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Coll );
+ @ISA = qw( Tangram::Type::Abstract::Coll );
 
 use Carp;
 

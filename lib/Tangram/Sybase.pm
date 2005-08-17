@@ -162,7 +162,7 @@ sub datepart
 	# build a new Expr of Integer type
 	# pass this Expr's remote object list to the new Expr
 
-	return Tangram::Integer->expr("DATEPART($part, $expr)", $self->objects);
+	return Tangram::Type::Integer->expr("DATEPART($part, $expr)", $self->objects);
 }
 
 1;

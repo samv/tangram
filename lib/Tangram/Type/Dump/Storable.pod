@@ -38,7 +38,7 @@ reconstruct the original data structure.
 
 The structure should be able to contain pretty much anything that may
 be safely dumped by Storable.  However, be aware that
-B<Tangram::Dump::flatten()> must be able to find the persistent
+B<Tangram::Type::Dump::flatten()> must be able to find the persistent
 objects in the field.  Unless you're using classes that are
 implemented in C and contain other objects, you should be fine
 (Set::Object has a special work-around).

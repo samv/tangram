@@ -1,6 +1,6 @@
 =head1 NAME
 
-Tangram::Scalar - map scalar fields
+Tangram::Type::Scalar - map scalar fields
 
 =head1 SYNOPSIS
 
@@ -27,12 +27,12 @@ Tangram::Scalar - map scalar fields
 
 =head1 DESCRIPTION
 
-Classes Tangram::String, ::Int and ::Real and ::Ref are responsible
+Classes Tangram::Type::String, ::Int and ::Real and ::Ref are responsible
 for mapping the various subtypes of scalars. The first three mappings
-are documented here since they differ very little. See L<Tangram::Ref>
+are documented here since they differ very little. See L<Tangram::Type::Ref::FromMany>
 for information on mapping references.
 
-Tangram::String uses DBI's quote() method to quote strings if that
+Tangram::Type::String uses DBI's quote() method to quote strings if that
 method is available, thus making it possible to store binary objects
 or multiline text in databases that support it (thanks to Marian Kelc
 <marian.kelc@ruhr-uni-bochum.de> for suggesting this improvement).

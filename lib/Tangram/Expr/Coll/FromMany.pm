@@ -14,7 +14,7 @@ sub includes
 
 	my $coll_tid = $coll->root_table;
 
-	my $link_tid = Tangram::Alias->new;
+	my $link_tid = Tangram::Expr::TableAlias->new;
 	my $coll_col = $memdef->{coll};
 	my $item_col = $memdef->{item};
 
@@ -26,7 +26,7 @@ sub includes
 	my $target;
 
 	if (ref $item) {
-	    if ($item->isa('Tangram::QueryObject'))
+	    if ($item->isa('Tangram::Expr::QueryObject'))
 		{
 		    $target = 't' . $item->object->root_table . '.' . $schema->{sql}{id_col};
 		    $objects->insert( $item->object );
@@ -58,7 +58,7 @@ sub includes_or {
     my $schema = $coll->{storage}{schema};
     my $coll_tid = $coll->root_table;
 
-    my $link_tid = Tangram::Alias->new;
+    my $link_tid = Tangram::Expr::TableAlias->new;
     my $coll_col = $memdef->{coll};
     my $item_col = $memdef->{item};
 
@@ -70,7 +70,7 @@ sub includes_or {
 
     foreach my $item (@items) {
         if (ref $item) {
-            if ($item->isa('Tangram::QueryObject'))
+            if ($item->isa('Tangram::Expr::QueryObject'))
               {
                   push @targets, ('t' . $item->object->root_table.'.'
 				  . $schema->{sql}{id_col});

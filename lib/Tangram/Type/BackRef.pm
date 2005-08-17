@@ -5,7 +5,7 @@ use Tangram::Lazy::BackRef;
 use strict;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Scalar );
+ @ISA = qw( Tangram::Type::Scalar );
 
 $Tangram::Schema::TYPES{backref} = __PACKAGE__->new;
 
@@ -37,7 +37,7 @@ sub get_importer
 }
 
 #---------------------------------------------------------------------
-#  Tangram::BackRef->coldefs(...)
+#  Tangram::Type::BackRef->coldefs(...)
 #
 #  BackRefs do not set up any columns by default.
 #---------------------------------------------------------------------

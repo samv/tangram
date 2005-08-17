@@ -326,8 +326,8 @@ accessed.  This mechanism is almost totally transparent, we'd have to
 use C<tied> to observe a non-present collection or reference.
 
 For more information on relationships, see L<Tangram::Schema>,
-L<Tangram::Ref>, L<Tangram::Array>, L<Tangram::IntrArray>,
-L<Tangram::Set> and L<Tangram::IntrSet>.
+L<Tangram::Type::Ref::FromMany>, L<Tangram::Type::Array::FromMany>, L<Tangram::Type::Array::FromOne>,
+L<Tangram::Type::Set::FromMany> and L<Tangram::Type::Set::FromOne>.
 
 =head2 select
 

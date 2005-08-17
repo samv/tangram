@@ -7,8 +7,8 @@ Tangram::Core - import core Tangram modules
    use Tangram::Core;
 
    # use additional types, e.g.:
-   use Tangram::Array;
-   use Tangram::IntrSet;
+   use Tangram::Type::Array::FromMany;
+   use Tangram::Type::Set::FromOne;
 
 =head1 DESCRIPTION
 

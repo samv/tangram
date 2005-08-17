@@ -278,7 +278,7 @@ sub my_cursor
 sub select_data
 {
     my $self = shift;
-    Tangram::Select->new(@_)->execute($self, $self->open_connection());
+    Tangram::Expr::Select->new(@_)->execute($self, $self->open_connection());
 }
 
 sub selectall_arrayref
@@ -289,7 +289,7 @@ sub selectall_arrayref
 sub my_select_data
 {
     my $self = shift;
-    Tangram::Select->new(@_)->execute($self, $self->{db});
+    Tangram::Expr::Select->new(@_)->execute($self, $self->{db});
 }
 
 my $psi = 1;
@@ -1108,13 +1108,13 @@ sub select {
 sub cursor_object
   {
     my ($self, $class) = @_;
-    $self->{IMPLICIT}{$class} ||= Tangram::RDBObject->new($self, $class)
+    $self->{IMPLICIT}{$class} ||= Tangram::Expr::RDBObject->new($self, $class)
 }
 
 sub query_objects
 {
     my ($self, @classes) = @_;
-    map { Tangram::QueryObject->new(Tangram::RDBObject->new($self, $_)) } @classes;
+    map { Tangram::Expr::QueryObject->new(Tangram::Expr::RDBObject->new($self, $_)) } @classes;
 }
 
 sub remote
@@ -1152,7 +1152,7 @@ sub count
     else
     {
 	my $expr = shift or croak "nothing supplied to count";
-	if ($expr->isa("Tangram::QueryObject")) {
+	if ($expr->isa("Tangram::Expr::QueryObject")) {
 	    $target = "*";
 	    $expr = $expr->{id};
 	} else {

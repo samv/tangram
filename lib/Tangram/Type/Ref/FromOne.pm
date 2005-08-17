@@ -37,7 +37,7 @@ sub reschema
 					 col => $def->{coll},
 					 class => $class,
 					 field => $member
-					}, 'Tangram::BackRef';
+					}, 'Tangram::Type::BackRef';
 		}
 	}
    
@@ -84,7 +84,7 @@ sub demand
 	{
 		print $Tangram::TRACE "loading $member\n" if $Tangram::TRACE;
 
-		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+		my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
 		my $tid = $cursor->{TARGET}->object->{table_hash}{$def->{class}}; # leaf_table;

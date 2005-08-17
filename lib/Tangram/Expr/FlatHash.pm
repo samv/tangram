@@ -13,17 +13,17 @@ sub includes
 
 	my $schema = $coll->{storage}{schema};
 
-	$item = Tangram::String::quote($item)
+	$item = Tangram::Type::String::quote($item)
 		if $memdef->{string_type};
 
 	my $coll_tid = 't' . $coll->root_table;
-	my $data_tid = 't' . Tangram::Alias->new;
+	my $data_tid = 't' . Tangram::Expr::TableAlias->new;
 
 	return Tangram::Expr::Filter->new
 		(
 		 expr => "$data_tid.coll = $coll_tid.$schema->{sql}{id_col} AND $data_tid.v = $item",
 		 tight => 100,      
-		 objects => Set::Object->new($coll, Tangram::Table->new($memdef->{table}, $data_tid) ),
+		 objects => Set::Object->new($coll, Tangram::Expr::Table->new($memdef->{table}, $data_tid) ),
 		 data_tid => $data_tid # for prefetch
 		);
 }
@@ -35,7 +35,7 @@ sub exists
 
 	my $schema = $coll->{storage}{schema};
 
-	$item = Tangram::String::quote($item)
+	$item = Tangram::Type::String::quote($item)
 		if $memdef->{string_type};
 
 	my $coll_tid = 't' . $coll->root_table;

@@ -2,7 +2,7 @@ package Tangram::Expr::Table;
 
 use strict;
 
-# This is a stub version of Tangram::CursorObject
+# This is a stub version of Tangram::Expr::CursorObject
 
 sub new
 {

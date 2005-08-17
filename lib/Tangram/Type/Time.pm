@@ -2,12 +2,12 @@
 
 use strict;
 
-use Tangram::Scalar;
+use Tangram::Type::Scalar;
 
 package Tangram::Type::Time;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::String );
+ @ISA = qw( Tangram::Type::String );
 
 $Tangram::Schema::TYPES{rawtime} = Tangram::Type::Time->new;
 

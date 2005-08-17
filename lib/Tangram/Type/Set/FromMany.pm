@@ -118,7 +118,7 @@ sub demand
 	{
 	    print $Tangram::TRACE "demanding ".$storage->id($obj)
 		.".$member from storage\n" if $Tangram::TRACE;
-		my $cursor = Tangram::CollCursor->new($storage, $def->{class}, $storage->{db});
+		my $cursor = Tangram::Cursor::Coll->new($storage, $def->{class}, $storage->{db});
 
 		my $coll_id = $storage->export_object($obj);
 		my $coll_tid = $storage->alloc_table;
@@ -191,7 +191,7 @@ sub remote_expr
 $Tangram::Schema::TYPES{set} = Tangram::Type::Set::FromMany->new;
 
 #---------------------------------------------------------------------
-#  Tangram::Set->coldefs($cols, $members, $schema, $class, $tables)
+#  Tangram::Type::Set::FromMany->coldefs($cols, $members, $schema, $class, $tables)
 #
 #  Setup column mappings for many to many unordered mappings (link
 #  table)
