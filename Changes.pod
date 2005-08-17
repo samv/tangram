@@ -6,21 +6,31 @@
 (not yet released; however no new features are planned for this
 release)
 
+=over
+
+=item *
+
+Make F<Makefile.PL> output display modules that failed, rather than
+letting C<ExtUtils::MakeMaker> do it for it.
+
+
+=back
+
 =head2 DEV. RELEASE 2.08_02, 16 Aug 2005
 
 =over
 
 =item *
 
-Fix Data::Lazy dependency version number
+Fix L<Data::Lazy> dependency version number
 
 =item *
 
-Allow one-column Tangram::Ref
+Allow one-column L<Tangram::Ref>
 
 =item *
 
-add $storage->make_oid()
+add C<$storage-E<gt>make_oid()> (See L<Tangram::Storage/make_oid>)
 
 =item *
 
@@ -59,8 +69,10 @@ This release was C<2.07_07> with a couple of minor bug fixes.
 
 =item *
 
-Tangram::Dump now checks (via C<$storage-E<gt>id_maybe_insert()>)
-whether objects that it is saving should be inserted to the DB first.
+L<Tangram::Dump> now checks (via C<$storage-E<gt>id_maybe_insert()>)
+whether objects that it is saving should be inserted to the DB first,
+which allows the practice illustrated by the F<t/musicstore/> test
+suite to work.
 
 =back
 
@@ -85,8 +97,9 @@ added support for L<Time::Piece> and L<DateTime>.
 
 =item *
 
-much work on database portability.  The Pg back-end now works very
-well, and I have also ported to SQLite.
+much work on database portability.  The L<Tangram::Pg> back-end now
+works very well, and I have also ported to SQLite (see
+L<Tangram::SQLite>).
 
 =item *
 
@@ -98,7 +111,7 @@ reworked the test suite to have multiple sections
 
 =item *
 
-new test section for Object Persistathon (musicstore schema)
+new test section for Object Persistathon (F<t/musicstore/> schema)
 
 =back
 
@@ -130,8 +143,8 @@ the revision history :-}
 =item *
 
 Various POD modifications, including the main Tangram page, the
-addition of Tangram::Complicity and the removal of bogus
-Tangram::Dialect
+addition of the stub L<Tangram::Complicity> and the removal of bogus
+C<Tangram::Dialect>
 
 =item *
 
@@ -139,7 +152,7 @@ Enhanced TRACE messages
 
 =item *
 
-Added support for Oracle via Tangram::Oracle
+Added support for Oracle via L<Tangram::Oracle>
 
 =item *
 
@@ -148,14 +161,15 @@ columns, eg for aggregate selects)
 
 =item *
 
-`Fixed' t/datetime.t so that it doesn't do PostgreSQL/MySQL specific
-tests unless it is running on those databases
+`Fixed' F<t/datetime.t> so that it doesn't do PostgreSQL/MySQL
+specific tests unless it is running on those databases
 
 =item *
 
-Storage and Engine now holds a handle to the Tangram::Relational
-object that created them, allowing for various DBMS dependant hooks
-(used to rewrite column types, format dates, etc)
+L<Tangram::Storage> and L<Tangram::Relational::Engine> now hold a
+handle to the L<Tangram::Relational> object that created them,
+allowing for various DBMS dependant hooks (used to rewrite column
+types, format dates, etc)
 
 =item *
 
@@ -163,23 +177,25 @@ Extra sanity checking in the core
 
 =item *
 
-The id_col feature in Tangram::Schema now actually works :-).
-Previously, there were many places where .id was hard-coded.
+The id_col feature in L<Tangram::Schema> now actually works :-).
+Previously, there were many places where C<.id> was hard-coded.
 
 =item *
 
-Added ->in() method, an expr that allows direct use of the SQL IN ()
-construct, rather than just via includes_or(), or with Collections.
+Added C<-E<gt>in()> method, a L<Tangram::Expr> object that allows
+direct use of the SQL C<IN ()> construct, rather than just via
+C<includes_or()>, or with collections using joins.
 
 =item *
 
-DMDateTime module now expects database to understand the ISO-8601 date
-format, but the MySQL driver has been enhanced to convert ISO-8601 to
-MySQL format.
+L<Tangram::DMDateTime> now expects database to understand the ISO-8601
+date format, but the MySQL driver has been enhanced to convert
+ISO-8601 to MySQL format.
 
 =item *
 
-New method Tangram::Storage::unload_all
+New method C<Tangram::Storage::unload_all> (see
+L<Tangram::Storage/unload_all>)
 
 =back
 
@@ -189,7 +205,7 @@ New method Tangram::Storage::unload_all
 
 =item *
 
-Added Tangram::IDBIF to combine multiple object fields into one
+Added L<Tangram::IDBIF> to combine multiple object fields into one
 perl_dump style field (including a "catch-all" facility) Test suite
 for this isn't complete yet.
 
@@ -202,47 +218,51 @@ many thanks:
 
 =item *
 
-Do not $self->{db}->disconnect in Storage::disconnect() and DESTROY(),
-if $self->{db} eq $opts->{dbh} in Tangram::Storage->connect($schema,
-$cs, $user, $pw, { 'dbh' => ... } ); See $self->{db_owned}.
+Do not C<$self-E<gt>{db}-E<gt>disconnect> in
+C<Tangram::Storage::disconnect()> and C<::DESTROY()>, if
+C<$self-E<gt>{db} eq $opts-E<gt>{dbh}> in
+C<Tangram::Storage-E<gt>connect($schema, $cs, $user, $pw, { 'dbh'
+=E<gt> ... } )>; See C<$self-E<gt>{db_owned}>.
 
 =item *
 
-Handle objects that lazily initialize Tangram::AbstractSet Set::Object
-fields.  See UMMF.
+Handle objects that lazily initialize L<Tangram::AbstractSet>
+L<Set::Object> fields.  See UMMF.
 
 =item *
 
-Added IntrRef.pm ("Intrusive Ref") for 1-to-1 bi-directional
+Added L<Tangram::IntrRef> ("Intrusive Ref") for 1-to-1 bi-directional
 Association navigation using only one column in one table.  Derived
-from IntrSet.  I need help with this one. :)
+from L<Tangram::IntrSet>.  I need help with this one. :)
 
 =item *
 
-Added @sums = $storage->sum([ $expr1, $expr2 ], ...) support.
+Added C<@sums = $storage-E<gt>sum([ $expr1, $expr2 ], ...)> support.
 
 =item *
 
 Added support for reused tables for mapping both sides of many-to-many
-UML Associations to the same table with Tangram::Set and
-Tangram::Array. See UMMF's example/ex1.
+UML Associations to the same table with L<Tangram::Set> and
+L<Tangram::Array>. See UMMF's F<example/ex1>.
 
 =item *
 
 Added support for timestamping all tables through
-$schema->{sql}{timestamp_all_tables}.
+C<$schema-E<gt>{sql}{timestamp_all_tables}>.  See
+L<Tangram::Schema/Global Properties>.
 
 =item *
 
-Prevent additional records in Tangram control table on redeploy.
+Prevent additional records being inserted to the Tangram control table
+on C<-E<gt>redeploy>.
 
 =item *
 
-Added support for GROUP BY in Tangram::Cursor.
+Added support for C<GROUP BY> in L<Tangram::Cursor>.
 
 =item *
 
-Added COUNT($remote) and SUM($filter_expr) support.
+Added C<COUNT($remote)> and C<SUM($filter_expr)> support.
 
 =back
 
@@ -252,7 +272,7 @@ Editorial release changes:
 
 =item *
 
-Started using _NN version style, so CPAN marks it as a development
+Started using C<_NN> version style, so CPAN marks it as a development
 release
 
 =item *
@@ -267,7 +287,7 @@ added brief test suite for aggregate functions
 
 =item *
 
-Tangram::IntrHash prefetch test added
+L<Tangram::IntrHash> prefetch test added
 
 =item *
 
@@ -275,20 +295,20 @@ Documentation enhancements
 
 =item *
 
-Tangram::Dump class to `fix' persistent references in data structures
-prior to insertion, so that :
+L<Tangram::Dump> class to `fix' persistent references in data
+structures prior to insertion, so that :
 
 =item *
 
-Tangram::PerlDump now can contain persistent objects safely
+L<Tangram::PerlDump> now can contain persistent objects safely
 
 =item *
 
-and hey, why not write a Tangram::Storable
+and hey, why not write a L<Tangram::Storable>
 
 =item *
 
-and a Tangram::YAML (not working, waiting for a CPAN bug to be fixed)
+and a L<Tangram::YAML> (not working, waiting for a CPAN bug to be fixed)
 
 =back
 
@@ -298,17 +318,14 @@ and a Tangram::YAML (not working, waiting for a CPAN bug to be fixed)
 
 =item *
 
-Tangram::IntrHash implemented at last :-).  Tangram::IxHash and
-Tangram::IntrIxHash are next :->
+L<Tangram::IntrHash> implemented at last :-).  C<Tangram::IxHash> and
+C<Tangram::IntrIxHash> are next :->
 
 =item *
 
-verbose error message in Tangram::Coll when demand paging is happening
-on stale tied collections (eg, erroneously created via dclone())
-
-=item *
-
-some reformatting, as I grasp more of the code.
+verbose error message in L<Tangram::Coll> when demand paging is
+happening on stale tied collections (eg, erroneously created via
+dclone())
 
 =item *
 
@@ -316,7 +333,7 @@ fix for Postgres sub-select detection (Pedro Alves)
 
 =item *
 
-make_1st_id_in_tx now only called for 1st insert (Chengzhi Liang)
+C<make_1st_id_in_tx> now only called for 1st insert (Chengzhi Liang)
 
 =back
 
@@ -326,37 +343,38 @@ make_1st_id_in_tx now only called for 1st insert (Chengzhi Liang)
 
 =item *
 
-Fixed bug with Tangram::Intr* and erasing objects that referred to a
-class which didn't use their class name as their table name [closes:
+Fixed bug with C<Tangram::Intr*> and erasing objects that referred to
+a class which didn't use their class name as their table name [closes:
 2650]
 
 =item *
 
-Added the ability to use limit => [ N, Y ] in Tangram::Storage->select
-statements
+Added the ability to use C<limit =E<gt> [ N, Y ]> in
+C<Tangram::Storage-E<gt>select> statements (see
+L<Tangram::Storage/select>)
 
 =item *
 
-Added Tangram::Coll::includes_or; see the man page for Tangram::Expr
+Added C<Tangram::Coll::includes_or>; see L<Tangram::Expr>
 
 =item *
 
-Enhancement of error message from Tangram::Relational::Engine [related
-to 2631]
+Enhancement of error message from L<Tangram::Relational::Engine>
+[related to 2631]
 
 =item *
 
-Support for using table types via $schema->{sql}{table_type}
+Support for using table types via C<$schema-E<gt>{sql}{table_type}>
 
 =item *
 
 Support for sub-selects with MySQL, for the one test that uses them.
-Also $storage->{no_subselects} is auto-detected.
+Also C<$storage-E<gt>{no_subselects}> is auto-detected.
 
 =item *
 
-Completed $storage->prefetch() function for all working types, new
-test t/prefetch.t
+Completed C<$storage-E<gt>prefetch()> function for all working types,
+new test F<t/prefetch.t>
 
 =item *
 
@@ -375,8 +393,9 @@ Minor documentation fixes
 
 =item *
 
-Exceptions on various DB failures are now thrown when DBI::execute()
-is called internally, rather than being largely ignored.
+Exceptions on various DB failures are now thrown when
+C<DBI::execute()> is called internally, rather than being largely
+ignored.
 
 =item *
 
@@ -385,14 +404,14 @@ Cosmetic Test Suite change
 =item *
 
 ID column name wasn't being used for the index in
-Tangram::Relational::Engine (Kurt Stephens)
+L<Tangram::Relational::Engine> (Kurt Stephens)
 
 =item *
 
 Lost patches from
 2002/06/25 (Kurt Stephens):
 
-Added missing Tangram::Expr and Tangram::Filter operators:
+Added missing L<Tangram::Expr> and L<Tangram::Filter> operators:
 
   '+', '-', '*', '/',
   '&', '|', '!',
@@ -415,16 +434,16 @@ Fixed export problem with 5.6.1 (reported by Kate Pugh)
 
 =item *
 
-deep_update with Tangram::Ref bug fix (reported by Aaron Mackey)
+C<deep_update> with L<Tangram::Ref> bug fix (reported by Aaron Mackey)
 
 =item *
 
-Makefile.PL should now hopefully be more informative about which
+F<Makefile.PL> should now hopefully be more informative about which
 modules are needed for what.
 
 =item *
 
-Removed Selfloader from Tangram::Ref (Kate Pugh)
+Removed C<Selfloader> from L<Tangram::Ref> (Kate Pugh)
 
 =back
 
@@ -434,7 +453,8 @@ Removed Selfloader from Tangram::Ref (Kate Pugh)
 
 =item *
 
-Added $storage->oid_isa($oid, "ClassName") method for marshalling OIDs
+Added C<$storage-E<gt>oid_isa($oid, "ClassName")> method for
+marshalling OIDs
 
 =item *
 
@@ -449,28 +469,28 @@ Fixed minor bugs causing test suite to issue large warnings on
 
 =item *
 
-Tangram::Scalar and Tangram::Ref column names are now passed through
-$schema->{normalize}->()
+L<Tangram::Scalar> and L<Tangram::Ref> column names are now passed
+through C<$schema-E<gt>{normalize}-E<gt>()>
 
 =back
 
 
-=head2 DEV. RELEASE 2.05pre2 Jun 2003 - SamV
+=head2 DEV. RELEASE 2.05pre2 Jun 2003
 
 =over
 
 =item *
 
-Minor Tangram::Expr defined vs logically-false fix (Aaron Mackey)
+Minor L<Tangram::Expr> defined vs logically-false fix (Aaron Mackey)
 
 =item *
 
-explicitly select all ORDER BY columns (Aaron Mackey)
+explicitly select all C<ORDER BY> columns (Aaron Mackey)
 
 =item *
 
- normalise default "slot" and "coll" column names in
-	  Tangram::Intr* types (SamV)
+normalise default "C<slot>" and "C<coll>" column names in
+C<Tangram::Intr*> types
 
 =back
 
@@ -490,51 +510,52 @@ back-porting pieces for 5.00503 (that was me)
 
 =item *
 
-a more elegant solution for the Tangram::AbstractArray/AbstractHash
-corner case than the one I submitted :-)
+a more elegant solution for the
+L<Tangram::AbstractArray>/L<Tangram::AbstractHash> corner case than
+the one I submitted :-)
 
 =item *
 
-code that (possibly) completes Tangram::Hash support (I haven't
+code that (possibly) completes L<Tangram::Hash> support (I haven't
 written a test case to confirm this yet)
 
 =item *
 
-A fix to Tangram::AbstractSet that again caters to some very strange
-corner cases (this was me too)
+A fix to L<Tangram::AbstractSet> that again caters to some very
+strange corner cases (this was me too)
 
 =item *
 
-Working implementation of the Tangram::DMDateTime type mapping, a good
-thing that running a persistent application server offsets the huge
-time it takes to load in Date::Manip :-)
+Working implementation of the L<Tangram::DMDateTime> type mapping, a
+good thing that running a persistent application server offsets the
+huge time it takes to load in L<Date::Manip> :-)
 
 =item *
 
-A bug fix to Tangram::FlatArray mapping type that affects deleting
+A bug fix to L<Tangram::FlatArray> mapping type that affects deleting
 members (don't know whose)
 
 =item *
 
-Tangram::IntrSet::get_intrusions (? can anyone claim or explain this
-one?)
+C<Tangram::IntrSet::get_intrusions> (? can anyone claim or explain
+this one?)
 
 =item *
 
-Minor Tangram::PerlDump fix (a simple one)
+Minor L<Tangram::PerlDump> fix (a simple one)
 
 =item *
 
-Deep, deep magic in Tangram::Relational::Engine; new function
+Deep, deep magic in L<Tangram::Relational::Engine>; new function
 get_heterogeneity (anyone?)
 
 =item *
 
-Use of uninitialised variable in Tangram::Engine...
+C<Use of uninitialised variable in Tangram::Relational::Engine>...
 
 =item *
 
-Other large changes to Tangram::Schema (? - get_bases, get_specs,
+Other large changes to L<Tangram::Schema> (? - get_bases, get_specs,
 is_root, etc)
 
 =item *
@@ -544,7 +565,7 @@ that is later on in the schema (me)
 
 =item *
 
-Scattered showers of changes in Tangram::Storage
+Scattered showers of changes in L<Tangram::Storage>
 (get_insert_statements etc, lots of `off by one' (reference nesting
 level that is) changes)
 
