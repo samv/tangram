@@ -53,7 +53,12 @@ use constant REMAPPED =>
         Tangram::Storable		Tangram::Type::Dump::Storable
         Tangram::YAML			Tangram::Type::Dump::YAML
 
-		Tangram::Filter			Tangram::Expr::Filter
+	Tangram::Filter                 Tangram::Expr::Filter
+	Tangram::CursorObject           Tangram::Expr::CursorObject
+	Tangram::QueryObject		Tangram::Expr::QueryObject
+	Tangram::RDBObject		Tangram::Expr::RDBObject
+	Tangram::Select			Tangram::Expr::Select
+	Tangram::Table			Tangram::Expr::Table
       );
 
 use strict 'vars', 'subs';

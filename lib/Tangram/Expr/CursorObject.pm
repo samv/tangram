@@ -1,4 +1,4 @@
-package Tangram::CursorObject;
+package Tangram::Expr::CursorObject;
 
 use strict;
 use Carp;

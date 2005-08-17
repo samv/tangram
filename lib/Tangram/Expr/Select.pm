@@ -1,4 +1,4 @@
-package Tangram::Select;
+package Tangram::Expr::Select;
 
 use strict;
 use Tangram::Expr::Filter;
@@ -17,7 +17,7 @@ sub new
 		$_->{expr};
 	} @{$args{cols}};
 
-	my $filter = $args{filter} || $args{where} || Tangram::Expr::Filter->new;
+	my $filter = $args{filter} || $args{where} || Tangram::Filter->new;
 
 	my $objects = Set::Object->new();
 

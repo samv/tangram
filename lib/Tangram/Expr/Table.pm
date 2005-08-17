@@ -1,4 +1,4 @@
-package Tangram::Table;
+package Tangram::Expr::Table;
 
 use strict;
 

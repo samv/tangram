@@ -1,11 +1,11 @@
 # used in Tangram::Storage methods cursor_object and query_objects
-package Tangram::RDBObject;
+package Tangram::Expr::RDBObject;
 
 use strict;
-use Tangram::CursorObject;
+use Tangram::Expr::CursorObject;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::CursorObject );
+ @ISA = qw( Tangram::Expr::CursorObject );
 
 sub where
 {
