@@ -1,4 +1,4 @@
-Changes
+Changes.pod
 COPYING
 lib/Tangram.pm
 lib/Tangram.pod
@@ -96,6 +96,7 @@ t/musicstore/insert_extra_data.pl
 t/musicstore/MusicStore.pm
 t/musicstore/Prerequisites.pm
 t/musicstore/zz-retreat.t
+t/no_tests.t
 t/README.pod
 t/rt/RT.pm
 t/rt/RT.pod
