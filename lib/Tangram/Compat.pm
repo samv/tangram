@@ -82,7 +82,7 @@ sub Tangram::Compat::INC {
 
     (DEBUG) && debug_out "saw include for $pkg";
 
-    if ($self->{map}->{$pkg}) {
+    if (exists $self->{map}->{$pkg}) {
 	$self->setup($pkg);
 	open DEVNULL, "<$stub" or die $!;
 	return \*DEVNULL;
@@ -97,8 +97,7 @@ sub setup {
     my $self = shift;
     my $pkg = shift or confess ("no pkg!");
     undef &{"${pkg}::AUTOLOAD"};
-    my $target = delete $self->{map}{$pkg};
-    confess "no target package" unless $target;
+    my $target = $self->{map}{$pkg} or return;
 
     my @c = caller();
     carp "deprecated package $pkg used by $c[1]:$c[2] auto-loading $target"
@@ -145,6 +144,8 @@ sub new {
     }
     return $self;
 }
+
+use Set::Object qw(refaddr);
 
 sub DESTROY {
     my $self = shift;
