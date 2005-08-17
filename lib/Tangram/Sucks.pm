@@ -47,7 +47,7 @@ It could either be
 
 =item B<no support for SQL UPDATE>
 
-It may be possible to write a version of E<$storage-E<gt>select()>
+It may be possible to write a version of C<$storage-E<gt>select()>
 that does this, which would look something like:
 
   $storage->update
