@@ -21,16 +21,18 @@ my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar );
 my ($skip_tests, $bomb_out);
 while (my ($module, $min_ver) = each %required) {
 
-    eval "use $module".($min_ver ? " $min_ver" : "");
+    my $mod_ver = "$module".($min_ver ? " $min_ver" : "");
+    eval "use $mod_ver;";
     if($@) {
 	if (exists $required_hard{$module}) {
 	    $bomb_out = 1;
+	    print STDERR ("$mod_ver not found.\n");
 	} elsif ( exists $required_soft{$module} ) {
-	    print STDERR ("$module not found.  Some tests and/or "
+	    print STDERR ("$mod_ver not found.  Some tests and/or "
 			  ."functionality may be missing.\n");
 	} else {
 	    $skip_tests = 1;
-	    print STDERR ("$module not found.  You will not be able "
+	    print STDERR ("$mod_ver not found.  You will not be able "
 			  ."to run the test suite.\n");
 	}
     }
