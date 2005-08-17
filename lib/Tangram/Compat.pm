@@ -153,7 +153,7 @@ sub DESTROY {
 	@INC;
 }
 
-use Devel::Symdump;
+#use Devel::Symdump;
 BEGIN {
     my $loader = __PACKAGE__->new(REMAPPED);
     #unshift @INC, __PACKAGE__->new( REMAPPED );
