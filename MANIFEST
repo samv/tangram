@@ -62,6 +62,7 @@ lib/Tangram/Set.pod
 lib/Tangram/Springfield.pm
 lib/Tangram/Springfield.pod
 lib/Tangram/SQLite.pm
+lib/Tangram/SQLite2.pm
 lib/Tangram/SQLite.pod
 lib/Tangram/Storable.pm
 lib/Tangram/Storable.pod
