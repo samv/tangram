@@ -378,6 +378,10 @@ C<order> specifies attributes in terms of one or more of the remote
 objects - any that are being selected, or any that appear in the
 filter.
 
+As of Tangram 2.09, you can also directly use SQL expressions in
+C<order> expressions, though you should consider how portable this
+may or may not be.
+
 C<desc> specifies that the order should be descending. For example:
 
     $storage->select( $object, filter => (...),

@@ -604,12 +604,20 @@ sub instantiate {
 		       map { ref $_ ? $_->expr : $_ } @$group);
     }
 
-    if (my $order = $o{order}) {
+    my @order;
+    if ($o{order}) {
+	if ( ref($o{order}) eq 'ARRAY') {
+	    @order = map {ref $_ ? $_->expr : $_} @{$o{order}};
+	} else {
+	    @order = (ref $o{order} ? $o{order}->expr : $o{order});
+	}
+    }
+
+    if (@order) {
 	# ordering, make sure that all ordered columns are selected
 	$selected ||= Set::Object->new(@cols, @$xcols);
 
-	push @$xcols, (grep {  $selected->insert($_) }
-		       map { ref $_ ? $_->expr : $_ } @$order);
+        push @$xcols, (grep { $selected->insert($_) } @order);
     }
 
     my $select = sprintf("SELECT%s\n%s\n",
@@ -777,17 +785,16 @@ sub instantiate {
 		    join ",\n", map { "    ".$_->expr } @$group)."\n";
     }
 
-    if (my $order = $o{order}) {
-
+    if (@order) {
 	my $desc = $o{desc};
 	if ( ! ref $desc ) {
-	    $desc = [ ($desc) x @$order ];
+	    $desc = [ ($desc) x @order ];
 	}
 	my $i = 0;
 	$select .= "ORDER BY\n".
-	    join(",\n", (map { ("    ".$_->expr.
+	    join(",\n", (map { ("    ".$_.
 				($desc->[$i++] ? " DESC" : "")) }
-			 @$order))."\n";
+			 @order))."\n";
     }
 
     if (defined $o{limit}) {
