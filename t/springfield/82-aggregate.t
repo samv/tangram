@@ -3,7 +3,7 @@
 use strict;
 use lib "t/springfield";
 use Springfield;
-use Test::More tests => 7;
+use Test::More tests => 10;
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ my $dbh = DBI->connect($cs, $user, $passwd)
        ( undef,
 	 filter => $r_person->{children}->includes($r_child),
 	 group => [ $r_person ],
-	 retrieve => [ $r_child->{id}->count(), $r_child->{age}->sum() ],
+	 retrieve => [ $r_child->count(), $r_child->{age}->sum() ],
 	 #order => [ $r_child->{id}->count() ],
        );
 
@@ -49,6 +49,38 @@ my $dbh = DBI->connect($cs, $user, $passwd)
    #print Data::Dumper::Dumper(\@data);
    is_deeply(\@data, [ [ 1, 38 ], [3, 19 ], [3, 19] ],
 	     "GROUP BY, SUM(), COUNT()");
+}
+is(&leaked, 0, "leaktest");
+
+# test GROUP BY and COUNT
+{
+   my $storage = Springfield::connect(undef, { dbh => $dbh });
+   my ($r_legal) = $storage->remote("LegalPerson");
+
+   my $count = $storage->count($r_legal);
+   my $expected = 0;
+   if ( $count == 1 ) {
+       $expected = 1;
+   }
+   is($count, $expected, "Tangram::Storage->count(Subclass)");
+
+   $storage->insert(LegalPerson->new(name => "Springfield Nuclear Plant"))
+       unless $storage->count($r_legal);
+
+   #local($Tangram::TRACE)=\*STDERR;
+   my $cursor = $storage->cursor
+       ( undef,
+	 retrieve => [ $r_legal->count() ],
+       );
+
+   my @data;
+   while ( my $row = $cursor->current() ) {
+       push @data, [ $cursor->residue ];
+       $cursor->next();
+   }
+   #print Data::Dumper::Dumper(\@data);
+   is_deeply(\@data, [ [ 1 ] ],
+	     "->COUNT() filters types");
 }
 is(&leaked, 0, "leaktest");
 
