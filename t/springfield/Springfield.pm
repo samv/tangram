@@ -73,6 +73,11 @@ $schema =
       Person =>
       {
          abstract => 1,
+       fields =>
+       {
+	string => { colour => undef,
+		  },
+       },
       },
 
       NaturalPerson =>
