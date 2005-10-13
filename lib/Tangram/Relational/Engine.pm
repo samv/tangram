@@ -1292,8 +1292,9 @@ sub get_polymorphic_select {
 		 @tables[1..$#tables]
 		);
 
-	    #unless (@$mates == $engine->get_heterogeneity($table_set))
-	    #{
+	    unless ( ($storage->{compat} and $storage->{compat} le "2.08")
+		     or
+		     @$mates == $engine->get_heterogeneity($table_set))
 	    {
 		my @type_ids = (map {
 		    # try $storage first for compatibility
@@ -1310,7 +1311,6 @@ sub get_polymorphic_select {
 		    push @where, "$column IN (". (join ', ', @type_ids). ")";
 		}
 	    }
-	    #}
 
 	    push @selects,
 		Tangram::Relational::PolySelectTemplate
