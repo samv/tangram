@@ -284,6 +284,10 @@ following directives:
 
 =item * limit
 
+=item * outer_filter
+
+=item * force_outer
+
 =back
 
 C<filter> specifies a Filter that can be used to restrict the result
@@ -426,6 +430,22 @@ specify more than one number, you may use the following syntax:
 The above example would return rows 6 through 15 on a MySQL database.
 
 The select method is valid only in list context.
+
+C<outer_filter> and C<force_outer> are EXPERIMENTAL API features.
+
+If you pass any filter conditions into C<outer_filter> instead of
+C<filter>, then any mentioned tables are connected by an outer join.
+What this means is that the object does not necessarily have to be
+present for the select to return a row; it may also be C<undef>.
+
+The C<force_outer> option expects an array ref of L<Tangram::Remote>
+objects.  These tables are joined with an outer join clause.
+
+The outer join related code is extremely hairy, and you are advised to
+ensure that you test each outer join query that you are going to use
+with new versions of Tangram.  In particular, having classes in the
+outer section of a join which involve more than two underlying tables
+is currently TODO.
 
 =head2 sum( $expr, [$filter] )
 
