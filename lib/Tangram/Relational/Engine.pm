@@ -661,6 +661,7 @@ sub instantiate {
 					  (@from, @$xfrom) );
 
 	my (@ofrom, @ojoin, %owhen);
+	my %hovering_dogs_bottom;
 
 	# this loop is heinous
 	while ( $ofrom->size ) {
@@ -678,6 +679,15 @@ sub instantiate {
 	    JOIN:
 		while ( my $join  = shift @queue ) {
 		    my @tables = ($join =~ m{\b(tl?\d+)\b}g);
+
+		    if (@tables == 1) {
+			#kill 2,$$;
+			push @{$hovering_dogs_bottom{$tables[0]}||=[]},
+			    $join;
+			$owhere->delete($join);
+			next;
+		    }
+
 		    next unless ( grep { $_ eq $tnum } @tables );
 		    #print STDERR "Checking: $join for @tables (seen_from = $seen_from)\n";
 		    if ( my @bad = grep { !$seen_from->has($_)
@@ -686,10 +696,13 @@ sub instantiate {
 			next JOIN;
 		    } else {
 			my (@others) = (grep { $_ ne $tnum } @tables);
+			#kill 2, $$ if @others == 0;
 			(@others == 1)
 			    or die("Can't handle more than two-table "
 				   ."outer join clauses");
 
+			# when you reach table $others[0],
+			# look at @ofrom and @ojoin index N
 			$owhen{$others[0]} = scalar @ofrom;
 			#print STDERR "ADDED JOIN FROM $others[0] to $tnum ($from?): $join\n";
 
@@ -732,6 +745,11 @@ sub instantiate {
 		my $from = $ofrom[$idx];
 		my $join = $ojoin[$idx];
 		$ofrom[$idx] = undef;
+		if ( $from =~ m{\s(tl?\d+)$}
+		     and exists $hovering_dogs_bottom{$1}
+		   ) {
+		    push @$join, @{ $hovering_dogs_bottom{$1} };
+		}
 		$table .= (sprintf
 			   ("\n\tLEFT OUTER JOIN\n%s\n\tON\n%s",
 			    join(",\n", map { "\t    $_" } $from),
