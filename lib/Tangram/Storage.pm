@@ -1146,8 +1146,13 @@ sub count
 
     if (@_ == 1)
     {
-	$target = '*';
-	$filter = shift;
+       if ($_[0]->isa("Tangram::QueryObject")) {
+           $target = '*';
+           $objects->insert($_[0]->object);
+       } else {
+           $target = '*';
+           $filter = shift;
+       }
     }
     else
     {
@@ -1157,9 +1162,9 @@ sub count
 	    $expr = $expr->{id};
 	} else {
 	    $target = $expr->{expr};
+	    $filter = shift;
 	}
 	$objects->insert($expr->objects);
-	$filter = shift;
     }
 
     my @filter_expr;
@@ -1172,7 +1177,7 @@ sub count
 
     my $sql = "SELECT COUNT($target) FROM " . join(', ', map { $_->from } $objects->members);
    
-    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
+    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members) if @filter_expr;
 
     print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
 
