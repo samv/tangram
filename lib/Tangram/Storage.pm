@@ -1140,47 +1140,13 @@ sub count
 {
     my $self = shift;
 
-    my ($target, $filter);
-    my $objects = Set::Object->new;
+    my ($target, $filter) = @_;
 
-    if (@_ == 1)
-    {
-       if ($_[0]->isa("Tangram::QueryObject")) {
-           $target = '*';
-           $objects->insert($_[0]->object);
-       } else {
-           $target = '*';
-           $filter = shift;
-       }
-    }
-    else
-    {
-	my $expr = shift or croak "nothing supplied to count";
-	if ($expr->isa("Tangram::QueryObject")) {
-	    $target = "*";
-	    $expr = $expr->{id};
-	} else {
-	    $target = $expr->{expr};
-	    $filter = shift;
-	}
-	$objects->insert($expr->objects);
-    }
-
-    my @filter_expr;
-
-    if ($filter)
-    {
-	$objects->insert($filter->objects);
-	@filter_expr = ( "($filter->{expr})" );
-    }
-
-    my $sql = "SELECT COUNT($target) FROM " . join(', ', map { $_->from } $objects->members);
-   
-    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members) if @filter_expr;
-
-    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
-
-    return ($self->{db}->selectrow_array($sql))[0];
+    my @data = $self->select(undef,
+			     ($filter ? (filter => $filter) : ()),
+			     retrieve => [ $target->count() ],
+			    );
+    return $data[0];
 }
 
 sub sum
