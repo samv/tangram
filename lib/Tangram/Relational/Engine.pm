@@ -737,6 +737,7 @@ sub instantiate {
 
 	my @tables = (@from, @$xfrom);
 
+	my $i;
 	for my $table ( @tables ) {
 	    my ($tnum) = ($table =~ m/\b(tl?\d+)\b/)
 		or die "table without an alias";
@@ -745,18 +746,45 @@ sub instantiate {
 		my $from = $ofrom[$idx];
 		my $join = $ojoin[$idx];
 		$ofrom[$idx] = undef;
+		my $other_table;
 		if ( $from =~ m{\s(tl?\d+)$}
 		     and exists $hovering_dogs_bottom{$1}
 		   ) {
 		    push @$join, @{ $hovering_dogs_bottom{$1} };
 		}
-		$table .= (sprintf
-			   ("\n\tLEFT OUTER JOIN\n%s\n\tON\n%s",
-			    join(",\n", map { "\t    $_" } $from),
-			    join("\tAND\n", map { "\t    $_" } @$join),
-			   ));
+
+		# if we're doing an ID join, this one shouldn't be
+		# outer.
+		#kill 2, $$;
+		my ($id_col) = ($self->[1][0] =~ m{\.(.*)});
+		my $isnt_outer = ( grep /t\d+.$id_col = t\d+\.$id_col/,
+				   @$join )
+		    if $id_col;
+		my $frag = (sprintf
+			    ("\n\t".($isnt_outer?"INNER ":"LEFT ")
+			     ."JOIN\n%s\n\tON\n%s",
+			     join(",\n", map { "\t    $_" } $from),
+			     join("\tAND\n", map { "\t    $_" } @$join),
+			    ));
+		# if it's not an outer join, it also needs to be
+		# grouped with the correct table.
+		if ( $isnt_outer ) {
+		    if ( $table =~ m{^\s+\(\S+\s+$tnum$}m ) {
+			die "TODO";
+		    } else {
+			$table =~ s{^(\s+)(\S+\s+$tnum)$}{$1($2\n${\(do {
+                            my $indent = $1;
+                            $frag =~ s{\A\s*}{    }s;
+                            $frag =~ s{^}{$indent}mg;
+                            $frag;
+                        })})}m;
+		    }
+		} else {
+		    $table .= $frag;
+		}
 		($tnum) = grep { $_ ne $tnum } ($from =~ m/\b(tl?\d+)\b/g);
 	    }
+	    $i++;
 	}
 	if ( my @missed = grep { defined } @ofrom ) {
 	    die "Couldn't figure out where to stick @missed";
