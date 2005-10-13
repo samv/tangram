@@ -1,11 +1,13 @@
-
-
 use strict;
 
 use Set::Object;
 
-use Tangram::Scalar;
-use Tangram::Ref;
+use Tangram::Compat;
+BEGIN {
+}
+
+use Tangram::Type::Scalar;
+use Tangram::Type::Ref::FromMany;
 
 use Tangram::Schema;
 use Tangram::Cursor;
@@ -14,6 +16,7 @@ use Tangram::Expr;
 use Tangram::Relational;
 
 package Tangram;
+# Why does this package continue here? -- ank
 
 use vars qw( $TRACE $DEBUG_LEVEL );
 $TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
@@ -31,6 +34,8 @@ BEGIN {
     @EXPORT_OK = qw(pretty);
 }
 
+# pretty("bla") -> "`bla'"
+# pretty(undef) -> undef
 sub pretty {
     my $thingy = shift;
     if (defined($thingy)) {

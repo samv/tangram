@@ -32,18 +32,18 @@ available methods, see L<Tangram::Relational>.
 
 =head1 ERRATA
 
-L<Tangram::Storable> objects are first encoded with L<MIME::Base64>,
+L<Tangram::Type::Dump::Storable> objects are first encoded with L<MIME::Base64>,
 because Tangram does not currently have an easy mechanism for calling
 C<DBI-E<gt>bind_param()> at the appropriate time to flag the column as
 binary.
 
-L<Tangram::PerlDump> objects are stored as C<BYTEA> columns, which as
+L<Tangram::Type::Dump::Perl> objects are stored as C<BYTEA> columns, which as
 of L<DBD::Pg> 1.31, also do not get correctly escaped by the DBD
 driver.  This also affects the (as-yet not fully functional)
-L<Tangram::YAML> back-end, which might put C<\> characters into a YAML
+L<Tangram::Type::Dump::YAML> back-end, which might put C<\> characters into a YAML
 document.
 
-It is recommended to use the C<storable> type with L<Tangram::IDBIF>
+It is recommended to use the C<storable> type with L<Tangram::Type::Dump::Any>
 for this reason.
 
 =cut

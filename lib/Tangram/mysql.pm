@@ -114,8 +114,8 @@ sub tx_rollback
 
 my %improved_date =
   (
-   'Tangram::RawDateTime' => 'Tangram::mysql::DateExpr',
-   'Tangram::RawDate' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type/TimeAndDate' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type/Date' => 'Tangram::mysql::DateExpr',
   );
 
 sub expr
@@ -125,7 +125,7 @@ sub expr
     my ($expr, @remotes) = @_;
 	
 	return Tangram::mysql::IntegerExpr->new($type, $expr, @remotes)
-	  if ref($type) eq 'Tangram::Integer';
+	  if ref($type) eq 'Tangram::Type::Integer';
 
     my $improved_date = $improved_date{ref($type)};
     return $improved_date->new($type, $expr, @remotes)
@@ -141,26 +141,26 @@ use vars qw(@ISA);
 sub bitwise_and
 {
 	my ($self, $val) = @_;
-	return Tangram::Integer->expr("$self->{expr} & $val", $self->objects);
+	return Tangram::Type::Integer->expr("$self->{expr} & $val", $self->objects);
 }
 
 sub bitwise_nand
 {
 	my ($self, $val) = @_;
-	return Tangram::Integer->expr("~$self->{expr} & $val",
+	return Tangram::Type::Integer->expr("~$self->{expr} & $val",
 							 $self->objects);
 }
 
 sub bitwise_or
 {
 	my ($self, $val) = @_;
-	return Tangram::Integer->expr("$self->{expr} | $val", $self->objects);
+	return Tangram::Type::Integer->expr("$self->{expr} | $val", $self->objects);
 }
 
 sub bitwise_nor
 {
 	my ($self, $val) = @_;
-	return Tangram::Integer->expr("~$self->{expr} | $val", $self->objects);
+	return Tangram::Type::Integer->expr("~$self->{expr} | $val", $self->objects);
 }
 
 package Tangram::mysql::DateExpr;

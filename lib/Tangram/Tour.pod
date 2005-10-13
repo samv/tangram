@@ -326,8 +326,8 @@ accessed.  This mechanism is almost totally transparent, we'd have to
 use C<tied> to observe a non-present collection or reference.
 
 For more information on relationships, see L<Tangram::Schema>,
-L<Tangram::Ref>, L<Tangram::Array>, L<Tangram::IntrArray>,
-L<Tangram::Set> and L<Tangram::IntrSet>.
+L<Tangram::Type::Ref::FromMany>, L<Tangram::Type::Array::FromMany>, L<Tangram::Type::Array::FromOne>,
+L<Tangram::Type::Set::FromMany> and L<Tangram::Type::Set::FromOne>.
 
 =head2 select
 
@@ -520,8 +520,8 @@ Expr objects that represent collections have an C<include> methods
 that take a persistent object, a Remote object or an ID.
 
 The result of comparing Exprs (or calling C<include>) is a
-Tangram::Filter that will translate into part of the SQL where-clause
-that will be passed to the RDBMS.
+Tangram::Expr::Filter that will translate into part of the SQL
+where-clause that will be passed to the RDBMS.
 
 For more information on remote objects, see L<Tangram::Remote>.
 

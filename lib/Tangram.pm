@@ -23,14 +23,14 @@ my $force_numeric = $VERSION + 0;
 
 use Tangram::Core;
 
-use Tangram::Set;
-use Tangram::IntrSet;
+use Tangram::Type::Set::FromMany;
+use Tangram::Type::Set::FromOne;
 
-use Tangram::Array;
-use Tangram::IntrArray;
+use Tangram::Type::Array::FromMany;
+use Tangram::Type::Array::FromOne;
 
-use Tangram::Hash;
-use Tangram::IntrHash;
+use Tangram::Type::Hash::FromMany;
+use Tangram::Type::Hash::FromOne;
 
 sub connect
   {

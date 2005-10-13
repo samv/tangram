@@ -97,8 +97,8 @@ sub update_id_in_tx
 
 my %improved =
   (
-   'Tangram::RawDateTime' => 'Tangram::Sybase::DateExpr',
-   'Tangram::RawDate' => 'Tangram::Sybase::DateExpr',
+   'Tangram::Type/TimeAndDate' => 'Tangram::Sybase::DateExpr',
+   'Tangram::Type/Date' => 'Tangram::Sybase::DateExpr',
   );
 
 sub expr
@@ -162,7 +162,7 @@ sub datepart
 	# build a new Expr of Integer type
 	# pass this Expr's remote object list to the new Expr
 
-	return Tangram::Integer->expr("DATEPART($part, $expr)", $self->objects);
+	return Tangram::Type::Integer->expr("DATEPART($part, $expr)", $self->objects);
 }
 
 1;
