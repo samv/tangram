@@ -155,7 +155,7 @@ is(&leaked, 0, "leaktest");
 		    ],
 	order => [ $person->{firstName} ],
 	outer_filter => ( ($person->{partner} == $partner) &
-			  $partner->{firstName} == "Marge" ),
+			  ($partner->{firstName} == "Marge") ),
        );
 
    my @results;
