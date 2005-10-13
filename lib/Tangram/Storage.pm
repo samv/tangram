@@ -1150,7 +1150,7 @@ sub aggregate
 					    ? @$expr : $expr) ],
 			    );
 
-    return @data[0]
+    return $data[0]
 }
 
 sub count
