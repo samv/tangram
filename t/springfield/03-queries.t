@@ -122,6 +122,21 @@ is(&leaked, 0, "leaktest");
 
 #--------------------
 # test outer joins; only really make sense with retrieve
+
+# first, setup some test data
+{
+   my $storage = Springfield::connect(undef, { dbh => $dbh });
+   my @people = $storage->select("NaturalPerson");
+   $storage->insert
+       (LegalPerson->new(name => "Springfield Nuclear Power Plant",
+			 colour => "Fluourescant Green",
+			));
+   for ( @people ) {
+       $_->{colour} = "Yellow";
+   }
+   $storage->update(@people);
+}
+
 {
    my $storage = Springfield::connect(undef, { dbh => $dbh });
 
@@ -130,12 +145,17 @@ is(&leaked, 0, "leaktest");
    my ($person, $partner) = $storage->remote(qw( NaturalPerson
 						 NaturalPerson ));
 
+   # FIXME - polymorphic outer joins don't work.  This query
+   # might actually return wrong results.  A rethink is required.
    my $cursor = $storage->cursor
        (
 	$person,
-	retrieve => [ $partner->{firstName} ],
+	retrieve => [ $partner->{firstName},
+		      $partner->{colour},
+		    ],
 	order => [ $person->{firstName} ],
-	outer_filter => ($person->{partner} == $partner),
+	outer_filter => ( ($person->{partner} == $partner) &
+			  $partner->{firstName} == "Marge" ),
        );
 
    my @results;
@@ -148,7 +168,7 @@ is(&leaked, 0, "leaktest");
    #diag(Data::Dumper::Dumper(\@results));
 
    is_deeply(\@results,
-	     [ qw( Homer:Marge Marge:Homer Montgomery: ) ],
+	     [ qw( Homer:Marge:Yellow Marge:: Montgomery:: ) ],
 	     "outer join");
 
    $storage->disconnect();
