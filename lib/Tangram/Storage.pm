@@ -1146,13 +1146,13 @@ sub count
 
     if (@_ == 1)
     {
-	if ($_[0]->isa("Tangram::QueryObject")) {
-	    $target = '*';
-	    $objects->insert($_[0]->object);
-	} else {
-	    $target = '*';
-	    $filter = shift;
-	}
+       if ($_[0]->isa("Tangram::QueryObject")) {
+           $target = '*';
+           $objects->insert($_[0]->object);
+       } else {
+           $target = '*';
+           $filter = shift;
+       }
     }
     else
     {
@@ -1162,9 +1162,9 @@ sub count
 	    $expr = $expr->{id};
 	} else {
 	    $target = $expr->{expr};
+	    $filter = shift;
 	}
 	$objects->insert($expr->objects);
-	$filter = shift;
     }
 
     my @filter_expr;

@@ -29,7 +29,12 @@ eval "use $dialect";
 ($dialect = 'Tangram::Relational'), eval("use $dialect") if $@;
 print $Tangram::TRACE "Vendor driver $dialect not found - using ANSI SQL ($@)\n"
     if $@ and $Tangram::TRACE;
-print $Tangram::TRACE "Using dialect $dialect\n" if $Tangram::TRACE;
+if ($Tangram::TRACE) {
+    print $Tangram::TRACE "DBConfig.pm: dialect = $dialect, cparm = $cs, "
+	.($user ? "$user" : "(no user)").", "
+	    .($passwd ? ("x" x (length $passwd)) : "(no passwd)")."\n";
+}
+
 
 our $AUTOLOAD;
 sub AUTOLOAD {
