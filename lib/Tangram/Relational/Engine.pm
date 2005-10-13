@@ -580,6 +580,7 @@ sub instantiate {
 					  (@from, @$xfrom) );
 
 	my (@ofrom, @ojoin, %owhen);
+	my %hovering_dogs_bottom;
 
 	# this loop is heinous
 	while ( $ofrom->size ) {
@@ -597,6 +598,15 @@ sub instantiate {
 	    JOIN:
 		while ( my $join  = shift @queue ) {
 		    my @tables = ($join =~ m{\b(tl?\d+)\b}g);
+
+		    if (@tables == 1) {
+			#kill 2,$$;
+			push @{$hovering_dogs_bottom{$tables[0]}||=[]},
+			    $join;
+			$owhere->delete($join);
+			next;
+		    }
+
 		    next unless ( grep { $_ eq $tnum } @tables );
 		    #print STDERR "Checking: $join for @tables (seen_from = $seen_from)\n";
 		    if ( my @bad = grep { !$seen_from->has($_)
@@ -605,10 +615,13 @@ sub instantiate {
 			next JOIN;
 		    } else {
 			my (@others) = (grep { $_ ne $tnum } @tables);
+			#kill 2, $$ if @others == 0;
 			(@others == 1)
 			    or die("Can't handle more than two-table "
 				   ."outer join clauses");
 
+			# when you reach table $others[0],
+			# look at @ofrom and @ojoin index N
 			$owhen{$others[0]} = scalar @ofrom;
 			#print STDERR "ADDED JOIN FROM $others[0] to $tnum ($from?): $join\n";
 
@@ -643,6 +656,7 @@ sub instantiate {
 
 	my @tables = (@from, @$xfrom);
 
+	my $i;
 	for my $table ( @tables ) {
 	    my ($tnum) = ($table =~ m/\b(tl?\d+)\b/)
 		or die "table without an alias";
@@ -651,13 +665,45 @@ sub instantiate {
 		my $from = $ofrom[$idx];
 		my $join = $ojoin[$idx];
 		$ofrom[$idx] = undef;
-		$table .= (sprintf
-			   ("\n\tLEFT OUTER JOIN\n%s\n\tON\n%s",
-			    join(",\n", map { "\t    $_" } $from),
-			    join("\tAND\n", map { "\t    $_" } @$join),
-			   ));
+		my $other_table;
+		if ( $from =~ m{\s(tl?\d+)$}
+		     and exists $hovering_dogs_bottom{$1}
+		   ) {
+		    push @$join, @{ $hovering_dogs_bottom{$1} };
+		}
+
+		# if we're doing an ID join, this one shouldn't be
+		# outer.
+		#kill 2, $$;
+		my ($id_col) = ($self->[1][0] =~ m{\.(.*)});
+		my $isnt_outer = ( grep /t\d+.$id_col = t\d+\.$id_col/,
+				   @$join )
+		    if $id_col;
+		my $frag = (sprintf
+			    ("\n\t".($isnt_outer?"INNER ":"LEFT ")
+			     ."JOIN\n%s\n\tON\n%s",
+			     join(",\n", map { "\t    $_" } $from),
+			     join("\tAND\n", map { "\t    $_" } @$join),
+			    ));
+		# if it's not an outer join, it also needs to be
+		# grouped with the correct table.
+		if ( $isnt_outer ) {
+		    if ( $table =~ m{^\s+\(\S+\s+$tnum$}m ) {
+			die "TODO";
+		    } else {
+			$table =~ s{^(\s+)(\S+\s+$tnum)$}{$1($2\n${\(do {
+                            my $indent = $1;
+                            $frag =~ s{\A\s*}{    }s;
+                            $frag =~ s{^}{$indent}mg;
+                            $frag;
+                        })})}m;
+		    }
+		} else {
+		    $table .= $frag;
+		}
 		($tnum) = grep { $_ ne $tnum } ($from =~ m/\b(tl?\d+)\b/g);
 	    }
+	    $i++;
 	}
 	if ( my @missed = grep { defined } @ofrom ) {
 	    die "Couldn't figure out where to stick @missed";

@@ -1137,91 +1137,33 @@ sub object
     $obj;
 }
 
+sub aggregate
+{
+    my $self = shift;
+    my $function = shift;
+    my $expr = shift;
+    my $filter = shift;
+
+    my @data = $self->select(undef,
+			     ($filter ? (filter => $filter) : ()),
+			     retrieve => [ map { $_->$function() }
+					   (ref ($expr) eq "ARRAY"
+					    ? @$expr : $expr) ],
+			    );
+
+    return $data[0]
+}
+
 sub count
 {
     my $self = shift;
-
-    my ($target, $filter);
-    my $objects = Set::Object->new;
-
-    if (@_ == 1)
-    {
-       if ($_[0]->isa("Tangram::QueryObject")) {
-           $target = '*';
-           $objects->insert($_[0]->object);
-       } else {
-           $target = '*';
-           $filter = shift;
-       }
-    }
-    else
-    {
-	my $expr = shift or croak "nothing supplied to count";
-	if ($expr->isa("Tangram::Expr::QueryObject")) {
-	    $target = "*";
-	    $expr = $expr->{id};
-	} else {
-	    $target = $expr->{expr};
-	    $filter = shift;
-	}
-	$objects->insert($expr->objects);
-    }
-
-    my @filter_expr;
-
-    if ($filter)
-    {
-	$objects->insert($filter->objects);
-	@filter_expr = ( "($filter->{expr})" );
-    }
-
-    my $sql = "SELECT COUNT($target) FROM " . join(', ', map { $_->from } $objects->members);
-   
-    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members) if @filter_expr;
-
-    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
-
-    return ($self->{db}->selectrow_array($sql))[0];
+    $self->aggregate("count", @_);
 }
 
 sub sum
 {
-    my ($self, $expr, $filter) = @_;
-
-    my $expr_is_array = ref($expr) eq 'ARRAY';
-
-    my $objects = Set::Object->new(
-				   $expr_is_array ? 
-				   map($_->objects, @$expr) :
-				   $expr->objects,
-				  );
-
-    my @filter_expr;
-
-    if ($filter)
-    {
-	$objects->insert($filter->objects);
-	@filter_expr = ( "($filter->{expr})" );
-    }
-
-    my $sql = "SELECT " .
-      join(', ',
-	   map("SUM($_->{expr})",
-	       $expr_is_array ? @$expr : ($expr),
-	      ),
-	  ) . " FROM " . join(', ', map { $_->from } $objects->members);
-
-    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
-
-    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
-
-    my @result = $self->{db}->selectrow_array($sql);
-
-    if ( $expr_is_array ) {
-      return wantarray ? @result : \@result;
-    } else {
-      return $result[0];
-    }
+    my $self = shift;
+    $self->aggregate("sum", @_);
 }
 
 sub id
