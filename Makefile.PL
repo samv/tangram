@@ -15,8 +15,8 @@ my %required =
      DBI => 0,
     );
 
-my %required_soft = map{$_=>1} qw( Scalar::Util Time::Piece Class::Date Data::Lazy );
-my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar );
+my %required_soft = map{$_=>1} qw( Scalar::Util Time::Piece Class::Date );
+my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar Data::Lazy );
 
 my ($skip_tests, $bomb_out);
 while (my ($module, $min_ver) = each %required) {

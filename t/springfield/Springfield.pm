@@ -223,6 +223,7 @@ $schema =
 	LegalPerson =>
 	{
 	 bases => [ qw( Person ) ],
+	 table => "Person",
 
 	 fields =>
 	 {

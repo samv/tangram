@@ -36,8 +36,10 @@ L<Tangram::Compat>.
 
 =head1 RELEASE 2.09, August 2005
 
-(not yet released; however no new features are planned for this
-release)
+Unless critical bugs are reported, the latest 2.08_XX release will be
+released as 2.09 in September.
+
+=head2 DEV. RELEASE 2.08_03, 31 Aug 2005
 
 =over
 
@@ -46,6 +48,21 @@ release)
 Make F<Makefile.PL> output display modules that failed, rather than
 letting C<ExtUtils::MakeMaker> do it for it.
 
+=item *
+
+Make L<Data::Lazy> 0.6 a "hard" requirement in the F<Makefile.PL>.
+This is still slightly problematic as only version 0.5 will be
+installed via the CPAN shell.
+
+=item *
+
+Support direct use of SQL in order clauses via C<order =E<gt> [ 'SQL'
+]> (see L<Tangram::Storage/select>)
+
+=item *
+
+Support the SQLite 2 found in Ubuntu Hoary's C<libdbd-sqlite-perl>
+package, which uses a connection string of C<sqlite2>.
 
 =back
 

@@ -56,6 +56,11 @@ lib/Tangram/Schema/ClassHash.pm
 lib/Tangram/Schema/Node.pm
 lib/Tangram/Springfield.pm
 lib/Tangram/Springfield.pod
+lib/Tangram/SQLite.pm
+lib/Tangram/SQLite2.pm
+lib/Tangram/SQLite.pod
+lib/Tangram/Storable.pm
+lib/Tangram/Storable.pod
 lib/Tangram/Storage.pm
 lib/Tangram/Storage.pod
 lib/Tangram/Storage/Statement.pm
