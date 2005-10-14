@@ -1,10 +1,57 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
-=head1 RELEASE 2.09, slated for September 2005
+=head1 RELEASE 2.10
+
+This release is a major re-release of Tangram, which is mostly
+API-backwards compatible.
+
+However, the following caveats need to be considered carefully;
+
+=over
+
+=item *
+
+Various classes, such as C<Tangram::Scalar>, C<Tangram::Set>, etc, are
+now called L<Tangram::Type::Scalar>, L<Tangram::Type::Coll::Set>, etc.
+
+However, so long as you C<use Tangram::Core> (or C<use Tangram>)
+before any of these old names are used, then the L<Tangram::Compat>
+class should be able to catch the inclusion and load the correct
+module instead.
 
 Unless critical bugs are reported, the latest 2.08_XX release will be
 released as 2.09 in September.
+
+=head1 RELEASE 2.09
+
+=head2 DEV. RELEASE 2.08_04, 13 Oct 2005
+
+=over
+
+=item *
+
+A very nasty but also obscure bug affecting horizontal mapping and
+polymorphic retrieval (or aggregation) was reported by Alex.
+
+The fix for it has made remote expressions always include filtering
+(via WHERE) on the type column as well as the ID column in most
+queries.  This should not affect the result of queries; it is just
+passing on an assertion in the code base through to the database
+back-end.  The times it will affect results are when your currently
+active schema does not match the one used to create the database and
+you were previously relying on side-effects.
+
+Examples of the query differences will follow here before the 2.09
+release.
+
+=back
+
+This version has broken outer joins; to be fixed in the next release.
+
+Also, this Changes.pod seems to being delivered to some random place
+in your C<@INC>; sorry about that, the next release will exclude it
+via the appropriate L<ExtUtils::MakeMaker> voodoo.
 
 =head2 DEV. RELEASE 2.08_03, 31 Aug 2005
 

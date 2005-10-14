@@ -361,19 +361,24 @@ sub get_polymorphic_select {
 		 @tables[1..$#tables]
 		);
 
-	    unless (@$mates == $engine->get_heterogeneity($table_set))
+	    unless ( ($storage->{compat} and $storage->{compat} le "2.08")
+		     or
+		     @$mates == $engine->get_heterogeneity($table_set))
 	    {
-		push @where,
-		    (sprintf("%s IN (%s)",
-			     qualify($type_col, $root_table, \%base_tables,
-				     \@expand),
-			     join ', ', map {
-				# try $storage first for compatibility
-				# with layout1
-				 $storage->{class2id}{$_->{CLASS}{name}}
-				     or $_->{MAPPING}{id}
-			     } @$mates)
-		    );
+		my @type_ids = (map {
+		    # try $storage first for compatibility
+		    # with layout1
+		    $storage->{class2id}{$_->{CLASS}{name}}
+			or $_->{MAPPING}{id}
+		    } @$mates);
+
+		my $column = qualify($type_col, $root_table, \%base_tables,
+				     \@expand);
+		if ( @type_ids == 1 ) {
+		    push @where, "$column = @type_ids";
+		} else {
+		    push @where, "$column IN (". (join ', ', @type_ids). ")";
+		}
 	    }
 
 	    push @selects,

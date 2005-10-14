@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Tangram
-version:      2.08_03
+version:      2.10_01
 version_from: lib/Tangram.pm
 installdirs:  site
 requires:
