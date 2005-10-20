@@ -190,9 +190,21 @@ if ( $skip_tests ) {
     }
 }
 
+# all this ... just to skip delivering one file!
+use File::Find;
+my %PM;
+find(sub {
+       m/\.(pod|pm)$/ && do {
+	 my $src = $File::Find::name;
+	 (my $targ = $src) =~ s{lib}{\$(INST_LIBDIR)};
+         ($PM{$src} = $targ);
+       };
+    }, "lib");
+
 WriteMakefile(
 	      'NAME'	=> 'Tangram',
 	      'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
 	      PREREQ_PM => \%required,
+	      PM => \%PM,
 	      test => { TESTS => $tests },
 );
