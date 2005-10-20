@@ -3,8 +3,23 @@
 
 =head1 RELEASE 2.09, slated for October 2005
 
-Unless critical bugs are reported, the latest 2.08_XX release will be
-released as 2.09 in September.
+Unless more critical bugs are reported, the latest 2.08_XX release
+will be released as 2.09 in October.
+
+=head2 DEV. RELEASE 2.08_05, 20 Oct 2005
+
+=over
+
+=item *
+
+Fixed outer joins again.  They've even documented now!  C<:D> See
+L<Tangram::Storage/select>.
+
+=item *
+
+Fix F<Makefile.PL> so as not to deliver F<Changes.pod>.
+
+=back
 
 =head2 DEV. RELEASE 2.08_04, 13 Oct 2005
 
