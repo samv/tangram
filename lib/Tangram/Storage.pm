@@ -1146,9 +1146,9 @@ sub aggregate
     do {
 	$filter = $expr;
 	$expr = Tangram::Expr->new
-	    (Tangram::Number->instance,
+	    (Tangram::Type::Number->instance,
 	     '*', $filter->objects);
-    } if $expr->isa("Tangram::Filter");
+    } if $expr->isa("Tangram::Expr::Filter");
 
     my @data = $self->select(undef,
 			     ($filter ? (filter => $filter) : ()),
