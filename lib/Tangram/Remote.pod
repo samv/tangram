@@ -21,3 +21,9 @@ Perl values, but L<Tangram::Expr>s that will be evaluated on the
 database server side.
 
 Remote objects are somewhat similar to SQL table aliases.
+
+Note that there are no objects which are actually C<Tangram::Remote>
+instances; the objects will be called L<Tangram::Expr::QueryObject> et
+al.
+
+=cut
