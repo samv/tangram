@@ -4,7 +4,7 @@
 =head1 RELEASE 2.09, slated for October 2005
 
 Unless more critical bugs are reported, the latest 2.08_XX release
-will be released as 2.09 in October.
+will be released as 2.09 in August^WSeptember^WOctober^WRSN!
 
 =head2 DEV. RELEASE 2.08_05, 20 Oct 2005
 
