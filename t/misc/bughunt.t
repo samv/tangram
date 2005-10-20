@@ -9,7 +9,7 @@ require "t/Capture.pm";
 use strict;
 use Test::More tests => 4;
 
-use Tangram;
+use Tangram qw(:compat_quiet);
 use Tangram::Relational;
 use Tangram::Schema;
 use Tangram::Scalar;

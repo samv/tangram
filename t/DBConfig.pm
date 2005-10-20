@@ -2,6 +2,7 @@
 package DBConfig;
 
 use DBI;
+use Tangram qw(:core :compat_quiet);
 local $/;
 
 my $config = $ENV{TANGRAM_CONFIG} || 't/CONFIG';

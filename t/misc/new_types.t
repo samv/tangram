@@ -10,7 +10,7 @@ require "t/misc/RefImage.pm";
 use strict;
 use Test::More tests => 1;
 
-use Tangram;
+use Tangram qw(:compat_quiet);
 use Tangram::Relational;
 use Tangram::Schema;
 
