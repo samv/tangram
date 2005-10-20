@@ -12,6 +12,11 @@ will be released as 2.09 in August^WSeptember^WOctober^WRSN!
 
 =item *
 
+Previous aggregation function change broke
+C<$storage-E<gt>count($filter)>.  Fixed.
+
+=item *
+
 Fixed outer joins again.  They've even documented now!  C<:D> See
 L<Tangram::Storage/select>.
 
