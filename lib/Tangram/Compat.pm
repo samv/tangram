@@ -59,6 +59,14 @@ use constant REMAPPED =>
 	Tangram::RDBObject		Tangram::Expr::RDBObject
 	Tangram::Select			Tangram::Expr::Select
 	Tangram::Table			Tangram::Expr::Table
+
+	Tangram::Oracle                 Tangram::Driver::Oracle
+	Tangram::mysql                  Tangram::Driver::mysql
+	Tangram::Pg                     Tangram::Driver::Pg
+	Tangram::SQLite                 Tangram::Driver::SQLite
+	Tangram::SQLite2                Tangram::Driver::SQLite2
+	Tangram::Sybase                 Tangram::Driver::Sybase
+
       );
 
 use strict 'vars', 'subs';

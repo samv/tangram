@@ -1,6 +1,6 @@
 
 
-package Tangram::Oracle;
+package Tangram::Driver::Oracle;
 
 use strict;
 use Tangram::Core;
@@ -12,7 +12,7 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::Oracle::Storage->connect
+      my $storage = Tangram::Driver::Oracle::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
@@ -57,7 +57,7 @@ sub limit_sql {
     return (postfilter => ["rownum <= $spec"]);
 }
 
-package Tangram::Oracle::Storage;
+package Tangram::Driver::Oracle::Storage;
 
 use Tangram::Storage;
 use vars qw(@ISA);

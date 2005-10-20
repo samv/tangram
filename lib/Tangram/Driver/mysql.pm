@@ -3,7 +3,7 @@
 use strict;
 use Tangram::Core;
 
-package Tangram::mysql;
+package Tangram::Driver::mysql;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -12,7 +12,7 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::mysql::Storage->connect
+      my $storage = Tangram::Driver::mysql::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
@@ -60,7 +60,7 @@ sub limit_sql {
     return (limit => shift);
 }
 
-package Tangram::mysql::Storage;
+package Tangram::Driver::mysql::Storage;
 
 use Tangram::Storage;
 use vars qw(@ISA);
@@ -114,8 +114,8 @@ sub tx_rollback
 
 my %improved_date =
   (
-   'Tangram::Type/TimeAndDate' => 'Tangram::mysql::DateExpr',
-   'Tangram::Type/Date' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type::TimeAndDate' => 'Tangram::mysql::DateExpr',
+   'Tangram::Type::Date' => 'Tangram::mysql::DateExpr',
   );
 
 sub expr
@@ -123,8 +123,8 @@ sub expr
     my $self = shift;
     my $type = shift;
     my ($expr, @remotes) = @_;
-	
-	return Tangram::mysql::IntegerExpr->new($type, $expr, @remotes)
+
+	return Tangram::Driver::mysql::Expr::Integer->new($type, $expr, @remotes)
 	  if ref($type) eq 'Tangram::Type::Integer';
 
     my $improved_date = $improved_date{ref($type)};
@@ -134,7 +134,7 @@ sub expr
 	return $type->expr(@_);
   }
 
-package Tangram::mysql::IntegerExpr;
+package Tangram::Driver::mysql::Expr::Integer;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Expr );
 
@@ -163,7 +163,7 @@ sub bitwise_nor
 	return Tangram::Type::Integer->expr("~$self->{expr} | $val", $self->objects);
 }
 
-package Tangram::mysql::DateExpr;
+package Tangram::Driver::mysql::Expr::Date;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Expr );
 

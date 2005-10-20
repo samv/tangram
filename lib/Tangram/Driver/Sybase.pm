@@ -47,20 +47,20 @@
 #L<Tangram::Type>, L<Tangram::Expr>, L<Tangram::Storage>.
 use strict;
 
-package Tangram::Sybase;
+package Tangram::Driver::Sybase;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
 
 sub connect {
     my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
     ${$opts||={}}{driver} = $pkg->new();
-    my $storage = Tangram::Sybase::Storage->connect
+    my $storage = Tangram::Driver::Sybase::Storage->connect
 	( $schema, $cs, $user, $pw, $opts );
 }
 
 use Tangram::Storage;
 
-package Tangram::Sybase::Storage;
+package Tangram::Driver::Sybase::Storage;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Storage );
@@ -69,7 +69,7 @@ sub prepare
   {
 	my ($self, $sql) = @_;
 	#print "prepare: $sql\n";
-	bless [ $self, $sql ], 'Tangram::Sybase::Statement';
+	bless [ $self, $sql ], 'Tangram::Driver::Sybase::Statement';
   }
 
 *prepare_update = \*prepare;
@@ -97,8 +97,8 @@ sub update_id_in_tx
 
 my %improved =
   (
-   'Tangram::Type/TimeAndDate' => 'Tangram::Sybase::DateExpr',
-   'Tangram::Type/Date' => 'Tangram::Sybase::DateExpr',
+   'Tangram::Type/TimeAndDate' => 'Tangram::Driver::Sybase::Expr::Date',
+   'Tangram::Type/Date' => 'Tangram::Driver::Sybase::Expr::Date',
   );
 
 sub expr
@@ -114,7 +114,7 @@ sub expr
     return $improved->new($type, $expr, @remotes);
 }
 
-package Tangram::Sybase::Statement;
+package Tangram::Driver::Sybase::Statement;
 
 use constant STH => 2;
 
@@ -146,7 +146,7 @@ sub finish
 ############################################
 # derive a DateExpr class from existing Expr
 
-package Tangram::Sybase::DateExpr;
+package Tangram::Driver::Sybase::Expr::Date;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Expr );
 

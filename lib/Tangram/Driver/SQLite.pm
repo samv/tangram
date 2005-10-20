@@ -2,7 +2,7 @@
 use strict;
 use Tangram::Core;
 
-package Tangram::SQLite;
+package Tangram::Driver::SQLite;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -11,7 +11,7 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::SQLite::Storage->connect
+      my $storage = Tangram::Driver::SQLite::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
@@ -78,7 +78,7 @@ sub sequence_sql {
     return "SELECT nextval('$sequence_name')";
 }
 
-package Tangram::SQLite::Storage;
+package Tangram::Driver::SQLite::Storage;
 
 use Tangram::Storage;
 use vars qw(@ISA);

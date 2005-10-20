@@ -1,8 +1,8 @@
 
+package Tangram::Driver::Pg;
+
 use strict;
 use Tangram::Core;
-
-package Tangram::Pg;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -11,7 +11,7 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::Pg::Storage->connect
+      my $storage = Tangram::Driver::Pg::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
@@ -52,7 +52,7 @@ sub limit_sql {
     return (limit => shift);
 }
 
-package Tangram::Pg::Storage;
+package Tangram::Driver::Pg::Storage;
 
 use Tangram::Storage;
 use vars qw(@ISA);
