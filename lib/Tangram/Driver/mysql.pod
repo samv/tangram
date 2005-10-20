@@ -1,22 +1,22 @@
 =head1 NAME
 
-Tangram::mysql - Orthogonal Object Persistence in Mysql databases
+Tangram::Driver::mysql - Orthogonal Object Persistence in Mysql databases
 
 =head1 SYNOPSIS
 
    use Tangram;
-   use Tangram::mysql;
+   use Tangram::Driver::mysql;
 
-   $schema = Tangram::mysql->schema( $hashref );
+   $schema = Tangram::Driver::mysql->schema( $hashref );
 
-   Tangram::mysql->deploy($schema, $dbh);
+   Tangram::Driver::mysql->deploy($schema, $dbh);
       
-   $storage = Tangram::mysql->connect( $schema,
+   $storage = Tangram::Driver::mysql->connect( $schema,
       $data_source, $username, $password );
 
    $storage->disconnect();
 
-   Tangram::mysql->retreat($schema, $dbh);
+   Tangram::Driver::mysql->retreat($schema, $dbh);
 
 =head1 DESCRIPTION
 

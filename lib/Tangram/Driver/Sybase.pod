@@ -32,3 +32,11 @@ The vanilla Relational backend may not be used with Sybase databases.
 
 This backend does not add any methods; for a description of
 available methods, see L<Tangram::Relational>.
+
+=head1 WARNING
+
+This backend has not been tested in quite some time.  Is the database
+even called C<Sybase> any more?
+
+=cut
+

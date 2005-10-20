@@ -4,10 +4,10 @@
 
 use strict;
 
-package Tangram::SQLite2;
+package Tangram::Driver::SQLite2;
 
-use Tangram::SQLite;
+use Tangram::Driver::SQLite;
 use vars qw(@ISA);
- @ISA = qw( Tangram::SQLite );
+ @ISA = qw( Tangram::Driver::SQLite );
 
 1;

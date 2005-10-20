@@ -1,9 +1,11 @@
 
 
-package Tangram::Oracle;
+package Tangram::Driver::Oracle;
 
 use strict;
 use Tangram::Core;
+
+use Tangram::Driver::Oracle::Storage;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Relational );
@@ -12,7 +14,7 @@ sub connect
   {
       my ($pkg, $schema, $cs, $user, $pw, $opts) = @_;
       ${$opts||={}}{driver} = $pkg->new();
-      my $storage = Tangram::Oracle::Storage->connect
+      my $storage = Tangram::Driver::Oracle::Storage->connect
 	  ( $schema, $cs, $user, $pw, $opts );
   }
 
@@ -56,34 +58,5 @@ sub limit_sql {
     }
     return (postfilter => ["rownum <= $spec"]);
 }
-
-package Tangram::Oracle::Storage;
-
-use Tangram::Storage;
-use vars qw(@ISA);
- @ISA = qw( Tangram::Storage );
-
-sub open_connection
-{
-    my $self = shift;
-
-    my $db = $self->SUPER::open_connection(@_);
-
-    # Oracle doesn't really have a default date format (locale
-    # dependant), so adjust it to use ISO-8601.
-    $db->do
-	("ALTER SESSION SET NLS_DATE_FORMAT='YYYY-MM-DD\"T\"HH24:MI:SS'");
-    $db->do
-	("ALTER SESSION SET CONSTRAINTS = DEFERRED");
-    $db->{RaiseError} = 1;
-    $db->{LongTruncOk} = 0;
-    $db->{LongReadLen} = 1024*1024;
-    return $db;
-}
-
-
-sub has_tx()         { 1 }
-sub has_subselects() { 1 }
-sub from_dual()      { " FROM DUAL" }
 
 1;

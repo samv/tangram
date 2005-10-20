@@ -25,6 +25,11 @@ schema for which is available at
 L<http://www.class-dbi.com/cgi-bin/wiki/index.cgi?ERD>.  Sections from
 this test suite are slated for inclusion in L</APP2ed>.
 
+=item F<t/timeseries/>
+
+This schema is for problems that relate to I<time series databases>,
+such as transaction record processing, system performance logs, etc.
+
 =back
 
 =head1 PURPOSE
@@ -58,7 +63,8 @@ logical `use case' of the application.
 
 C<musicstore> is an exception to this, as it is a widely popularised
 example.  C<springfield> will be kept around for as long as it is
-needed.
+needed.  Once the coverage from the other test suites is complete, it
+will be marked as end-of-life and phased out.
 
 =item B<the test scripts should be good reading>
 
