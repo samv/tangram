@@ -5,6 +5,8 @@
 
 package Tangram::Compat;
 
+use Set::Object qw(refaddr set);
+
 use Tangram::Compat::Stub;
 
 use constant REMAPPED =>
@@ -81,6 +83,13 @@ BEGIN { $stub = $INC{'Tangram/Compat/Stub.pm'} };
 # this method is called when you "use" something.  This is a "Chain of
 # Command Patte<ETOOMUCHBS>
 
+our $PKG_NOWARN = set();
+sub quiet {
+    my $pkg = shift;
+    #print SDTERR "$pkg is quiet\n";
+    $PKG_NOWARN->insert($pkg);
+}
+
 sub Tangram::Compat::INC {
     my $self = shift;
     my $fn = shift;
@@ -108,8 +117,14 @@ sub setup {
     my $target = $self->{map}{$pkg} or return;
 
     my @c = caller();
-    carp "deprecated package $pkg used by $c[1]:$c[2] auto-loading $target"
-	if $^W;
+    my $n;
+    while ( $c[0] and $c[0] =~ m/^(Tangram::Compat|base)/ ) {
+	@c = caller(++$n);
+    }
+    @c = caller($n-1) unless @c;
+    carp("deprecated package $pkg used by $c[0] ($c[1]:$c[2]); "
+	."auto-loading $target")
+	if $^W and !$PKG_NOWARN->includes($c[0]);
 
     debug_out("using $target") if (DEBUG);
     #kill 2, $$;
@@ -152,8 +167,6 @@ sub new {
     }
     return $self;
 }
-
-use Set::Object qw(refaddr);
 
 sub DESTROY {
     my $self = shift;
