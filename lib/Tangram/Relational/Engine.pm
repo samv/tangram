@@ -178,7 +178,7 @@ sub relational_schema
 		    keys %$tables
 		   };
 
-    return bless [ $tables, $self ], 'Tangram::Schema::Relational';
+    return bless [ $tables, $self ], 'Tangram::Relational::Schema';
 }
 
 
