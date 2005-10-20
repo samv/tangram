@@ -1,19 +1,18 @@
 =head1 NAME
 
-Tangram::Type/Date/DateTime - map date & time fields
+Tangram::Type::TimeAndDate - map date & time fields
 
 =head1 SYNOPSIS
 
    use Tangram;
 
    # any of:
-   use Tangram::Type/Date;
-   use Tangram::Type/Time;
-   use Tangram::RawType/Date/DateTime;
-   use Tangram::CookedType/Date/DateTime;
-   use Tangram::DMType/Date/DateTime;
-   use Tangram::Type::Date::Type::Date::Type::Date::TimePiece;
-   use Tangram::Type/Date/DateTime;
+   use Tangram::Type::Date;   # RAW - use with caution
+   use Tangram::Type::Time;
+   use Tangram::Type::Date::Cooked;   # pure ISO-8601
+   use Tangram::Type::Date::DateTime;
+   use Tangram::Type::Date::Manip;
+   use Tangram::Type::Date::TimePiece;
 
    Tangram::Schema->new(
       classes => {
@@ -50,13 +49,13 @@ for example:
   2004-12-25T13:14:15
 
 Other modules then further cook this ISO date into an object as is the
-convention for a particular module.
+convention for a particular module.  This only works with back-ends
+that allow per-connection settings for the default date format, such
+as L<Tangram::Driver::Oracle>.
 
 On the way back out, the date is converted back to the DBMS format.
 This is achieved via vendor-specific functions mentioned in
 C<Tangram::Relational>.
-
-Other
 
 The persistent fields may be specified either as a hash or as an array
 of field names.
