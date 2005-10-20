@@ -1,22 +1,22 @@
 =head1 NAME
 
-Tangram::Oracle - Orthogonal Object Persistence in Oracle databases
+Tangram::Driver::Oracle - Orthogonal Object Persistence in Oracle databases
 
 =head1 SYNOPSIS
 
    use Tangram;
-   use Tangram::Oracle;
+   use Tangram::Driver::Oracle;
 
-   $schema = Tangram::Oracle->schema( $hashref );
+   $schema = Tangram::Driver::Oracle->schema( $hashref );
 
-   Tangram::Oracle->deploy($schema, $dbh);
+   Tangram::Driver::Oracle->deploy($schema, $dbh);
       
-   $storage = Tangram::Oracle->connect( $schema,
+   $storage = Tangram::Driver::Oracle->connect( $schema,
       $data_source, $username, $password );
 
    $storage->disconnect();
 
-   Tangram::Oracle->retreat($schema, $dbh);
+   Tangram::Driver::Oracle->retreat($schema, $dbh);
 
 =head1 DESCRIPTION
 
