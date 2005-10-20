@@ -1151,12 +1151,9 @@ sub aggregate
 
     my @data = $self->select(undef,
 			     ($filter ? (filter => $filter) : ()),
-			     ($expr
-			      ? ( retrieve => [ map { $_->$function() }
+			      retrieve => [ map { $_->$function() }
 						(ref ($expr) eq "ARRAY"
 						 ? @$expr : $expr) ],
-				)
-			      : ( retrieve => 'count(*)' ) )
 			    );
 
     return $data[0]
