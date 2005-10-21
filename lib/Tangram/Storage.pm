@@ -8,27 +8,9 @@ use DBI;
 use Carp;
 
 use Tangram::Util qw(pretty);
+use Scalar::Util qw(weaken refaddr);
 
 use vars qw( %storage_class );
-
-BEGIN {
-    eval 'use Scalar::Util qw()';
-    if ($@) {
-	*Tangram::refaddr = sub { (shift) + 0 };
-	eval 'use WeakRef';
-	if ($@) {
-	    *Tangram::weaken = sub { };
-	    $Tangram::no_weakrefs = 1;
-	} else {
-	    *Tangram::weaken = \&WeakRef::weaken;
-	    $Tangram::no_weakrefs = 0;
-	}
-    } else {
-	*Tangram::weaken = \&Scalar::Util::weaken;
-	*Tangram::refaddr = \&Scalar::Util::refaddr;
-	$Tangram::no_weakrefs = 0;
-    }
-}
 
 sub new
 {
@@ -178,16 +160,16 @@ sub _open
 		}
 	  }
 	  if ($id) {
-	    $self->{ids}{Tangram::refaddr($obj)} = $id;
+	    $self->{ids}{refaddr($obj)} = $id;
 	  } else {
-	    delete $self->{ids}{Tangram::refaddr($obj)};
+	    delete $self->{ids}{refaddr($obj)};
 	  }
 	};
 
     $self->{get_id} = $schema->{get_id} || sub {
 	  my $obj = shift or warn "no object passed to get_id";
 	  ref $obj or return undef;
-	  my $address = Tangram::refaddr($obj)
+	  my $address = refaddr($obj)
 	      or do { warn "Object $obj has no refaddr(?)";
 		      return undef };
 	  my $id = $self->{ids}{$address};
