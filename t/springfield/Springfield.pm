@@ -2,7 +2,7 @@ use strict;
 
 use lib "t";
 
-use Tangram;
+use Tangram qw(:compat_quiet);
 
 use Tangram::RawDate;
 use Tangram::RawTime;
@@ -18,7 +18,7 @@ package Springfield;
 use Exporter;
 use vars qw(@ISA @EXPORT @EXPORT_OK %id @kids @opinions $no_date_manip);
 
-eval 'use Tangram::DMDateTime';
+eval 'use Tangram::Type::Date::Manip';
 
 $no_date_manip = $@;
 

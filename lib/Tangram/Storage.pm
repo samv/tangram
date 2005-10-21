@@ -1143,12 +1143,18 @@ sub aggregate
     my $function = shift;
     my $expr = shift;
     my $filter = shift;
+    do {
+	$filter = $expr;
+	$expr = Tangram::Expr->new
+	    (Tangram::Type::Number->instance,
+	     '*', $filter->objects);
+    } if $expr->isa("Tangram::Expr::Filter");
 
     my @data = $self->select(undef,
 			     ($filter ? (filter => $filter) : ()),
-			     retrieve => [ map { $_->$function() }
-					   (ref ($expr) eq "ARRAY"
-					    ? @$expr : $expr) ],
+			      retrieve => [ map { $_->$function() }
+						(ref ($expr) eq "ARRAY"
+						 ? @$expr : $expr) ],
 			    );
 
     return $data[0]

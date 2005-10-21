@@ -3,25 +3,59 @@
 
 =head1 RELEASE 2.10
 
-This release is a major re-release of Tangram, which is mostly
-API-backwards compatible.
+This release is the first step in the major refactoring of Tangram,
+which is API-backwards compatible.  The differences between 2.09 and
+2.10 are limited to namespace re-organisation.  The test suite still
+succeeds unmodified, but has been tweaked to suppress warnings that
+deprecated modules are being used.
 
-However, the following caveats need to be considered carefully;
+=head2 DEV. RELEASE 2.09_01, 20 Oct 2005
 
 =over
 
 =item *
 
+Renamed lots of modules to a grand new layout scheme.
+
 Various classes, such as C<Tangram::Scalar>, C<Tangram::Set>, etc, are
 now called L<Tangram::Type::Scalar>, L<Tangram::Type::Coll::Set>, etc.
 
-However, so long as you C<use Tangram::Core> (or C<use Tangram>)
-before any of these old names are used, then the L<Tangram::Compat>
-class should be able to catch the inclusion and load the correct
+However, so long as you C<use Tangram::Core>, C<use Tangram> or C<use
+Tangram::Compat> before any of these old names are used, then C<@INC>
+magic should be able to catch the inclusion and load the correct
 module instead.
 
-Unless critical bugs are reported, the latest 2.08_XX release will be
-released as 2.09 in September.
+=item *
+
+Added new C<use Tangram> import arguments C<:core> and
+C<:compat_quiet>.  to be documented.
+
+=back
+
+=head1 RELEASE 2.09, slated for October 2005
+
+Unless more critical bugs are reported, the latest 2.08_XX release
+will be released as 2.09 in August^WSeptember^WOctober^WRSN!
+
+=head2 DEV. RELEASE 2.08_05, 20 Oct 2005
+
+=over
+
+=item *
+
+Previous aggregation function change broke
+C<$storage-E<gt>count($filter)>.  Fixed.
+
+=item *
+
+Fixed outer joins again.  They've even documented now!  C<:D> See
+L<Tangram::Storage/select>.
+
+=item *
+
+Fix F<Makefile.PL> so as not to deliver F<Changes.pod>.
+
+=back
 
 =head1 RELEASE 2.09
 

@@ -2,7 +2,7 @@
 
 package Tangram;
 
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK @KEYWORDS $KEYWORDS_RE);
 
 require Exporter;
 
@@ -21,16 +21,39 @@ my $force_numeric = $VERSION + 0;
 
 # Preloaded methods go here.
 
-use Tangram::Core;
+BEGIN {
+    @KEYWORDS = qw(compat_quiet core);
+    $KEYWORDS_RE = qr/^:(?:${\(join "|", map { qr{\Q$_\E} }
+                               @KEYWORDS)})/;
+}
 
-use Tangram::Type::Set::FromMany;
-use Tangram::Type::Set::FromOne;
+use Set::Object qw(1.10);
+BEGIN { Set::Object->import("set") };
 
-use Tangram::Type::Array::FromMany;
-use Tangram::Type::Array::FromOne;
+sub import {
+    my $package = shift;
+    my @for_exporter = grep !m/$KEYWORDS_RE/, @_;
+    my $options = set(grep m/$KEYWORDS_RE/, @_);
+    $package->SUPER::import(@for_exporter);
 
-use Tangram::Type::Hash::FromMany;
-use Tangram::Type::Hash::FromOne;
+    require Tangram::Core;
+
+    unless ( $options->includes(":core") ) {
+	require Tangram::Type::Set::FromMany;
+	require Tangram::Type::Set::FromOne;
+
+	require Tangram::Type::Array::FromMany;
+	require Tangram::Type::Array::FromOne;
+
+	require Tangram::Type::Hash::FromMany;
+	require Tangram::Type::Hash::FromOne;
+    }
+
+    if ( $options->includes(":compat_quiet") ) {
+	Tangram::Compat::quiet(scalar caller);
+    }
+
+}
 
 sub connect
   {

@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 
 my %required =
     (
-     'Set::Object' => 1.08,
+     'Set::Object' => 1.10,
      "Test::More" => 0,
      #"Date::Manip" => 0,
      "Time::Piece" => 0,
@@ -190,9 +190,21 @@ if ( $skip_tests ) {
     }
 }
 
+# all this ... just to skip delivering one file!
+use File::Find;
+my %PM;
+find(sub {
+       m/\.(pod|pm)$/ && do {
+	 my $src = $File::Find::name;
+	 (my $targ = $src) =~ s{lib}{\$(INST_LIBDIR)};
+         ($PM{$src} = $targ);
+       };
+    }, "lib");
+
 WriteMakefile(
 	      'NAME'	=> 'Tangram',
 	      'VERSION_FROM' => 'lib/Tangram.pm', # finds $VERSION
 	      PREREQ_PM => \%required,
+	      PM => \%PM,
 	      test => { TESTS => $tests },
 );
