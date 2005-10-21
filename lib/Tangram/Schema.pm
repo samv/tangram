@@ -18,6 +18,7 @@ use vars qw( %TYPES );
 );
 
 use Scalar::Util qw(reftype);
+use Tangram::Util qw(pretty);
 
 sub new
 {
@@ -99,9 +100,14 @@ sub new
 			    foreach (keys %$fields);
 		    }
 		}
+		die "'fields' must be a hash ref ($classdef->{name}), but is "
+		    .pretty($classdef->{fields})
+		    if reftype $classdef->{fields} ne "HASH";
+
 		$classdef->{members} = $classdef->{fields};
 
 		my $cols = 0;
+
 
 		foreach my $typetag (keys %{$classdef->{members}})
 		{

@@ -2,47 +2,9 @@ use strict;
 
 use Set::Object;
 
-use Tangram::Compat;
-BEGIN {
-}
+use Tangram qw(:core);
 
-use Tangram::Type::Scalar;
-use Tangram::Type::Ref::FromMany;
-
-use Tangram::Schema;
-use Tangram::Cursor;
-use Tangram::Storage;
-use Tangram::Expr;
-use Tangram::Relational;
-
-package Tangram;
-# Why does this package continue here? -- ank
-
-use vars qw( $TRACE $DEBUG_LEVEL );
-$TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
-  if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};
-
-$DEBUG_LEVEL = $ENV{TANGRAM_DEBUG_LEVEL} || 0;
-
-package Tangram::Core;
-
-use Exporter;
-use vars qw(@ISA @EXPORT_OK);
-
-BEGIN {
-    @ISA = qw(Exporter);
-    @EXPORT_OK = qw(pretty);
-}
-
-# pretty("bla") -> "`bla'"
-# pretty(undef) -> undef
-sub pretty {
-    my $thingy = shift;
-    if (defined($thingy)) {
-	return "`$thingy'";
-    } else {
-	return "undef";
-    }
-}
+use vars qw(@ISA);
+@ISA = qw(Tangram);
 
 1;

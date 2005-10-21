@@ -6,7 +6,8 @@ use Tangram::Storage::Statement;
 
 use DBI;
 use Carp;
-use Tangram::Core;
+
+use Tangram::Util qw(pretty);
 
 use vars qw( %storage_class );
 
@@ -27,7 +28,6 @@ BEGIN {
 	*Tangram::refaddr = \&Scalar::Util::refaddr;
 	$Tangram::no_weakrefs = 0;
     }
-    *pretty = *Tangram::Core::pretty;
 }
 
 sub new
