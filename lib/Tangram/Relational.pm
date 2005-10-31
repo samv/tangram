@@ -103,7 +103,7 @@ BEGIN {
 	 'DATE|TIME|DATETIME|TIMESTAMP'
 	               => 'date',
 	 'BOOL'        => 'bool',
-	 'INT|SHORTINT|TINYINT|LONGINT|MEDIUMINT|SMALLINT'
+	 'INT(?:EGER)?|SHORTINT|TINYINT|LONGINT|MEDIUMINT|SMALLINT'
                        => 'integer',
 	 'DECIMAL|NUMERIC|FLOAT|REAL|DOUBLE|SINGLE|EXTENDED'
 	               => 'number',
@@ -115,7 +115,7 @@ BEGIN {
     {
 	my $c = 0;
 	$sql_t_qr = "^(?:".join("|", map { "($_)" } grep {(++$c)&1}
-				@sql_t).")\\s*(?:(?i:NOT\\s+)?NULL)?\$";
+				@sql_t).")\\s*(?i:(?i:NOT\\s+)?NULL)?\\s*\$";
 
 	$sql_t_qr = qr/$sql_t_qr/i;
     }
@@ -128,15 +128,20 @@ sub type {
 
     my @x = ($type =~ m{$sql_t_qr});
 
-    my $c = 1;
+    my $c = @x ? 1 : @sql_t;
     $c+=2 while not defined shift @x and @x;
 
     my $func = $sql_t[$c] or do {
 	cluck "type '$type' didn't match $sql_t_qr";
 	return $type;
     };
-    return $self->$func($type);
-
+    my $new_type = $self->$func($type);
+    if ( $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 1 ) {
+	print $Tangram::TRACE
+	    __PACKAGE__.": re-wrote $type to $new_type via "
+		.ref($self)."::$func\n";
+    }
+    return $new_type;
 }
 
 # convert a value from an RDBMS format => an internal format
