@@ -1,8 +1,11 @@
 
 
+package Tangram::Relational;
+
 use Tangram::Relational::Engine;
 
-package Tangram::Relational;
+use Carp qw(cluck);
+use strict;
 
 sub new { bless { }, shift }
 
@@ -94,8 +97,8 @@ our ($sql_t_qr, @sql_t);
 BEGIN {
     @sql_t =
 	(
-	 'VARCHAR'     => 'varchar',       # variable width
-	 'CHAR'        => 'char',          # fixed width
+	 'VARCHAR\s*(?:\(\s*\d+\s*\))?'     => 'varchar',       # variable width
+	 'CHAR\s*(?:\(\s*\d+\s*\))?'        => 'char',          # fixed width
 	 'BLOB'        => 'blob',          # generic, large data store
 	 'DATE|TIME|DATETIME|TIMESTAMP'
 	               => 'date',
@@ -105,14 +108,14 @@ BEGIN {
 	 'DECIMAL|NUMERIC|FLOAT|REAL|DOUBLE|SINGLE|EXTENDED'
 	               => 'number',
 	 'ENUM|SET'    => 'special',
-	 ''            => 'general',
+	 '\w+\s*(?:\(\s*\d+\s*\))?' => 'general',
 	);
 
     # compile the types to a single regexp.
     {
 	my $c = 0;
 	$sql_t_qr = "^(?:".join("|", map { "($_)" } grep {(++$c)&1}
-				@sql_t).")";
+				@sql_t).")\\s*(?:(?i:NOT\\s+)?NULL)?\$";
 
 	$sql_t_qr = qr/$sql_t_qr/i;
     }
@@ -126,9 +129,12 @@ sub type {
     my @x = ($type =~ m{$sql_t_qr});
 
     my $c = 1;
-    $c+=2 while not defined shift @x;
+    $c+=2 while not defined shift @x and @x;
 
-    my $func = $sql_t[$c];
+    my $func = $sql_t[$c] or do {
+	cluck "type '$type' didn't match $sql_t_qr";
+	return $type;
+    };
     return $self->$func($type);
 
 }
