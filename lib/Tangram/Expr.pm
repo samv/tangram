@@ -12,6 +12,8 @@ use Tangram::Expr::Select;
 use Set::Object qw(blessed);
 use Carp;
 
+# WARNING - many 'core' functions are redefined in this namespace.
+
 sub new
 {
 	my ($pkg, $type, $expr, @objects) = @_;
@@ -124,6 +126,11 @@ sub acos
     $self->unaop('ACOS', 100);
 }
 
+sub not
+{
+    my ($self) = @_;
+    $self->unaop('NOT', 100);
+}
 
 sub unaop
 {
@@ -133,8 +140,10 @@ sub unaop
     my $objects = Set::Object->new(@objects);
     my $storage = $self->{storage};
     
-    return new Tangram::Expr::Filter(expr => "$op($self->{expr})", tight => $tight || 100,
-			       objects => $objects );
+    return new Tangram::Expr::Filter
+	(expr => "$op($self->{expr})",
+	 tight => $tight || 100,
+	 objects => $objects );
 }
 
 
@@ -306,6 +315,7 @@ use overload
 	"gt" => \&gt,
 	">=" => \&ge,
 	"ge" => \&ge,
+	"!"  => \&not,
 	'""' => \&as_string,
 	fallback => 1;
 
