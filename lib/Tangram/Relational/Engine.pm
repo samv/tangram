@@ -56,10 +56,18 @@ sub new {
     }
 
     if ( $opts{driver} ) {
-	$engine->{driver} = $opts{driver};
-	print $Tangram::TRACE ref($opts{driver})." driver selected\n"
-	    if $Tangram::TRACE;
+	if ( ref $opts{driver} ) {
+	    $engine->{driver} = $opts{driver};
+	} else {
+	    # must be a package - new it
+	    $engine->{driver} = $opts{driver}->new;
+	}
+    } else {
+	$engine->{driver} = Tangram::Relational->new();
     }
+    print $Tangram::TRACE __PACKAGE__.": "
+	.($engine->{driver}->name)." driver selected\n"
+	    if $Tangram::TRACE;
 
     for my $class ($schema->all_classes) {
 	$engine->{ROOT_TABLES}{$class->{table}} = 1

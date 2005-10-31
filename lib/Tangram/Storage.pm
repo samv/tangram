@@ -957,7 +957,7 @@ sub welcome
     my ($self, $obj, $id) = @_;
     $self->{set_id}->($obj, $id);
 
-    Tangram::weaken( $self->{objects}{$id} = $obj );
+    weaken( $self->{objects}{$id} = $obj );
   }
 
 sub goodbye
@@ -1273,7 +1273,7 @@ sub connect
 
     @$self{ -cs, -user, -pw } = ($cs, $user, $pw);
 
-    $self->{driver} = $opts->{driver} || Tangram::Relational->new;
+    $self->{driver} = $opts->{driver} || Tangram::Relational->detect($cs);
 
     my $db = $opts->{dbh};
     unless ( $db ) {
