@@ -8,7 +8,9 @@ sub _deploy_do
     my $output = shift;
 
     return ref($output) && eval { $output->isa('DBI::db') }
-		? sub { print $Tangram::TRACE @_, "\n" if $Tangram::TRACE;
+		? sub { print $Tangram::TRACE "Deploying with: >-\n",
+			    @_, ($_[$#_]=~m/\n\Z/?"":"\n"),
+				"...\n" if $Tangram::TRACE;
 			$output->do( join '', @_ ); }
 		: sub { print $output @_, ";\n\n" };
 }
