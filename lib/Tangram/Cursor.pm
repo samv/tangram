@@ -73,10 +73,14 @@ sub select
 	my ($inner_objects, $outer_objects)
 	    = (Set::Object->new(), Set::Object->new());
 
+	#kill 2, $$;
 	if (exists $args{retrieve}) {
 	    $self->retrieve( @{ $args{retrieve} } );
-	    # assume that objects are outside the query until joined
-	    $outer_objects->insert
+	    # assume that objects are inside the query until joined.
+	    my $which = ($self->{TARGET}
+			 ? $outer_objects
+			 : $inner_objects);
+	    $which->insert
 		( map { $_->{objects}->members }
 		  @{ $args{retrieve} } );
 	}
@@ -100,20 +104,30 @@ sub select
 
 	# anything mentioned in the `outer_filter' is part of the
 	# outer query
+	#kill 2, $$;
+	my $is_outer;
+	if ( my $forced_outer = $args{force_outer} ) {
+	    my @outer = ( map { $_->object }
+			  ( ref $forced_outer eq "ARRAY"
+			    ? @$forced_outer
+			    : $forced_outer));
+	    $is_outer = 1;
+	    $inner_objects->remove(@outer);
+	    $outer_objects->insert(@outer);
+	    $filter->{objects}->remove(@outer);
+	}
 	if (my $outer_filter = $args{outer_filter}) {
 	    #kill 2, $$;
-	    if ( my $forced_outer = $args{force_outer} ) {
-		$inner_objects->remove(map { $_->object }
-				       @$forced_outer);
-	    }
 
 	    $outer = Tangram::Expr::Filter->new( tight => 100,
 					   objects => $outer_objects );
 	    $outer->{expr} = $outer_filter->{expr};
 	    $outer->{objects}->insert($outer_filter->{objects}->members);
 	    $outer->{objects}->remove($inner_objects->members);
+	    $is_outer = 1;
 
-	} elsif ( $outer_objects->size ) {
+	}
+	if ( !$is_outer and $outer_objects->size ) {
 
 	    # If there is no outer query, then we must add the
 	    # selected tables to the inner query part.
