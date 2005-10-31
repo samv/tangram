@@ -22,6 +22,7 @@ use Data::Dumper qw(Dumper);
 # a compact, non-intrusive, non-recursive dumper.  Similar to
 # Class::Tangram::quickdump.
 sub d {
+    return join "\n", map { d($_) } @_ if @_ > 1;
     my @r;
     if ( my $tie = tied $_[0] ) {
 	push @r, "(tied to ", $tie, ")";
