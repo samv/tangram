@@ -3,14 +3,29 @@ use strict;
 
 package Tangram::Type::Date::HiRes;
 
-use Tangram::Type::Date;
+use Tangram::Type::Date::Cooked;
 use Time::Local qw(timegm timelocal);
+use Time::HiRes;
 use Carp;
 
 use vars qw(@ISA);
- @ISA = qw( Tangram::Type::Date );
+ @ISA = qw( Tangram::Type::Date::Cooked );
 
 $Tangram::Schema::TYPES{time_hires} = Tangram::Type::Date::HiRes->new;
+
+use Carp;
+$Class::Tangram::defaults{time_hires}
+    = { check_func => sub {
+	    ref ${ $_[0] } eq "ARRAY"
+		or croak "${$_[0]} is not an ARRAY ref";
+	    @${ $_[0] } == 2
+		or croak("hires time does not contain correct "
+		       ."number of elements (it's got ".@${ $_[0] }.")");
+	    if ( my @bad = grep { !defined(ish_int($_)) } @${ $_[0] } ) {
+		croak ("$bad[0] is not an integer");
+	    }
+	},
+      };
 
 sub coldefs
 {
@@ -53,7 +68,8 @@ sub get_importer
 		 $sec_f *= 10 ** (6 - $sec_f_len);
 	     }
 	     return [ $time_t, int($sec_f) ];
-	   }
+	   },
+       "date_hires",
       );
 }
 
@@ -66,7 +82,6 @@ sub get_exporter
     $self->SUPER::get_exporter
 	($context, sub {
 	     my $hires_t = shift;
-
 	     # return in ISO8061 form YYYY-MM-DDTHH:MN:SS.SSSSSS+TZ
 	     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)
 		 = localtime($hires_t->[0]);
@@ -78,7 +93,12 @@ sub get_exporter
 	     $time =~ s{xxxxxx}{sprintf("%.6d", $hires_t->[1])}e;
 
 	     return $time;
-     });
+	 },
+	 "date_hires",
+	);
 }
+
+use Set::Object qw(ish_int);
+
 
 1;
