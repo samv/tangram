@@ -1,6 +1,30 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
+=head1 RELEASE 2.11
+
+This release is starting to fix some of the design problems, and
+slowly make changes to the API to fix the brokenness where it exists.
+
+=over
+
+=item *
+
+L<Tangram::Relational> methods will now automatically try to load a
+L<Tangram::Driver> based on the DBI connection string.
+
+=item *
+
+L<Tangram::Core> is now deprecated; use C<Tangram qw(:core)> instead.
+
+=item *
+
+Query objects (C<Tangram::Expr::QueryObject>'s, as returned by
+L<Tangram::Storage/remote> support C<IS NULL> and C<IS NOT NULL>, via
+the unary C<!> operator or C<!!> idiom, respectively.
+
+=back
+
 =head1 RELEASE 2.10
 
 This release is the first step in the major refactoring of Tangram,
