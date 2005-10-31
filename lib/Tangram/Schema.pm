@@ -102,7 +102,8 @@ sub new
 		}
 		die "'fields' must be a hash ref ($classdef->{name}), but is "
 		    .pretty($classdef->{fields})
-		    if reftype $classdef->{fields} ne "HASH";
+		    if defined $classdef->{fields} and
+			reftype $classdef->{fields} ne "HASH";
 
 		$classdef->{members} = $classdef->{fields};
 
