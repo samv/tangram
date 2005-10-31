@@ -32,6 +32,10 @@ sub _with_handle {
 	if (ref $arg) {
 	  Tangram::Relational::Engine->new($schema, driver => $self)->$method($arg)
 	} else {
+	    # try to automatically select the correct driver
+	    if ( !ref $self and $self eq __PACKAGE__ ) {
+		$self = $self->detect($arg);
+	    }
 	  my $dbh = DBI->connect($arg, @_);
 	  eval { Tangram::Relational::Engine->new($schema, driver => $self)->$method($dbh) };
 	  $dbh->disconnect();
@@ -42,6 +46,23 @@ sub _with_handle {
 	Tangram::Relational::Engine->new($schema, driver => $self)->$method();
   }
 }
+
+sub detect
+    {
+	my $self = shift;
+	my $dbi_cs = shift;
+	$dbi_cs =~ m{dbi:(\w+):} or return (ref $self || $self);
+	my $pkg = "Tangram::Driver::$1";
+	eval "use $pkg";
+	if ( !$@ ) {
+	    print $Tangram::TRACE
+		__PACKAGE__.": using the $pkg driver for $dbi_cs\n"
+		    if $Tangram::TRACE;
+	    return $pkg;
+	} else {
+	    return (ref $self || $self);
+	}
+    }
 
 sub deploy
   {
