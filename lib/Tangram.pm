@@ -14,7 +14,7 @@ $DEBUG_LEVEL = $ENV{TANGRAM_DEBUG_LEVEL} || 0;
 use Exporter;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK @KEYWORDS $KEYWORDS_RE);
-@ISA = qw(Exporter AutoLoader);
+@ISA = qw(Exporter);
 @EXPORT = qw();
 @EXPORT_OK = qw(pretty d);
 
@@ -37,7 +37,7 @@ BEGIN { Set::Object->import("set") };
 
 sub import {
     my $package = shift;
-    if ( $_[0] =~ m{^\d} ) {
+    if ( defined $_[0] and $_[0] =~ m{^\d} ) {
 	# they want a specific version, do the test ourselves to avoid
 	# a warning
 	my $wanted = shift;
@@ -50,12 +50,17 @@ sub import {
     my @for_exporter = grep !m/$KEYWORDS_RE/, @_;
     my $options = set(grep m/$KEYWORDS_RE/, @_);
 
-    $package->SUPER::import(@for_exporter);
+    Exporter::import($package, @for_exporter);
 
     # don't go requiring extra modules for 
-    return if caller =~ m{^Tangram::};
-
-    require Tangram::Core;
+    my $caller = caller;
+    my @caller = caller;
+    unless ( $options->includes(":no_compat") ) {
+	require Tangram::Compat;
+	if ( $options->includes(":compat_quiet") ) {
+	    Tangram::Compat::quiet(scalar caller);
+	}
+    }
 
     unless ( $options->includes(":core") ) {
 	require Tangram::Type::Set::FromMany;
@@ -68,12 +73,6 @@ sub import {
 	require Tangram::Type::Hash::FromOne;
     }
 
-    unless ( $options->includes(":no_compat") ) {
-	require Tangram::Compat;
-	if ( $options->includes(":compat_quiet") ) {
-	    Tangram::Compat::quiet(scalar caller);
-	}
-    }
 }
 
 sub connect
