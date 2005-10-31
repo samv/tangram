@@ -122,7 +122,7 @@ sub type {
 
 # convert a value from an RDBMS format => an internal format
 sub from_dbms {
-    my $self = ( (ref $_[0] and UNIVERSAL::isa($_[0], __PACKAGE__))
+    my $self = ( UNIVERSAL::isa($_[0], __PACKAGE__)
 		 ? shift
 		 : __PACKAGE__);
     my $type = shift;
@@ -139,7 +139,7 @@ sub from_dbms {
 
 # convert a value from an internal format => an RDBMS format
 sub to_dbms {
-    my $self = ( (ref $_[0] and UNIVERSAL::isa($_[0], __PACKAGE__))
+    my $self = ( UNIVERSAL::isa($_[0], __PACKAGE__)
 		 ? shift
 		 : __PACKAGE__);
     my $type = shift;
