@@ -64,6 +64,19 @@ sub detect
 	}
     }
 
+sub name
+  {
+      my $self = shift;
+      my $pkg = (ref $self || $self);
+      if ( $pkg eq __PACKAGE__ ) {
+	  return "vanilla";
+      } elsif ( $pkg =~ m{::Driver::(.*)} ) {
+	  return $1;
+      } else {
+	  return $pkg;
+      }
+  }
+
 sub deploy
   {
       my $self = (shift) || __PACKAGE__;
