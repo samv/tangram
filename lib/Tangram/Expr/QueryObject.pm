@@ -3,6 +3,7 @@ package Tangram::Expr::QueryObject;
 use strict;
 use Tangram::Expr::Filter;
 use Carp;
+use Set::Object qw(set);
 
 sub new
 {
@@ -125,6 +126,20 @@ sub count
 
 }
 
-use overload "==" => \&eq, "!=" => \&ne, fallback => 1;
+sub is_null
+{
+    my $self = shift;
+    Tangram::Expr::Filter->new
+	    ( expr => "$self->{id}{expr} IS NULL",
+	      tight => 100,
+	      objects => set($self->{id}->objects),
+	    );
+
+}
+
+use overload
+    "==" => \&eq, "!=" => \&ne,
+    "!" => \&is_null,
+    fallback => 1;
 
 1;
