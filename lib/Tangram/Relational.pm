@@ -184,6 +184,24 @@ sub to_date {
     return Date::Manip::UnixDate($value, '%Y-%m-%d %H:%M:%S');
 }
 
+# generic / fallback date handler.  Use Date::Manip to parse
+# `anything' and return a full ISO date
+sub from_date_hires {
+    my $self = shift;
+    my $value = shift;
+    $value =~ s{ }{T};
+    return $value;
+}
+
+# this one is a lot more restrictive.  Assume that no DBs understand T
+# in a date
+sub to_date_hires {
+    my $self = shift;
+    my $value = shift;
+    $value =~ s{T}{ };
+    return $value;
+}
+
 use Carp;
 
 # return a query to get a sequence value
