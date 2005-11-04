@@ -5,6 +5,7 @@ use ExtUtils::MakeMaker;
 my %required =
     (
      'Set::Object' => 1.10,
+     'SQL::Builder' => 0.03,
      "Test::More" => 0,
      #"Date::Manip" => 0,
      "Time::Piece" => 0,
@@ -16,7 +17,7 @@ my %required =
     );
 
 my %required_soft = map{$_=>1} qw( Scalar::Util Time::Piece Class::Date );
-my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar Data::Lazy );
+my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar Data::Lazy SQL::Builder);
 
 my ($skip_tests, $bomb_out);
 while (my ($module, $min_ver) = each %required) {

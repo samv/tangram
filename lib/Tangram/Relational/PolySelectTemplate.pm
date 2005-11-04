@@ -11,11 +11,13 @@ sub new
 
 use Set::Object;
 
+use Class::Autouse map { "SQL::Builder::$_" }
+    qw( Select Distinct Join Order Limit JoinGroup Where );
+
 use vars qw($paren);
 $paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
 	    |   (??{ $paren })  # Group with matching parens
 	   )* \)}x;
-
 
 sub instantiate {
 
@@ -62,6 +64,11 @@ sub instantiate {
     my $select = sprintf("SELECT%s\n%s\n",
 			 ($o{distinct} ? " DISTINCT" : ""),
 			 (join(",\n", map {"    $_"} @cols, @$xcols)));
+
+    my $sql_select = SQL::Builder::Select->new;
+    if ( $o{distinct} ) {
+	$sql_select->distinct(1);
+    }
 
     # add outer join clauses
     if ( my $owhere = $o{owhere} ) {
