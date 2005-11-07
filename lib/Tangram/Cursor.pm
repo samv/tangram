@@ -157,7 +157,10 @@ sub select
 					( $outer
 					  ? ([ $outer->from ],
 					     [ $outer->where ],
-					    ) : () )
+					    ) : () ),
+					($args{force_outer}
+					 ? (any_outer => 1)
+					 : () )
 				      ),
 		   undef, $_ ]
 	     } @polysel
@@ -226,15 +229,14 @@ sub prepare_next_statement
 
 sub build_select
 {
-	my ($self, $template, $cols, $from, $where, $ofrom, $owhere)
-	    = @_;
+	my ($self, $template, $cols, $from, $where, $ofrom, $owhere,
+	    @options) = @_;
 
 	if (my $retrieve = $self->{-retrieve})
 	{
 		@$cols = map { $_->{expr} } @$retrieve;
 	}
 
-	my @options;
 	# this needs a hack to get right...
 	if ( $self->{-limit} ) {
 	    @options = $self->{STORAGE}->limit_sql($self->{-limit});

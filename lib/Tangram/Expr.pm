@@ -162,13 +162,13 @@ sub binop
 			if ($arg->isa('Tangram::Expr'))
 			{
 				$objects->insert($arg->objects);
-				$arg = $arg->{expr};
+				$arg = $arg->expr;
 			}
    
 			elsif ($arg->isa('Tangram::Expr::QueryObject'))
 			{
 				$objects->insert($arg->object);
-				$arg = $arg->{id}->{expr};
+				$arg = $arg->{id}->expr;
 			}
    
 			elsif (exists $storage->{schema}{classes}{$type})

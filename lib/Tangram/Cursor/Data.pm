@@ -13,7 +13,7 @@ sub open
 	{
 	 select => $select,
 	 storage => $storage,
-	 cursor => $storage->sql_cursor(substr($select->{expr}, 1, -1), $conn),
+	 cursor => $storage->sql_cursor(substr($select->expr, 1, -1), $conn),
 	}, $type;
 }
 

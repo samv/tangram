@@ -23,7 +23,7 @@ sub exists
 			);
 	}
 
-	my $expr_str = $expr->{expr};
+	my $expr_str = $expr->expr;
 	$expr_str =~ tr/\n/ /;
 
 	return Tangram::Expr::Filter->new( expr => "exists $expr_str", tight => 100,
