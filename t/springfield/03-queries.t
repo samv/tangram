@@ -178,7 +178,7 @@ is(&leaked, 0, "leaktest");
 			  ($partner->{firstName} == "Marge") ),
 	     );
 
-   $Tangram::Global = 1;
+   #$Tangram::Global = 1;
 
    $test_it->(
 	retrieve => [ $partner->{firstName},
