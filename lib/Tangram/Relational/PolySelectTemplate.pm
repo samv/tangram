@@ -241,8 +241,9 @@ sub instantiate {
 			if ( $rt =~ m{^\s*(\S+)(?:\s+(\S+))?\s*$} ) {
 			    if ( ($2 || $1) eq $tnum ) {
 				my $jgroup = SQL::Builder::JoinGroup->new;
-				$jgroup->list_push($other_j);
-				$jgroup->list_push($sql_join);
+				$jgroup->tables->list_push($rt);
+				$jgroup->joins->list_push($sql_join);
+				$joins[$i]->right_table($jgroup->sql);
 				last;
 			    }
 			} else {
