@@ -9,7 +9,7 @@ sub new
 	bless [ @_ ], $class;
   }
 
-use Set::Object;
+use Set::Object qw(set);
 
 use Class::Autouse map { "SQL::Builder::$_" }
     qw( Select Distinct Join Order Limit JoinGroup Where );
@@ -69,6 +69,7 @@ sub instantiate {
     if ( $o{distinct} ) {
 	$sql_select->distinct(1);
     }
+    $sql_select->cols->list_push($_) foreach (@cols, @$xcols);
 
     # add outer join clauses
     if ( my $owhere = $o{owhere} ) {
@@ -184,9 +185,22 @@ sub instantiate {
 	my @tables = (@from, @$xfrom);
 
 	my $i;
+
+	my %sql_tables;
+
 	for my $table ( @tables ) {
 	    my ($tnum) = ($table =~ m/\b(tl?\d+)\b/)
 		or die "table without an alias";
+
+	    my ($t_name, $t_alias) = ($table =~ m/^\s*(\S+)\s+(\S+)\s*$/)
+		or die "bad table `$table'";
+
+	    $sql_tables{$t_alias}
+		= SQL::Builder::Table->new( table => $t_name,
+					    alias => $t_alias );
+	    $sql_select->tables->list_push ($sql_tables{$t_alias} );
+
+	    my @joins;
 
 	    while ( defined(my $idx = delete $owhen{$tnum}) ) {
 		my $from = $ofrom[$idx];
@@ -203,15 +217,50 @@ sub instantiate {
 		# outer.
 		#kill 2, $$;
 		my ($id_col) = ($self->[1][0] =~ m{\.(.*)});
-		my $isnt_outer = ( grep /t\d+.$id_col = t\d+\.$id_col/,
-				   @$join )
-		    if $id_col;
+		my @o;
+		my $isnt_outer =
+		    (@o= map { /(t\d+).$id_col = (t\d+)\.$id_col/ } @$join )
+			if $id_col;
+
+		my $sql_join = 
+		    SQL::Builder::Join->new
+			    ( type => ($isnt_outer ? "INNER" : "LEFT"),
+			      #left_table => $t_name,
+			      right_table => $from,
+			      'on->list_push' => SQL::Builder::BinaryOp->new
+			      ( op => "AND",
+				opers => $join
+			      )
+			    );
+		if ( @o ) {
+		    my ($other) = grep { $_ ne $tnum } @o;
+		    my $i = 0;
+		    for my $other_j ( @joins ) {
+			next unless $other_j->can("right_table");
+			my $rt = $other_j->right_table;
+			if ( $rt =~ m{^\s*(\S+)(?:\s+(\S+))?\s*$} ) {
+			    if ( ($2 || $1) eq $tnum ) {
+				my $jgroup = SQL::Builder::JoinGroup->new;
+				$jgroup->list_push($other_j);
+				$jgroup->list_push($sql_join);
+				last;
+			    }
+			} else {
+			    die "should not happen until later";
+			}
+			$i++;
+		    }
+		} else {
+		    push @joins, $sql_join;
+		}
+
 		my $frag = (sprintf
 			    ("\n\t".($isnt_outer?"INNER ":"LEFT ")
 			     ."JOIN\n%s\n\tON\n%s",
 			     join(",\n", map { "\t    $_" } $from),
 			     join("\tAND\n", map { "\t    $_" } @$join),
 			    ));
+
 		# if it's not an outer join, it also needs to be
 		# grouped with the correct table.
 		if ( $isnt_outer ) {
@@ -228,9 +277,14 @@ sub instantiate {
 		} else {
 		    $table .= $frag;
 		}
+
+		# ??
 		($tnum) = grep { $_ ne $tnum } ($from =~ m/\b(tl?\d+)\b/g);
 	    }
 	    $i++;
+
+	    $sql_select->joins->list_push($_) foreach (@joins);
+
 	}
 	if ( my @missed = grep { defined } @ofrom ) {
 	    die "Couldn't figure out where to stick @missed";
@@ -242,6 +296,13 @@ sub instantiate {
 	$select .= sprintf ("FROM\n%s\n",
 			    (join(",\n", map {"    $_"} @from, @$xfrom))
 			   );
+
+	$sql_select->tables->add_table ( table => $_->[0],
+					 ($_->[1] ? (alias => $_->[1])
+					  : ()) )
+	    foreach (map { my @x = m/(\S+)(?:\s+(\S+))?$/;
+			   @x ? \@x : die "What ? $_";
+		       } @from, @$xfrom );
     }
 
     my $max_len = 0;
@@ -272,9 +333,12 @@ sub instantiate {
 		      )
 	if @where || @$xwhere;
 
+    $sql_select->where->list_push($_) foreach (@where, @xwhere);
+
     if ( my $group = $o{group} ) {
 	$select .= ("GROUP BY\n".
 		    join ",\n", map { "    ".$_->expr } @$group)."\n";
+	$sql_select->groupby->list_push($_->expr) foreach @$group;
     }
 
     if (my $order = $o{order}) {
@@ -283,18 +347,29 @@ sub instantiate {
 	if ( ! ref $desc ) {
 	    $desc = [ ($desc) x @$order ];
 	}
+	for ( 0.. $#$order ) {
+	    my $expr = SQL::Builder::Order->new
+		( expr => $order->[$_]->expr,
+		  order => ($desc->[$_] ? "DESC" : "ASC"),
+		);
+	    $sql_select->orderby->list_push($expr);
+	}
 	my $i = 0;
 	$select .= "ORDER BY\n".
 	    join(",\n", (map { ("    ".$_->expr.
 				($desc->[$i++] ? " DESC" : "")) }
 			 @$order))."\n";
+
     }
 
     if (defined $o{limit}) {
 	if (ref $o{limit}) {
 	    $select .= "LIMIT\n    ".join(",",@{ $o{limit} })."\n";
+	    $sql_select->limit->limit( $o{limit}[0]);
+	    $sql_select->limit->offset($o{limit}[1]);
 	} else {
 	    $select .= "LIMIT\n    $o{limit}\n";
+	    $sql_select->limit->limit($o{limit});
 	}
     }
 
@@ -308,7 +383,13 @@ sub instantiate {
 		    );
     }
 
-    $select;
+    print $Tangram::TRACE
+	__PACKAGE__.": compare >-\n$select\nversus:\n"
+	    .$sql_select->sql."\n...\n"
+		if $Tangram::TRACE;
+
+    return $sql_select->sql;
+    #$select;
     #sprintf $select, map { $tables[$_] } @$expand;
 }
 
