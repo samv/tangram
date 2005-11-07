@@ -11,7 +11,7 @@ use Springfield;
 
 # $Tangram::TRACE = \*STDOUT;
 
-use Test::More tests => 23;
+use Test::More tests => 24;
 
 #--------------------
 # setup tests
@@ -147,29 +147,48 @@ is(&leaked, 0, "leaktest");
 
    # FIXME - polymorphic outer joins don't work.  This query
    # might actually return wrong results.  A rethink is required.
-   my $cursor = $storage->cursor
-       (
-	$person,
+   my $test_it = sub {
+
+       my $cursor = $storage->cursor
+	   (
+	    $person,
+	    @_
+	   );
+
+       my @results;
+       while ( my $person = $cursor->current ) {
+	   push @results, ($person->{firstName}.":"
+			   .join(":",map { $_||""} $cursor->residue));
+	   $cursor->next();
+       }
+
+       #diag(Data::Dumper::Dumper(\@results));
+
+       is_deeply(\@results,
+		 [ qw( Homer:Marge:Yellow Marge:: Montgomery:: ) ],
+		 "outer join");
+   };
+
+   $test_it->(
 	retrieve => [ $partner->{firstName},
 		      $partner->{colour},
 		    ],
 	order => [ $person->{firstName} ],
 	outer_filter => ( ($person->{partner} == $partner) &
 			  ($partner->{firstName} == "Marge") ),
-       );
+	     );
 
-   my @results;
-   while ( my $person = $cursor->current ) {
-       push @results, ($person->{firstName}.":"
-		       .join(":",map { $_||""} $cursor->residue));
-       $cursor->next();
-   }
+   $Tangram::Global = 1;
 
-   #diag(Data::Dumper::Dumper(\@results));
-
-   is_deeply(\@results,
-	     [ qw( Homer:Marge:Yellow Marge:: Montgomery:: ) ],
-	     "outer join");
+   $test_it->(
+	retrieve => [ $partner->{firstName},
+		      $partner->{colour},
+		    ],
+	filter => ($person->{partner} == $partner),
+	order => [ $person->{firstName} ],
+	outer_filter => ($partner->{firstName} == "Marge"),
+	      force_outer => $partner
+	     );
 
    $storage->disconnect();
 }
