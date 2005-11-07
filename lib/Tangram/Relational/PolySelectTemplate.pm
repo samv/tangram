@@ -9,7 +9,7 @@ sub new
 	bless [ @_ ], $class;
   }
 
-use Set::Object;
+use Set::Object qw(set);
 
 use vars qw($paren);
 $paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
@@ -64,9 +64,9 @@ sub instantiate {
 			 (join(",\n", map {"    $_"} @cols, @$xcols)));
 
     # add outer join clauses
-    if ( my $owhere = $o{owhere} ) {
+    if ( my $owhere = $o{owhere} or $o{any_outer} ) {
 
-	#kill 2, $$;
+	#kill 2, $$ if $Tangram::Global;
 	my $ofrom = $o{ofrom};
 
 	# ugh.  we need to add a new clause for every join, and in
@@ -87,7 +87,7 @@ sub instantiate {
 	    }
 	    #print STDERR "left: $_\n";
 	    @x, $_
-	} @{$o{owhere}});
+	} @{$o{owhere}}, ($o{any_outer} ? (@where, @xwhere) : ()));
 	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
 	#print STDERR "ofrom: @$ofrom\n";
 	$ofrom = Set::Object->new(@{$o{ofrom}});
@@ -171,6 +171,13 @@ sub instantiate {
 			.join(", ", @from, @$xfrom)
 		if $ofrom->size;
 	}
+
+	if ( $o{any_outer} ) {
+	    my $old_where = set(@where, @xwhere) * $owhere;
+	    $owhere -= $old_where;
+	    (@where, @xwhere) = $old_where->members;
+	}
+
 	die "failed to include conditions: ".join(", ", $owhere->members)
 	    if $owhere->size;
 
@@ -313,7 +320,7 @@ sub extract {
 
     my $slice = $self->[-1]{$class_id}
 	or do {
-	    kill 2, $$;
+	    #kill 2, $$;
 	    Carp::croak("unexpected class id '$class_id' (OK: "
 			.(join(",",keys %{$self->[-1]})).")");
 	};
