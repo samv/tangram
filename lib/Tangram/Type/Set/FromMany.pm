@@ -21,6 +21,7 @@ sub reschema
 
 		unless (ref($def))
 		{
+		    # XXX - not reached by test suite
 			$def = { class => $def };
 			$members->{$member} = $def;
 		}
@@ -48,6 +49,7 @@ sub defered_save
 	($storage, $obj, $field,
 	 sub {
 	     if ( $storage->can("t2_insert_hook") ) {
+		 # XXX - not tested by test suite
 		 $storage->t2_insert_hook( ref($obj), $coll_id, $field, $_[1] );
 	     }
 	     my $sql = "DELETE FROM $table WHERE $coll_col = $coll_id AND $item_col = $_[0]";
@@ -58,6 +60,7 @@ sub defered_save
 	 sub
 	 {
 	     if ( $storage->can("t2_remove_hook") ) {
+		 # XXX - not tested by test suite
 		 $storage->t2_remove_hook( ref($obj), $coll_id, $field, $_[1] );
 	     }
 	     my $sql = "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id  AND\n    $item_col = $_[0]";
@@ -154,6 +157,7 @@ sub erase
 		my $sql = "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id";
 	  
 		if ( $storage->can("t2_remove_hook") ) {
+		 # XXX - not tested by test suite
 		    $storage->t2_remove_hook
 			(
 			 ref($obj),
@@ -176,6 +180,7 @@ sub erase
 	}
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;

@@ -70,6 +70,7 @@ sub get_instance_select {
 
 	unless (@tables) {
 	    # in case the class has absolutely no state at all...
+	    # XXX - not reached by the test suite
 	    @cols = $id_col;
 	    @tables = $root->{MAPPING}->get_table;
 	}

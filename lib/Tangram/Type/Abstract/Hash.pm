@@ -10,6 +10,7 @@ use vars qw(@ISA);
 
 use Carp;
 
+# XXX - not reached by test suite
 sub content
 {
     shift;
@@ -59,6 +60,7 @@ sub demand
     return \%coll;
 }
 
+# XXX - not reached by test suite
 sub save_content
   {
 	my ($obj, $field, $context) = @_;

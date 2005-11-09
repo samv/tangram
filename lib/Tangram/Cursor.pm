@@ -179,6 +179,7 @@ sub execute
 	$self->prepare_next_statement() && $self->next();
   }
 
+# XXX - not reached by test suite
 sub sql_string
   {
       my $self = shift;
@@ -342,6 +343,7 @@ sub residue
 	@{shift->{-residue}};
 }
 
+# XXX - not reached by test suite
 sub object
 {
 	my ($self) = @_;

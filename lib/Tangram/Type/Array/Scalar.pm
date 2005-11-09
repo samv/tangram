@@ -95,6 +95,7 @@ sub get_save_closures
 	}
 	else
 	{
+                # XXX - not tested by test suite
 		$ne = sub { my ($a, $b) = @_; defined($a) != defined($b) || $a != $b };
 		$quote = sub { shift() };
 	}
@@ -153,6 +154,7 @@ sub coldefs
     }
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;

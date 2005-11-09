@@ -26,6 +26,7 @@ sub get_exporter
 	
 	return $self->{deep_update} ?
 	  sub {
+	      # XXX - not tested by test suite
 		my ($obj, $context) = @_;
 		
 		# has collection been loaded? if not, then it hasn't been modified

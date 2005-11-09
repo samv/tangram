@@ -36,6 +36,7 @@ sub get_importer
 	}
 }
 
+# XXX - not reached by test suite
 sub read
 {
 	my ($self, $row, $obj, $members, $storage, $class) = @_;
@@ -47,6 +48,7 @@ sub read
 	}
 }
 
+# XXX - not reached by test suite
 sub bad_type
 {
 	my ($obj, $coll, $class, $item) = @_;

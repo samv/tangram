@@ -49,6 +49,7 @@ sub new {
 			 HETEROGENEITY => $heterogeneity }, $class;
 
     if ($opts{layout1}) {
+	# XXX - layout1
 	$engine->{layout1} = 1;
 	$engine->{TYPE_COL} = $schema->{sql}{class_col} || 'classId';
     } else {
@@ -63,6 +64,7 @@ sub new {
 	    $engine->{driver} = $opts{driver}->new;
 	}
     } else {
+	# XXX - not reached in test suite
 	$engine->{driver} = Tangram::Relational->new();
     }
     print $Tangram::TRACE __PACKAGE__.": "

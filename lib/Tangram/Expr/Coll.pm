@@ -8,6 +8,7 @@ sub new
 	bless [ @_ ], $pkg;
 }
 
+# XXX - not tested by test suite
 sub exists
 {
 	my ($self, $expr, $filter) = @_;

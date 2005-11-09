@@ -12,6 +12,7 @@ sub fetchrow
     return shift->{statement}->fetchrow;
 }
 
+# XXX - not reached by test suite
 sub close
 {
     my $self = shift;

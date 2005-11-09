@@ -12,6 +12,7 @@ use vars qw(@ISA);
 
 $Tangram::Schema::TYPES{real} = __PACKAGE__->new;
 
+# XXX - not tested by test suite
 sub coldefs
 {
     my ($self, $cols, $members, $schema) = @_;

@@ -23,6 +23,7 @@ sub new
 
 	if (exists $args{from})
 	{
+	    # XXX - not tested by test suite
 		$objects->insert( map { $_->object } @{ $args{from} } );
 	}
 	else
@@ -41,6 +42,7 @@ sub new
 	$sql .= ' DISTINCT' if $args{distinct};
 	$sql .= "  $cols";
 	if (exists $args{order}) {
+	    # XXX - not tested by test suite
 	    $sql .= join("", map {", $_"}
 			 grep { $sql !~ m/ \Q$_\E(?:,|$)/ }
 			 map { $_->expr } @{$args{order}});
@@ -60,6 +62,7 @@ sub new
 	return $self;
 }
 
+# XXX - not tested by test suite
 sub from
 {
 	my ($self) = @_;
@@ -67,6 +70,7 @@ sub from
 	return $from ? $from->members : $self->SUPER::from;
 }
 
+# XXX - not tested by test suite
 sub where
 {
 }

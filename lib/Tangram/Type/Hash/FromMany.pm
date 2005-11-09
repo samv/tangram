@@ -20,6 +20,7 @@ sub reschema
 
 		unless (ref($def))
 		{
+		    # XXX - not tested by test suite
 			$def = { class => $def };
 			$members->{$member} = $def;
 		}
@@ -59,7 +60,7 @@ sub defered_save {
 	  if (exists $old_state->{$slot})
 		{
 		  # key already exists
-		  
+		  # XXX - not reached by test suite
 		  if ($item_id != $old_state->{$slot})
 			{
 			  # val has changed
@@ -74,6 +75,7 @@ sub defered_save {
 		  if (@free)
 			{
 			  # recycle an existing line
+			    # XXX - not reached by test suite
 			  my $rslot = shift @free;
 			  $storage->sql_do(
 					   "UPDATE\n    $table\nSET\n    $slot_col = $Q$slot$Q,\n    $item_col = $item_id\nWHERE\n    $coll_col = $coll_id    AND\n    $slot_col = $Q$rslot$Q" );
@@ -94,6 +96,7 @@ sub defered_save {
   
   if (@free)
 	{
+	    # XXX - not reached by test suite
 	  @free = map { "$Q$_$Q" } @free if $Q;
 	  $storage->sql_do( "DELETE FROM\n    $table\nWHERE\n    $coll_col = $coll_id     AND\n    $slot_col IN (@free)" );
 	}
@@ -140,6 +143,7 @@ sub cursor						# ?? factorize ??
     return $cursor;
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
     my ($self, $obj, $members, $tid) = @_;

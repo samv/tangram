@@ -25,6 +25,7 @@ sub fetchrow
 	map { $_->{type}->read_data(\@row) } @{$self->{select}{cols}};
 }
 
+# XXX - not reached by test suite
 sub fetchall_arrayref
 {
 	my $self = shift;
@@ -38,6 +39,7 @@ sub fetchall_arrayref
 	return \@results;
 }
 
+# XXX - not reached by test suite
 sub new
 {
 	my $pkg = shift;

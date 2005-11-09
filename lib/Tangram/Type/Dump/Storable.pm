@@ -23,6 +23,7 @@ sub reschema {
   my ($self, $members, $class, $schema) = @_;
 
   if (ref($members) eq 'ARRAY') {
+# XXX - not tested by test suite
     # short form
     # transform into hash: { fieldname => { col => fieldname }, ... }
     $_[1] = map { $_ => { col => $schema->{normalize}->($_, 'colname') } } @$members;
@@ -85,6 +86,7 @@ sub get_exporter
 	};
   }
 
+# XXX - not tested by test suite
 sub save {
   my ($self, $cols, $vals, $obj, $members, $storage) = @_;
   

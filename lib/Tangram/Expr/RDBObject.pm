@@ -32,6 +32,7 @@ sub where
 		$schema->for_each_spec
 		    ($class,
 		     sub {
+			 # XXX - not reached by test suite
 			 my $spec = shift;
 			 push @class_ids, $storage->class_id($spec)
 			     unless $classes->{$spec}{abstract};

@@ -95,6 +95,7 @@ sub deep_save_content
 	}
   }
 
+# XXX - never reached by test suite
 sub check_content
   {
 	my ($obj, $field, $coll, $class) = @_;

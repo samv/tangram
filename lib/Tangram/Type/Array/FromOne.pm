@@ -151,6 +151,7 @@ sub cursor
 	return $cursor;
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;

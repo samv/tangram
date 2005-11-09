@@ -144,6 +144,7 @@ sub reschema {
 	if ($field eq "-options" or $field eq "-poof") {
 	    my $def = $members->{$field};
 	    ref $def or next;
+	    # XXX - not reached by test suite
 	    reftype $def eq "HASH"
 		or die("reftype invalid in schema for -options idbif;"
 		       ." hash expected, got $def");
@@ -167,6 +168,7 @@ sub reschema {
 
     $options->{dumper_wanted} = $options->{dumper};
     if (lc $options->{dumper} eq "yaml") {
+	# XXX - not reached by test suite
 	require 'YAML.pm';
 	$options->{dumper} = sub {
 	    local($^W)=0;
@@ -197,6 +199,7 @@ sub reschema {
 	$options->{loader} = sub { eval(shift) };
 
     } elsif (lc $options->{dumper} eq "storable") {
+	# XXX - not reached by test suite
 	require 'Storable.pm';
 	$options->{dumper} = sub {
 	    Storable::freeze(shift)
@@ -238,6 +241,7 @@ sub get_importer
 	    }
 	}
 	if (ref $tmpobj ne ref $obj and blessed $tmpobj) {
+	    # XXX - not reached by test suite
 	    bless $obj, ref $tmpobj;
 	}
 	%$tmpobj=();
@@ -281,6 +285,7 @@ sub get_exporter
     };
 }
 
+# XXX - not tested by test suite
 sub save {
   my ($self, $cols, $vals, $obj, $members, $storage) = @_;
   

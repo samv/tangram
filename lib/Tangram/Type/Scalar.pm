@@ -18,6 +18,7 @@ sub reschema
 
     if (ref($members) eq 'ARRAY')
     {
+	# XXX - not tested by test suite
 		# short form
 		# transform into hash: { fieldname => { col => fieldname }, ... }
 		$members = $_[1] = map { $_ => { col => $schema->{normalize}->($_, 'colname') } } @$members;
