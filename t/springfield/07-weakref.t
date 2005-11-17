@@ -4,6 +4,9 @@
 use strict;
 use lib 't/springfield';
 use Springfield;
+use Data::Lazy;
+use Scalar::Util qw(refaddr);
+
 BEGIN {
     eval "use Scalar::Util";
     eval "use WeakRef" if $@;
@@ -53,9 +56,9 @@ sub sameid {
     my $obj;
     for (1..2) {
 	$obj = {};
-	diag("got ".sprintf("0x%.8x",Tangram::refaddr($obj))
+	diag("got ".sprintf("0x%.8x",refaddr($obj))
 	     .", looking for ".sprintf("0x%.8x",$_[0]||0)) if $VERBOSE;
-	last if Tangram::refaddr($obj) == ($_[0] ||= Tangram::refaddr($obj));
+	last if refaddr($obj) == ($_[0] ||= refaddr($obj));
 	$obj = undef;
     }
     $obj;
@@ -70,29 +73,36 @@ SKIP:
 {
   my $storage = Springfield::connect;
 
-  my ($sameid,$refaddr) = (undef, 0);
+  my ($sameid,$refaddr, $test) = (undef, 0, undef);
   {
       homer($storage);
   }
 
-  $storage->{schema}{make_object} = sub { bless $sameid, (shift);
+  $storage->{schema}{make_object} = sub { my $x = $sameid;
+					  bless $x, (shift);
 					  $SpringfieldObject::pop++;
 					  return $sameid;
 				      };
   diag("leaked is: ".leaked) if $VERBOSE;
 
+  # note - this loop is fragile, but worksforme on perl 5.8.4, Ubuntu
+  # hoary on amd64.  Reports of other successes welcome.
  LOOP:
   for my $x ( 1..5 ) {
       {
-	  $refaddr = 0 unless $x > 1;
+	  $refaddr = 0 unless $x > 2;
 	  diag("undef(\$sameid = $sameid)") if $VERBOSE;
 	  undef($sameid);
+	  undef($test);
 	  diag("done undef") if $VERBOSE;
-	  $sameid = sameid($refaddr) or next;
-	  if ( $x == 1 ) {
+	  $test = sameid($refaddr) or next;
+	  tie $sameid, 'Data::Lazy' => sub { $test };
+	  diag("test is: ".$test) if $VERBOSE;
+	  diag("sameid is: ".$sameid) if $VERBOSE;
+	  if ( $x <= 2 ) {
 	      homer($storage);
 	  } else {
-	      diag("wohoo! I got ".sprintf("0x%.8x",Tangram::refaddr($sameid)
+	      diag("wohoo! I got ".sprintf("0x%.8x",refaddr($sameid)
 					  )) if $VERBOSE;
 	      diag ("calling last") if $VERBOSE;
 	      last LOOP;

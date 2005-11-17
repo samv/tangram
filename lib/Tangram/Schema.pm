@@ -210,7 +210,7 @@ use vars qw( %TYPES );
 #   ref      => new Tangram::Ref,
 );
 
-use Scalar::Util qw(reftype);
+use Scalar::Util qw(reftype weaken);
 
 sub new
 {
@@ -356,7 +356,7 @@ sub new
 		
 		if (0) { # currently causes 'panic: magic_killbackrefs, <CONFIG> line 1 during global destruction.'
 		  for my $ref (@{ $classdef->{SPECS} }) {
-			Tangram::weaken $ref;
+			weaken($ref);
 		  }
 		}
     }

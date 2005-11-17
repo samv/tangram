@@ -6,6 +6,26 @@
 Unless more critical bugs are reported, the latest 2.08_XX release
 will be released as 2.09 in August^WSeptember^WOctober^WRSN!
 
+=head2 DEV. RELEASE 2.08_06, 18 Nov 2005
+
+=over
+
+=item *
+
+Test suite changes: add a test for weakref, fix bad prefetch test that
+was causing false negatives.
+
+=item *
+
+Make Scalar::Util the hard dependency that it is.
+
+=item *
+
+Fix the default C<get_id> function debug output, related to the test
+for weakref.
+
+=back
+
 =head2 DEV. RELEASE 2.08_05, 20 Oct 2005
 
 =over
