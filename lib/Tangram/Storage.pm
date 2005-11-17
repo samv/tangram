@@ -1,9 +1,8 @@
-package Tangram::Storage;
+# (c) Sound Object Logic 2000-2001
 
 use strict;
 
-use Tangram::Storage::Statement;
-
+package Tangram::Storage;
 use DBI;
 use Carp;
 use Tangram::Core;
@@ -58,8 +57,6 @@ sub split_id
 
 use Scalar::Util qw(looks_like_number);
 
-# Given a row's ID and a class's ID
-# Computes its OID and returns it
 sub combine_ids
   {
 	my $self = shift;
@@ -93,9 +90,7 @@ sub get_sequence {
     # the only database that has a non-trivial sequence sql fragment
     # also doesn't use " FROM DUAL"
     my $query = $self->sequence_sql($sequence_name).$self->from_dual;
-    my ($id) = (map { @{$_} }
-		map { @{$_} }
-		$self->{db}->selectall_arrayref($query));
+    my ($id) = map { @$_ } $self->{db}->selectall_arrayref($query);
 
     return $id;
 }
@@ -106,13 +101,6 @@ sub sequence_sql
 	my $driver = $self->{driver} or confess "no driver";
 	return $self->{driver}->sequence_sql(shift);
     }
-
-sub limit_sql {
-    my $self = shift;
-
-    my $driver = $self->{driver} or confess "no driver";
-    return $self->{driver}->limit_sql(@_);
-}
 
 sub _open
   {
@@ -186,20 +174,18 @@ sub _open
 
     $self->{get_id} = $schema->{get_id} || sub {
 	  my $obj = shift or warn "no object passed to get_id";
-	  ref $obj or return undef;
-	  my $address = Tangram::refaddr($obj)
-	      or do { warn "Object $obj has no refaddr(?)";
-		      return undef };
+	  my $address = Tangram::refaddr($obj);
 	  my $id = $self->{ids}{$address};
+	  # refaddr's can be re-used, but weakrefs are magic :-)
+	  if ( !defined $self->{objects}{$id}) {
+	      delete $self->{ids}{$address};
+	      delete $self->{objects}{$id};
+	      $id = undef;
+	  }
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
 		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
 	  }
-	  return undef unless $id;
-	  # refaddr's can be re-used, but weakrefs are magic :-)
-	  return $id if defined($self->{objects}{$id});
-	  delete $self->{ids}{$address};
-	  delete $self->{objects}{$id};
-	  return undef;
+	  return $id;
 	};
 
     return $self;
@@ -278,7 +264,7 @@ sub my_cursor
 sub select_data
 {
     my $self = shift;
-    Tangram::Expr::Select->new(@_)->execute($self, $self->open_connection());
+    Tangram::Select->new(@_)->execute($self, $self->open_connection());
 }
 
 sub selectall_arrayref
@@ -289,7 +275,7 @@ sub selectall_arrayref
 sub my_select_data
 {
     my $self = shift;
-    Tangram::Expr::Select->new(@_)->execute($self, $self->{db});
+    Tangram::Select->new(@_)->execute($self, $self->{db});
 }
 
 my $psi = 1;
@@ -321,8 +307,7 @@ sub make_id
 	$id = $classdef->{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom per-class ($cname) make ID function returned ".(pretty($id))."\n" if $Tangram::TRACE;
     } elsif ( $classdef->{oid_sequence} ) {
-	eval { $id = $self->get_sequence($classdef->{oid_sequence}) };
-	die "Failed to get sequence for Class `$cname'; $@" if $@;
+	$id = $self->get_sequence($classdef->{oid_sequence});
     }
 
     # maybe the entire schema has its own ID generator
@@ -330,11 +315,8 @@ sub make_id
 	$id = $self->{schema}{sql}{make_id}->($class_id, $self);
 	print $Tangram::TRACE "Tangram: custom schema make ID function returned "
 	    .(pretty($id))."\n" if $Tangram::TRACE;
-    } elsif ( !defined($id) &&
-	      (my $seq = $self->{schema}{sql}{oid_sequence}) ) {
-	eval { $id = $self->get_sequence($seq) };
-	die "Failed to get sequence for Class `$cname' via fallback $seq; $@"
-	    if $@;
+    } elsif ( my $seq = $self->{schema}{sql}{oid_sequence} ) {
+	$id = $self->get_sequence($seq);
     }
     if (defined($id)) {
 	return $self->combine_ids($id, $class_id);
@@ -423,7 +405,6 @@ sub unknown_classid
 
 {
     no strict 'refs';
-# Given a class name ('Foo::Bar'), returns its Class ID.
 sub class_id
 {
     my $self = shift;
@@ -870,27 +851,6 @@ sub defer
     push @{$self->{defered}}, $action;
 }
 
-# Given a class' name and a row's ID (or more than one,)
-# computes the OIDs and returns them.
-sub make_oid
-{
-  my $self = shift;
-  my $class_name = shift;
-  my @ids = @_;
-	
-  my $class_id = $self->class_id($class_name);
-  
-  my @oids = map {$self->combine_ids($_,$class_id)} @ids;
-  
-  if ( wantarray ) {
-	return @oids;
-  } else {
-	return $oids[0];
-  }
-}
-
-# Given a class' name and a row's ID (or more than one,)
-# loads the object(s) from the DB and returns them.
 sub import_object
 {
     my $self = shift;
@@ -1108,13 +1068,13 @@ sub select {
 sub cursor_object
   {
     my ($self, $class) = @_;
-    $self->{IMPLICIT}{$class} ||= Tangram::Expr::RDBObject->new($self, $class)
+    $self->{IMPLICIT}{$class} ||= Tangram::RDBObject->new($self, $class)
 }
 
 sub query_objects
 {
     my ($self, @classes) = @_;
-    map { Tangram::Expr::QueryObject->new(Tangram::Expr::RDBObject->new($self, $_)) } @classes;
+    map { Tangram::QueryObject->new(Tangram::RDBObject->new($self, $_)) } @classes;
 }
 
 sub remote
@@ -1137,33 +1097,81 @@ sub object
     $obj;
 }
 
-sub aggregate
-{
-    my $self = shift;
-    my $function = shift;
-    my $expr = shift;
-    my $filter = shift;
-
-    my @data = $self->select(undef,
-			     ($filter ? (filter => $filter) : ()),
-			     retrieve => [ map { $_->$function() }
-					   (ref ($expr) eq "ARRAY"
-					    ? @$expr : $expr) ],
-			    );
-
-    return $data[0]
-}
-
 sub count
 {
     my $self = shift;
-    $self->aggregate("count", @_);
+
+    my ($target, $filter);
+    my $objects = Set::Object->new;
+
+    if (@_ == 1)
+    {
+	$target = '*';
+	$filter = shift;
+    }
+    else
+    {
+	my $expr = shift;
+	$target = $expr->{expr};
+	$objects->insert($expr->objects);
+	$filter = shift;
+    }
+
+    my @filter_expr;
+
+    if ($filter)
+    {
+	$objects->insert($filter->objects);
+	@filter_expr = ( "($filter->{expr})" );
+    }
+
+    my $sql = "SELECT COUNT($target) FROM " . join(', ', map { $_->from } $objects->members);
+   
+    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
+
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
+
+    return ($self->{db}->selectrow_array($sql))[0];
 }
 
 sub sum
 {
-    my $self = shift;
-    $self->aggregate("sum", @_);
+    my ($self, $expr, $filter) = @_;
+
+    my $expr_is_array = ref($expr) eq 'ARRAY';
+
+    my $objects = Set::Object->new(
+				   $expr_is_array ? 
+				   map($_->objects, @$expr) :
+				   $expr->objects,
+				  );
+
+    my @filter_expr;
+
+    if ($filter)
+    {
+	$objects->insert($filter->objects);
+	@filter_expr = ( "($filter->{expr})" );
+    }
+
+    my $sql = "SELECT " .
+      join(', ',
+	   map("SUM($_->{expr})",
+	       $expr_is_array ? @$expr : ($expr),
+	      ),
+	  ) . " FROM " . join(', ', map { $_->from } $objects->members);
+
+    $sql .= "\nWHERE " . join(' AND ', @filter_expr, map { $_->where } $objects->members);
+
+    print $Tangram::TRACE ">-\n$sql\n...\n" if $Tangram::TRACE;
+
+    my @result = $self->{db}->selectrow_array($sql);
+
+    if ( $expr_is_array ) {
+      return wantarray ? @result : \@result;
+    } else {
+      return $result[0];
+    }
 }
 
 sub id
@@ -1524,6 +1532,31 @@ sub DESTROY
     } else {
 	print $Tangram::TRACE __PACKAGE__.": destroyed; no active handle\n"
 	    if $Tangram::TRACE;
+    }
+}
+
+package Tangram::Storage::Statement;
+
+sub new
+{
+    my $class = shift;
+    bless { @_ }, $class;
+}
+
+sub fetchrow
+{
+    return shift->{statement}->fetchrow;
+}
+
+sub close
+{
+    my $self = shift;
+
+    if ($self->{storage})
+    {
+	$self->{statement}->finish;
+	$self->{storage}->close_connection($self->{connection});
+	%$self = ();
     }
 }
 
