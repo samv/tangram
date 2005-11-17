@@ -190,15 +190,16 @@ sub _open
 	      or do { warn "Object $obj has no refaddr(?)";
 		      return undef };
 	  my $id = $self->{ids}{$address};
+	  # refaddr's can be re-used, but weakrefs are magic :-)
+	  if ( !defined $self->{objects}{$id}) {
+	      delete $self->{ids}{$address};
+	      delete $self->{objects}{$id};
+	      $id = undef;
+	  }
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
 		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
 	  }
-	  return undef unless $id;
-	  # refaddr's can be re-used, but weakrefs are magic :-)
-	  return $id if defined($self->{objects}{$id});
-	  delete $self->{ids}{$address};
-	  delete $self->{objects}{$id};
-	  return undef;
+	  return $id;
 	};
 
     return $self;
