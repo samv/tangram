@@ -191,7 +191,7 @@ sub _open
 		      return undef };
 	  my $id = $self->{ids}{$address};
 	  # refaddr's can be re-used, but weakrefs are magic :-)
-	  if ( !defined $self->{objects}{$id}) {
+	  if ( $id and !defined $self->{objects}{$id}) {
 	      delete $self->{ids}{$address};
 	      delete $self->{objects}{$id};
 	      $id = undef;
