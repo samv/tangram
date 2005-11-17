@@ -176,16 +176,15 @@ sub _open
 	  my $obj = shift or warn "no object passed to get_id";
 	  my $address = Tangram::refaddr($obj);
 	  my $id = $self->{ids}{$address};
-	  # refaddr's can be re-used, but weakrefs are magic :-)
-	  if ( !defined $self->{objects}{$id}) {
-	      delete $self->{ids}{$address};
-	      delete $self->{objects}{$id};
-	      $id = undef;
-	  }
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
 		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
 	  }
-	  return $id;
+	  return undef unless $id;
+	  # refaddr's can be re-used, but weakrefs are magic :-)
+	  return $id if defined($self->{objects}{$id});
+	  delete $self->{ids}{$address};
+	  delete $self->{objects}{$id};
+	  return undef;
 	};
 
     return $self;
