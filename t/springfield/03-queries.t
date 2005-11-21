@@ -123,6 +123,10 @@ is(&leaked, 0, "leaktest");
 #--------------------
 # test outer joins; only really make sense with retrieve
 
+SKIP:{
+   skip "SQLite can't do nested joins", 1
+       if DBConfig->dialect =~ /sqlite/i;
+
 # first, setup some test data
 {
    my $storage = Springfield::connect(undef, { dbh => $dbh });
@@ -172,6 +176,7 @@ is(&leaked, 0, "leaktest");
 	     "outer join");
 
    $storage->disconnect();
+}
 }
 is(&leaked, 0, "leaktest");
 

@@ -6,7 +6,7 @@
 Unless more critical bugs are reported, the latest 2.08_XX release
 will be released as 2.09 in August^WSeptember^WOctober^WRSN!
 
-=head2 DEV. RELEASE 2.08_06, 18 Nov 2005
+=head2 DEV. RELEASE 2.08_06, 21 Nov 2005
 
 =over
 
@@ -22,7 +22,12 @@ Make Scalar::Util the hard dependency that it is.
 =item *
 
 Fix the default C<get_id> function debug output, related to the test
-for weakref.
+for weakref.  Also fix a bug in C<get_id> that caused bizarre erratic
+behaviour in the scariest of circumstances.
+
+=item *
+
+Disabled nested join tests on SQLite.
 
 =back
 
