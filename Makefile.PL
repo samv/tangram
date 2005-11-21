@@ -10,13 +10,13 @@ my %required =
      "Time::Piece" => 0,
      "Class::Date" => 0,
      #"DateTime" => 0,
-     "Scalar::Util" => 0,
+     "Scalar::Util" => 1.14,
      "Data::Lazy" => 0.6,
      DBI => 0,
     );
 
-my %required_soft = map{$_=>1} qw( Scalar::Util Time::Piece Class::Date );
-my %required_hard = map{$_=>1} qw( Set::Object  DBI Set::Scalar Data::Lazy );
+my %required_soft = map{$_=>1} qw( Time::Piece Class::Date );
+my %required_hard = map{$_=>1} qw( Set::Object Scalar::Util  DBI Data::Lazy );
 
 my ($skip_tests, $bomb_out);
 while (my ($module, $min_ver) = each %required) {
