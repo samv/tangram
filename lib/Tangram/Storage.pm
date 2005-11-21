@@ -180,7 +180,7 @@ sub _open
 	      delete $self->{ids}{$address};
 	      delete $self->{objects}{$id};
 	      $id = undef;
-	  } elsif ( refaddr($self->{objects}{$id}) != $address ) {
+	  } elsif ( $id and refaddr($self->{objects}{$id}) != $address ) {
 	      delete $self->{ids}{$address};
 	      $id = undef;
 	  }
