@@ -33,6 +33,16 @@ which is API-backwards compatible.  The differences between 2.09 and
 succeeds unmodified, but has been tweaked to suppress warnings that
 deprecated modules are being used.
 
+=head2 DEV. RELEASE 2.09_02, 21 Nov 2005
+
+=over
+
+=item *
+
+Sync release with 2.08_06.  svk made this far, far, too easy.
+
+=back
+
 =head2 DEV. RELEASE 2.09_01, 20 Oct 2005
 
 =over
@@ -60,6 +70,31 @@ C<:compat_quiet>.  to be documented.
 
 Unless more critical bugs are reported, the latest 2.08_XX release
 will be released as 2.09 in August^WSeptember^WOctober^WRSN!
+
+=head2 DEV. RELEASE 2.08_06, 21 Nov 2005
+
+=over
+
+=item *
+
+Test suite changes: add a test for weakref, fix bad prefetch test that
+was causing false negatives.
+
+=item *
+
+Make Scalar::Util the hard dependency that it is.
+
+=item *
+
+Fix the default C<get_id> function debug output, related to the test
+for weakref.  Also fix a bug in C<get_id> that caused bizarre erratic
+behaviour in the scariest of circumstances.
+
+=item *
+
+Disabled nested join tests on SQLite.
+
+=back
 
 =head2 DEV. RELEASE 2.08_05, 20 Oct 2005
 

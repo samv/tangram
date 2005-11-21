@@ -11,12 +11,14 @@ sub new
 {
 	my ($type, %args) = @_;
 
-	my $cols = join ', ', map
+	my @cols = map
 	{
 		confess "column specification must be a Tangram::Expr"
 		    unless $_->isa('Tangram::Expr');
-		$_->expr;
+		$_->sql_expr;
 	} @{$args{cols}};
+
+	my $cols = join ', ', @cols;
 
 	my $filter = $args{filter} || $args{where} ||
 	    Tangram::Expr::Filter->new;
@@ -41,9 +43,11 @@ sub new
 			map { $_->where } $objects->members;
 
 	my $sql_select = SQL::Builder::Select->new();
+	$sql_select->distinct(1) if $args{distinct};
 
 	my $sql = "SELECT";
 	$sql .= ' DISTINCT' if $args{distinct};
+
 	$sql .= "  $cols";
 	if (exists $args{order}) {
 	    # XXX - not tested by test suite

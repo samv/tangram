@@ -17,14 +17,30 @@ use Carp;
 sub new
 {
 	my ($pkg, $type, $expr, @objects) = @_;
-	return bless { expr => $expr, type => $type,
-				   objects => Set::Object->new(@objects),
-				   storage => $objects[0]->{storage} }, $pkg;
+	my $sql_expr;
+	if ( blessed $expr ) {
+	    $sql_expr = $expr;
+	} else {
+	    $sql_expr = SQL::Builder::Column->new
+		( col => $expr,
+		);
+	}
+	return bless
+	    { type => $type,
+	      sql_expr => $sql_expr,
+	      objects => Set::Object->new(@objects),
+	      storage => $objects[0]->{storage}
+	    }, $pkg;
 }
 
 sub expr
 {
-	return shift->{expr};
+	return shift->sql_expr->sql;
+}
+
+sub sql_expr
+{
+	return shift->{sql_expr}
 }
 
 # XXX - not tested by test suite
@@ -152,9 +168,13 @@ sub unaop
     my @objects = $self->objects;
     my $objects = Set::Object->new(@objects);
     my $storage = $self->{storage};
-    
+
+    my $new_expr = SQL::Builder::Function->new
+	( func => $op,
+	  'args->list_push' => [ $self->sql_expr ],
+	);
     return new Tangram::Expr::Filter
-	(expr => "$op($self->{expr})",
+	(expr => $new_expr,
 	 tight => $tight || 100,
 	 objects => $objects );
 }
@@ -175,7 +195,7 @@ sub binop
 			if ($arg->isa('Tangram::Expr'))
 			{
 				$objects->insert($arg->objects);
-				$arg = $arg->expr;
+				$arg = $arg->sql_expr;
 			}
    
 			elsif ($arg->isa('Tangram::Expr::QueryObject'))
@@ -207,11 +227,19 @@ sub binop
 		$arg = 'NULL';
 	}
 
-	my ($l, $r) = $swap ? ($arg, $self->{expr}) : ($self->{expr}, $arg);
+	my ($l, $r) = ( $swap
+			? ($arg, $self->sql_expr)
+			: ($self->sql_expr, $arg) );
 	$tight ||= 100;
 
-	return new Tangram::Expr::Filter(expr => "$l $op $r", tight => $tight,
-							   objects => $objects );
+	my $new_expr = SQL::Builder::BinaryOp->new( op => $op,
+						    opers => [ $l, $r ]
+						  );
+
+	return new Tangram::Expr::Filter(expr => $new_expr->sql,
+					 sql_expr => $new_expr,
+					 tight => $tight,
+					 objects => $objects );
 }
 # END ks.perl@kurtstephens.com 2002/06/25
 
