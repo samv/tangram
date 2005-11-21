@@ -6,6 +6,7 @@ sub new
 	bless [ @_ ], $pkg;
 }
 
+# XXX - not tested by test suite
 sub includes
 {
 	my ($self, $item) = @_;
@@ -28,6 +29,7 @@ sub includes
 		);
 }
 
+# XXX - not tested by test suite
 sub exists
 {
 	my ($self, $item) = @_;

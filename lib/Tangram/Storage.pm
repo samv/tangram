@@ -18,6 +18,7 @@ sub new
     return bless { @_ }, $pkg;
 }
 
+# XXX - not tested by test suite
 sub schema
 {
     shift->{schema}
@@ -67,6 +68,7 @@ sub to_dbms
 	return $self->{driver}->to_dbms(@_);
     }
 
+# XXX - not tested by test suite
 sub get_sequence {
     my $self = shift;
     my $sequence_name = shift;
@@ -82,6 +84,7 @@ sub get_sequence {
     return $id;
 }
 
+# XXX - not tested by test suite
 sub sequence_sql
     {
 	my $self = shift;
@@ -89,6 +92,7 @@ sub sequence_sql
 	return $self->{driver}->sequence_sql(shift);
     }
 
+# XXX - not tested by test suite
 sub limit_sql {
     my $self = shift;
 
@@ -113,6 +117,7 @@ sub _open
 	  local $dbh->{PrintError} = 0;
 	  my $control;
 	  if ( $schema->{sql}{oid_sequence} ) {
+	      # XXX - not tested by test suite
 	      $control = "dummy";
 	  } else {
 	      $control = $dbh->selectall_arrayref
@@ -127,17 +132,18 @@ sub _open
 		$self->{import_id} = sub { shift() . sprintf("%0$self->{cid_size}d", shift()) };
 		$self->{export_id} = sub { substr shift(), 0, -$self->{cid_size} };
 	  } else {
-		$self->{class_col} = 'classId';
-		$self->{layout1} = 1;
-		$self->{import_id} = sub { shift() };
-		$self->{export_id} = sub { shift() };
+	      # XXX - layout1
+	      $self->{class_col} = 'classId';
+	      $self->{layout1} = 1;
+	      $self->{import_id} = sub { shift() };
+	      $self->{export_id} = sub { shift() };
 	  }
 	}
 
 	my %id2class;
 
 	if ($self->{layout1}) {
-	  # compatibility with version 1.x
+	    # XXX - layout1
 	  %id2class = map { @$_ } @{ $self->{db}->selectall_arrayref("SELECT classId, className FROM $schema->{class_table}") };
 	} else {
 	  my $classes = $schema->{classes};
@@ -196,6 +202,7 @@ sub alloc_table
 	    : ++$self->{table_top};
 }
 
+# XXX - not reached by test suite
 sub free_table
 {
     my $self = shift;
@@ -220,6 +227,7 @@ sub open_connection
     return $db;
 }
 
+# XXX - not reached by test suite
 sub close_connection
   {
     # private - close read connection to DB unless it's the default one
@@ -257,12 +265,14 @@ sub my_cursor
     return $cursor;
 }
 
+# XXX - not reached by test suite
 sub select_data
 {
     my $self = shift;
     Tangram::Expr::Select->new(@_)->execute($self, $self->open_connection());
 }
 
+# XXX - not reached by test suite
 sub selectall_arrayref
 {
     shift->select_data(@_)->fetchall_arrayref();
@@ -290,6 +300,7 @@ sub prepare
 *prepare_update = \&prepare;
 *prepare_select = \&prepare;
 
+# XXX - lots of options here not tested by test suite
 sub make_id
   {
     my ($self, $class_id) = @_;
@@ -335,6 +346,8 @@ sub make_id
 
 	  return sprintf "%d%0$self->{cid_size}d", $id, $class_id;
 	}
+
+    # XXX - layout1
 
 	# ------------------------------
 	# compatibility with version 1.x
@@ -497,6 +510,7 @@ sub tx_commit
 	  delete $self->{alloc_id};
 	}
 	
+    # XXX - layout1
 	# compatibility with version 1.x
 	# ------------------------------
     
@@ -757,6 +771,7 @@ sub _update
 #############################################################################
 # save
 
+# XXX - not documented / tested
 sub save
   {
     my $self = shift;
@@ -854,6 +869,7 @@ sub defer
 
 # Given a class' name and a row's ID (or more than one,)
 # computes the OIDs and returns them.
+# XXX - not tested by test suite
 sub make_oid
 {
   my $self = shift;
@@ -893,6 +909,7 @@ sub import_object
     }
 }
 
+# XXX - not documented or tested by test suite
 sub dummy_object
 {
     my $self = shift;
@@ -968,6 +985,7 @@ sub goodbye
     delete $self->{PREFETCH}{$id};
   }
 
+# XXX - not documented or tested by test suite
 sub shrink
   {
     my ($self) = @_;
@@ -1007,6 +1025,7 @@ sub _row_to_object
     my ($self, $obj, $id, $class, $row) = @_;
 	my $context = { storage => $self, id => $id, layout1 => $self->{layout1} };
 	$self->{schema}->classdef($class)->get_importer($context)->($obj, $row, $context);
+    # XXX - not documented, probably badly named.
     if (my $x=$obj->can("T2_import")) {
 	$x->($obj);
     }
@@ -1062,6 +1081,7 @@ sub select {
 	return $cursor->select(@args);
   }
   
+  # XXX - not tested by test suite
   my ($first, @others) = @$target;
   
   my @cache = map { $self->select( $_, @args ) } @others;
@@ -1087,6 +1107,7 @@ sub select {
   return @results;
 }
 
+# XXX - not tested by test suite
 sub cursor_object
   {
     my ($self, $class) = @_;
@@ -1111,6 +1132,7 @@ sub expr
     return shift->expr( @_ );
   }
 
+# XXX - not tested by test suite
 sub object
 {
     carp "cannot be called in list context; use objects instead" if wantarray;
@@ -1223,6 +1245,7 @@ sub _kind_class_ids
     return @ids;
 }
 
+# XXX - not tested by test suite
 sub is_persistent
 {
     my ($self, $obj) = @_;
@@ -1332,6 +1355,7 @@ sub sql_do
 	  : croak $DBI::errstr;
 }
 
+# XXX - not tested by test suite
 sub sql_selectall_arrayref
 {
     my ($self, $sql, $dbh) = @_;
@@ -1384,6 +1408,7 @@ sub unload
     }
   }
 
+# XXX - not tested by test suite
 sub unload_all {
     my $self = shift;
     my $send_method = shift;
@@ -1423,8 +1448,10 @@ sub unload_all {
     #$self->SUPER::unload_all();
 }
 
+# XXX - not reached (?)
 sub from_dual { "" }
 
+# XXX - not tested by test suite
 sub ping {
     my $self = shift;
 
@@ -1445,6 +1472,7 @@ sub ping {
     #}
 }
 
+# XXX - not tested by test suite
 sub recycle {
     my $self = shift;
     my $send_method = shift;
@@ -1456,11 +1484,13 @@ sub recycle {
 	if $Tangram::TRACE;
 }
 
+# XXX - wtf?
 sub clear_stats {
     my $self = shift;
     $self->{stats} = undef;
 }
 
+# XXX - wtf?
 sub add_stat {
     my $self = shift;
     my $stat = shift;

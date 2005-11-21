@@ -13,16 +13,19 @@ sub new
 
 	my $cols = join ', ', map
 	{
-		confess "column specification must be a Tangram::Expr" unless $_->isa('Tangram::Expr');
-		$_->{expr};
+		confess "column specification must be a Tangram::Expr"
+		    unless $_->isa('Tangram::Expr');
+		$_->expr;
 	} @{$args{cols}};
 
-	my $filter = $args{filter} || $args{where} || Tangram::Expr::Filter->new;
+	my $filter = $args{filter} || $args{where} ||
+	    Tangram::Expr::Filter->new;
 
 	my $objects = Set::Object->new();
 
 	if (exists $args{from})
 	{
+	    # XXX - not tested by test suite
 		$objects->insert( map { $_->object } @{ $args{from} } );
 	}
 	else
@@ -34,23 +37,26 @@ sub new
 	my $from = join ', ', map { $_->from } $objects->members;
 
 	my $where = join ' AND ',
-		$filter->{expr} ? "($filter->{expr})" : (),
+		$filter->expr ? "(".$filter->expr.")" : (),
 			map { $_->where } $objects->members;
+
+	my $sql_select = SQL::Builder::Select->new();
 
 	my $sql = "SELECT";
 	$sql .= ' DISTINCT' if $args{distinct};
 	$sql .= "  $cols";
 	if (exists $args{order}) {
+	    # XXX - not tested by test suite
 	    $sql .= join("", map {", $_"}
 			 grep { $sql !~ m/ \Q$_\E(?:,|$)/ }
-			 map { $_->{expr} } @{$args{order}});
+			 map { $_->expr } @{$args{order}});
 	}
 	$sql .= "\nFROM $from" if $from;
 	$sql .= "\nWHERE $where" if $where;
 
 	if (exists $args{order})
 	{
-		$sql .= "\nORDER BY " . join ', ', map { $_->{expr} } @{$args{order}};
+		$sql .= "\nORDER BY " . join ', ', map { $_->expr } @{$args{order}};
 	}
 
 	my $self = $type->SUPER::new(Tangram::Type::Integer->instance, "($sql)");
@@ -60,6 +66,7 @@ sub new
 	return $self;
 }
 
+# XXX - not tested by test suite
 sub from
 {
 	my ($self) = @_;
@@ -67,6 +74,7 @@ sub from
 	return $from ? $from->members : $self->SUPER::from;
 }
 
+# XXX - not tested by test suite
 sub where
 {
 }

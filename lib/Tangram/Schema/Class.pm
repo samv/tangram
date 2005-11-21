@@ -7,6 +7,7 @@ use Tangram::Schema::Node;
 use vars qw(@ISA);
  @ISA = qw( Tangram::Schema::Node );
 
+# XXX - not reached by test suite
 sub members
 {
    my ($self, $type) = @_;
@@ -23,6 +24,7 @@ sub get_direct_fields
 	map { values %$_ } values %{ shift->{fields} }
   }
 
+# XXX - not reached by test suite
 sub get_table { shift->{table} }
 
 *direct_fields = \&get_direct_fields;

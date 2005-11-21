@@ -34,6 +34,7 @@ sub FETCH
    return $refobj;
 }
 
+# XXX - not tested by test suite
 sub STORE
 {
    my ($self, $val) = @_;

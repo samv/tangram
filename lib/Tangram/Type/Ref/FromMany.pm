@@ -40,6 +40,7 @@ sub get_exporter
 	my $deep_update = $self->{deep_update};
 	
 	if ($context->{layout1}) {
+	    # XXX - layout1
 	  return sub {
 		my ($obj, $context) = @_;
 		
@@ -127,6 +128,7 @@ sub get_exporter
 	if ( $self->{type_col} ) {
 	    return $sub;
 	} else {
+	    # XXX - not reached by test suite
 	    return sub {
 		my ($id, $type) = $sub->(@_);
 		return $id;
@@ -157,6 +159,7 @@ sub get_importer
   }
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
    my ($self, $obj, $memdefs, $tid, $storage) = @_;
@@ -169,6 +172,7 @@ sub remote_expr
    $self->expr("t$tid.$self->{col}", $obj);
 }
 
+# XXX - not reached by test suite
 sub refid
 {
    my ($storage, $obj, $member) = @_;

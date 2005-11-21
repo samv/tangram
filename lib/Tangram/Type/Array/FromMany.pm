@@ -20,6 +20,7 @@ sub reschema
 
 		unless (ref($def))
 		{
+		    # XXX - not reached by test suite
 			$def = { class => $def };
 			$members->{$member} = $def;
 		}
@@ -126,6 +127,7 @@ sub remote_expr
 	Tangram::Expr::Coll::FromMany->new($obj, $self);
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;

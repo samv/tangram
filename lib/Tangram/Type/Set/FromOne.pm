@@ -21,6 +21,7 @@ sub reschema
 
 		unless (ref($def))
 		{
+		    # XXX - not reached by test suite
 			$def = { class => $def };
 			$members->{$member} = $def;
 		}
@@ -62,6 +63,7 @@ sub defered_save
 	     sub
 	     {
 		 if ( $storage->can("t2_insert_hook") ) {
+		    # XXX - not tested by test suite
 		     $storage->t2_insert_hook( ref($obj), $coll_id, $field, $_[1] );
 		 }
 
@@ -74,6 +76,7 @@ sub defered_save
 	     sub
 	     {
 		 if ( $storage->can("t2_remove_hook") ) {
+		    # XXX - not tested by test suite
 		     $storage->t2_remove_hook( ref($obj), $coll_id, $field, $_[1] );
 		 }
 
@@ -85,6 +88,7 @@ sub defered_save
 		     # FIXME - use dummy object
 		     $storage->erase( $storage->load( $oid ));
 		 } else {
+		    # XXX - not reached by test suite
 		     my $sql = ("UPDATE\n    $table\nSET\n    "
 				."$item_col = NULL\nWHERE\n    "
 				."$storage->{schema}{sql}{id_col} = "
@@ -137,6 +141,7 @@ sub erase
 		my $def = $members->{$member};
 
 		if ( $storage->can("t2_remove_hook") ) {
+		    # XXX - not tested by test suite
 		    $storage->t2_remove_hook
 			(
 			 ref($obj),
@@ -161,6 +166,7 @@ sub erase
 	}
 }
 
+# XXX - not reached by test suite
 sub query_expr
 {
 	my ($self, $obj, $members, $tid) = @_;
@@ -196,6 +202,7 @@ sub prefetch
 	return $prefetch;
 }
 
+# XXX - not reached by test suite
 sub get_intrusions {
   my ($self, $context) = @_;
   return [ $self->{class}, $context->{mapping}->get_home_table($self->{class}) ];

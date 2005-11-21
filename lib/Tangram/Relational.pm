@@ -2,13 +2,15 @@
 
 package Tangram::Relational;
 
-use Tangram::Relational::Engine;
-
 use Carp qw(cluck);
 use strict;
+use Tangram::Relational::Engine;
+use Class::Autouse map { "SQL::Builder::$_" }
+    qw( Select Distinct Join Order Limit JoinGroup Where Table );
 
 sub new { bless { }, shift }
 
+# XXX - not tested by test suite
 sub connect
   {
 	my ($pkg, $schema, $cs, $user, $pw, $opt) = @_;
@@ -50,6 +52,7 @@ sub _with_handle {
   }
 }
 
+# XXX - not tested by test suite
 sub detect
     {
 	my $self = shift;
@@ -67,6 +70,7 @@ sub detect
 	}
     }
 
+# XXX - not tested by test suite
 sub name
   {
       my $self = shift;
@@ -197,6 +201,7 @@ sub to_date {
 
 # generic / fallback date handler.  Use Date::Manip to parse
 # `anything' and return a full ISO date
+# XXX - not tested by test suite
 sub from_date_hires {
     my $self = shift;
     my $value = shift;
@@ -206,6 +211,7 @@ sub from_date_hires {
 
 # this one is a lot more restrictive.  Assume that no DBs understand T
 # in a date
+# XXX - not tested by test suite
 sub to_date_hires {
     my $self = shift;
     my $value = shift;
@@ -216,18 +222,21 @@ sub to_date_hires {
 use Carp;
 
 # return a query to get a sequence value
+# XXX - not tested by test suite
 sub sequence_sql {
     my $self = shift;
     my $sequence_name = shift or confess "no sequence name?";
     return "SELECT $sequence_name.nextval";
 }
 
+# XXX - not tested by test suite
 sub mk_sequence_sql {
     my $self = shift;
     my $sequence_name = shift;
     return "CREATE SEQUENCE $sequence_name";
 }
 
+# XXX - not tested by test suite
 sub drop_sequence_sql {
     my $self = shift;
     my $sequence_name = shift;

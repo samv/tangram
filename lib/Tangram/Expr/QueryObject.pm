@@ -33,6 +33,7 @@ sub eq
 
 	if (!defined($other))
 	{
+	    # XXX - not reached by test suite
 		$self->{id} == undef
 	}
 	elsif ($other->isa('Tangram::Expr::QueryObject'))
@@ -47,6 +48,7 @@ sub eq
 	}
 }
 
+# XXX - not tested by test suite
 sub is_kind_of
 {
 	my ($self, $class) = @_;
@@ -62,6 +64,7 @@ sub is_kind_of
 }
 
 
+# XXX - not tested by test suite
 sub in
 {
 	my $self = shift;
@@ -126,6 +129,7 @@ sub count
 
 }
 
+# XXX - not tested by test suite
 sub is_null
 {
     my $self = shift;

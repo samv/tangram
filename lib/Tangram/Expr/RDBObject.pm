@@ -6,6 +6,7 @@ use Tangram::Expr::CursorObject;
 
 use vars qw(@ISA);
  @ISA = qw( Tangram::Expr::CursorObject );
+use Scalar::Util qw(reftype);
 
 sub where
 {
@@ -17,7 +18,8 @@ sub where
 	my $schema = $storage->{schema};
 	my $classes = $schema->{classes};
 	my $tables = $self->{tables};
-	my $root = $tables->[0][1];
+	reftype($tables) eq "ARRAY" or ($DB::Single = 1);
+	my $root = $tables->[0]->alias;
 	my $class = $self->{class};
 
 	my @where_class_id;
@@ -32,6 +34,7 @@ sub where
 		$schema->for_each_spec
 		    ($class,
 		     sub {
+			 # XXX - not reached by test suite
 			 my $spec = shift;
 			 push @class_ids, $storage->class_id($spec)
 			     unless $classes->{$spec}{abstract};
@@ -39,11 +42,12 @@ sub where
 
 	}
 
-	@where_class_id = "t$root.$storage->{class_col} IN ("
+	@where_class_id = "$root.$storage->{class_col} IN ("
 	    . join(', ', $storage->_kind_class_ids($class) ) . ')';
 
 	my $id = $schema->{sql}{id_col};
-	return (@where_class_id, map { "t@{$_}[1].$id = t$root.$id" } @$tables[1..$#$tables]);
+	return (@where_class_id, map { $_->alias.".$id = $root.$id" }
+		@$tables[1..$#$tables]);
 }
 
 1;

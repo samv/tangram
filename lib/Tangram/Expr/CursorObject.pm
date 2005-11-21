@@ -13,8 +13,10 @@ sub new
 
 	my @tables;
 	my $table_hash = { };
-	my $self = bless { storage => $storage, tables => \@tables, class => $class,
-					   table_hash => $table_hash }, $pkg;
+	my $self = bless { storage => $storage,
+			   tables => \@tables,
+			   class => $class,
+			   table_hash => $table_hash }, $pkg;
 
 	my %seen;
 
@@ -23,8 +25,10 @@ sub new
 
 	  unless (exists $seen{$table}) {
 		my $id = $seen{$table} = $storage->alloc_table;
-		#push @tables, [ $part->{name}, $id ];
-		push @tables, [ $table, $id ];
+
+		push @tables, SQL::Builder::Table->new
+		    ( name => $table,
+		      alias => "t$id" );
 	  }
 
 	  my $id =  $seen{$table};
@@ -33,34 +37,8 @@ sub new
 	  $self->{root} ||= $id;
 	}
 
-	# use Data::Dumper; print Dumper \@tables;
-
-
-# 	$storage->{schema}->visit_up($class,
-# 								 sub
-# 								 {
-# 									 my $class = shift;
-			
-# 									 unless ($classes->{$class}{stateless})
-# 									 {
-# 										 my $id = $storage->alloc_table;
-# 										 push @tables, [ $class, $id ];
-# 										 $table_hash->{$class} = $id;
-# 									 }
-# 								 } );
-
 	return $self;
 }
-
-# sub copy
-# {
-# 	my ($pkg, $other) = @_;
-
-# 	my $self = { %$other };
-# 	$self->{tables} = [ @{ $self->{tables} } ];
-
-# 	bless $self, $pkg;
-# }
 
 sub storage
 {
@@ -88,7 +66,7 @@ sub class
 
 sub table_ids
 {
-	return map { $_->[1] } @{ shift->{tables} };
+	return map { $_->alias =~ m/(\d+)/ && $1 } @{ shift->{tables} };
 }
 
 # sub parts
@@ -116,13 +94,29 @@ sub root_table
 
 sub from
 {
-	return join ', ', &from unless wantarray;
-
 	my ($self) = @_;
+
+	return join ', ', $self->from unless wantarray;
+
 	my $schema = $self->storage->{schema};
 	my $classes = $schema->{classes};
 	my $tables = $self->{tables};
-	map { "$_->[0] t$_->[1]" } @$tables;
+	return map { $_->alias_sql } @$tables;
+}
+
+sub fromlist
+{
+    my ($self) = @_;
+    return do {
+	my $fromlist = SQL::Builder::FromList->new();
+	$fromlist->tables->list_push($self->sql_tables);
+	$fromlist
+    } unless wantarray;
+
+    my $schema = $self->storage->{schema};
+    my $classes = $schema->{classes};
+    my $tables = $self->{tables};
+    return @$tables;
 }
 
 sub where
@@ -135,7 +129,7 @@ sub where
 	my $root = $tables->{root};
 	my $id = $self->storage->{schema}{sql}{id_col};
 
-	map { "t$_->[1].$id = t$root.$id" } @$tables[1..$#$tables];
+	map { $_->alias.".$id = t$root.$id" } @$tables[1..$#$tables];
 }
 
 # sub mark
@@ -149,7 +143,6 @@ sub expr_hash
 	my $storage = $self->{storage};
 	my $schema = $storage->{schema};
 	my $classes = $schema->{classes};
-	my @tables = @{$self->{tables}};
    
 	my %hash =
 		(
@@ -167,25 +160,6 @@ sub expr_hash
 		    = $field->remote_expr($self, $self->{table_hash}{$part->{name}}, $storage);
 	  }
 	}
-													  
-	  
-	
-
-# 	$schema->visit_up($self->{class},
-# 					  sub
-# 					  {
-# 						  my $classdef = $classes->{shift()};
-
-# 						  my $tid = (shift @tables)->[1] unless $classdef->{stateless};
-
-# 						  foreach my $typetag (keys %{$classdef->{members}})
-# 						  {
-# 							  my $type = $schema->{types}{$typetag};
-# 							  my $memdefs = $classdef->{members}{$typetag};
-# 							  @hash{$type->members($memdefs)} =
-# 								  $type->query_expr($self, $memdefs, $tid, $storage);
-# 						  }
-# 					  } );
 
 	return \%hash;
 }

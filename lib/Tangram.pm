@@ -26,7 +26,7 @@ my $force_numeric = $VERSION + 0;
 # Preloaded methods go here.
 
 BEGIN {
-    @KEYWORDS = qw(compat_quiet core);
+    @KEYWORDS = qw(compat_quiet no_compat core);
     $KEYWORDS_RE = qr/^:(?:${\(join "|", map { qr{\Q$_\E} }
                                @KEYWORDS)})/;
 }
@@ -73,6 +73,7 @@ sub import {
 	require Tangram::Type::Hash::FromOne;
     }
 
+    1;
 }
 
 sub connect

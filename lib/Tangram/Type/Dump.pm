@@ -90,7 +90,7 @@ sub flatten {
     my $check = sub {
 	if (my $x = tied $_[0] ) {
 	    if ( $x->isa("Tangram::Lazy::Ref") ) {
-		# FIXME - code path not covered by test suite
+		# XXX - not reached by test suite
 		my ($id,$cid) = $storage->split_id($x->id);
 		$id.=",$cid";
 		#@$x = ();

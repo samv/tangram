@@ -18,6 +18,7 @@ sub reschema {
 
 	unless (ref($def))
 	    {
+		# XXX - not reached by test suite
 		$def = { class => $def };
 		$members->{$member} = $def;
 	    }
@@ -90,6 +91,7 @@ sub defered_save
 
    if (keys %removed)
        {
+	   # XXX - not reached by test suite
 	   my $removed = join(' ', values %removed);
 	   $storage->sql_do("UPDATE\n    $table\nSET\n    $item_col = NULL,\n    $slot_col = NULL\nWHERE\n    $storage->{schema}{sql}{id_col} IN ($removed)");
        }
@@ -105,6 +107,8 @@ sub erase
 
    foreach my $member (keys %$members)
    {
+
+       # XXX - not reached by test suite
       next if tied $obj->{$member};
 
       my $def = $members->{$member};
@@ -139,6 +143,7 @@ sub cursor
 
 sub query_expr
 {
+   # XXX - not reached by test suite
    my ($self, $obj, $members, $tid) = @_;
    map { Tangram::Expr::Coll::FromOne->new($obj, $_); } values %$members;
 }

@@ -2,6 +2,8 @@
 # (c) Kurt Stephens 2003
 # Derived from IntrSet.pm.
 
+# XXX - not tested by test suite at all.
+
 use strict;
 
 package Tangram::Type::Ref::FromOne;

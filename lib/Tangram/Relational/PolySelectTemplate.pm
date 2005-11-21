@@ -11,9 +11,6 @@ sub new
 
 use Set::Object qw(set);
 
-use Class::Autouse map { "SQL::Builder::$_" }
-    qw( Select Distinct Join Order Limit JoinGroup Where );
-
 use vars qw($paren);
 $paren = qr{\( (?: (?> [^()]+ )    # Non-parens without backtracking
 	    |   (??{ $paren })  # Group with matching parens
@@ -39,7 +36,8 @@ sub instantiate {
     # expand table aliases early
     my $i = 0;
     my @cols = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$cols;
-    my @from = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$from;
+    my @from = map { s{^\s*(\S+)\s+(\S+)\s*$}{$1 AS $2}; $_ }
+	map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$from;
     my @where = map { sprintf $_, map { $tables[$expand->[$i++]] } m{(%d)}g } @$where;
 
     my $selected;
@@ -72,8 +70,9 @@ sub instantiate {
     $sql_select->cols->list_push($_) foreach (@cols, @$xcols);
 
     # add outer join clauses
-    if ( my $owhere = $o{owhere} ) {
+    if ( my $owhere = $o{owhere} or $o{any_outer} ) {
 
+	$DB::single = 1;
 	#kill 2, $$;
 	my $ofrom = $o{ofrom};
 
@@ -95,7 +94,7 @@ sub instantiate {
 	    }
 	    #print STDERR "left: $_\n";
 	    @x, $_
-	} @{$o{owhere}});
+	} @{$o{owhere}}, ($o{any_outer} ? (@where, @xwhere) : ()));
 	#print STDERR "new owhere: ".join("/",$owhere->members)."\n";
 	#print STDERR "ofrom: @$ofrom\n";
 	$ofrom = Set::Object->new(@{$o{ofrom}});
@@ -155,10 +154,12 @@ sub instantiate {
 
 			# hooray!  SQL will accept it in this order!
 			$seen_from->insert($tnum);
-			#print STDERR "SEEN ADDED: $tnum\n";
+			print STDERR "SEEN ADDED: $tnum\n";
 			$ofrom-= Set::Object->new($from);
-			#print STDERR "OFROM REMOVED: $from\n";
+			print STDERR "OFROM NOW: $ofrom (".$ofrom->size.")\n";
+			print STDERR "OFROM REMOVED: $from\n";
 			$owhere-= Set::Object->new($join);
+			print STDERR "OWHERE NOW: $owhere\n";
 
 			# we're joining in $from, so add all clauses
 			# that have nothing but seen tables and from
@@ -173,12 +174,21 @@ sub instantiate {
 		    push @ojoin, \@tmpjoin;
 		}
 	    }
+	    $DB::single = 1 if $ofrom->size;
+
 	    die "failed to join tables: ".join(", ", $ofrom->members)
 		."\nquery: >-\n$select\nowhere:\n".join(", ", $owhere->members)
 		    ."supplied from:\n"
 			.join(", ", @from, @$xfrom)
 		if $ofrom->size;
 	}
+
+	if ( $o{any_outer} ) {
+	    my $old_where = set(@where, @xwhere) * $owhere;
+	    $owhere -= $old_where;
+	    (@where, @xwhere) = $old_where->members;
+	}
+
 	die "failed to include conditions: ".join(", ", $owhere->members)
 	    if $owhere->size;
 
@@ -192,7 +202,8 @@ sub instantiate {
 	    my ($tnum) = ($table =~ m/\b(tl?\d+)\b/)
 		or die "table without an alias";
 
-	    my ($t_name, $t_alias) = ($table =~ m/^\s*(\S+)\s+(\S+)\s*$/)
+	    my ($t_name, $t_alias)
+		= ($table =~ m/^\s*(\S+)\s+(?:as\s+)?(\S+)\s*$/i)
 		or die "bad table `$table'";
 
 	    $sql_tables{$t_alias}
@@ -238,7 +249,7 @@ sub instantiate {
 		    for my $other_j ( @joins ) {
 			next unless $other_j->can("right_table");
 			my $rt = $other_j->right_table;
-			if ( $rt =~ m{^\s*(\S+)(?:\s+(\S+))?\s*$} ) {
+			if ( $rt =~ m{^\s*(\S+)(?:\s+as)?(?:\s+(\S+))?\s*$}i ) {
 			    if ( ($2 || $1) eq $tnum ) {
 				my $jgroup = SQL::Builder::JoinGroup->new;
 				$jgroup->tables->list_push($rt);
@@ -247,7 +258,7 @@ sub instantiate {
 				last;
 			    }
 			} else {
-			    die "should not happen until later";
+			    die "should not happen until later (rt = $rt)";
 			}
 			$i++;
 		    }
@@ -301,7 +312,7 @@ sub instantiate {
 	$sql_select->tables->add_table ( table => $_->[0],
 					 ($_->[1] ? (alias => $_->[1])
 					  : ()) )
-	    foreach (map { my @x = m/(\S+)(?:\s+(\S+))?$/;
+	    foreach (map { my @x = m/^\s*(\S+)(?:\s+as)?(?:\s+(\S+))?$/i;
 			   @x ? \@x : die "What ? $_";
 		       } @from, @$xfrom );
     }

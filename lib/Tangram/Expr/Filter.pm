@@ -16,14 +16,17 @@ sub and
 {
 	my ($self, $other) = @_;
 	if ( !ref $other and $other == 1 ) {
+	    # XXX - not reached by test suite
 	    $self;
 	} elsif ( !ref $self and $self == 1 ) {
+	    # XXX - not reached by test suite
 	    $other;
 	} else {
 	    op($self, 'AND', 10, $other);
 	}
 }
 
+# XXX - not tested by test suite
 sub and_perhaps
 {
 	my ($self, $other) = @_;
@@ -36,6 +39,7 @@ sub or
 	return op($self, 'OR', 9, $other);
 }
 
+# XXX - not tested by test suite
 sub not
 {
 	my ($self) = @_;
@@ -47,6 +51,7 @@ sub not
 													 $self->{objects}->members ) );
 }
 
+# XXX - not tested by test suite
 sub as_string
 {
 	my $self = shift;
@@ -57,6 +62,7 @@ sub expr {
     return $_[0]->{expr};
 }
 
+# XXX - not tested by test suite
 sub sum
 {
   my ($self, $val) = @_;
@@ -72,12 +78,14 @@ sub sum
 
 
 # BEGIN ks.perl@kurtstephens.com 2002/06/25
+# XXX - not tested by test suite
 sub unaop
 {
     Tangram::Expr::unaop(@_);
 }
 
 
+# XXX - not tested by test suite
 sub binop
 {
     my ($self, $op, $arg, $tight, $swap) = @_;
@@ -184,6 +192,7 @@ sub where
 	(@expr, map { $_->where } $self->objects);
 }
 
+# XXX - not reached by test suite
 sub where_objects
 {
 	return join ' AND ', &where_objects unless wantarray;

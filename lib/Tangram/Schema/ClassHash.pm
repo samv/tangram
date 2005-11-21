@@ -4,6 +4,7 @@ use strict;
 use strict;
 use Carp;
 
+# XXX - not reached by test suite
 sub class
 {
    my ($self, $class) = @_;
