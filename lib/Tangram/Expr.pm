@@ -234,6 +234,20 @@ sub regexp_like
 				   objects => Set::Object->new($self->objects) );
 }
 
+sub match
+{
+       my ($self, $oper, $val) = @_;
+       return Tangram::Expr::Filter->new(expr => "$self->{expr} $oper '$val'", tight => 100,
+                                  objects => Set::Object->new($self->objects) );
+}
+
+sub is_null
+{
+       my ($self) = @_;
+       return Tangram::Expr::Filter->new(expr => "$self->{expr} IS NULL", tight => 100,
+                                  objects => Set::Object->new($self->objects) );
+}
+
 sub count
 {
 	my ($self, $val) = @_;
