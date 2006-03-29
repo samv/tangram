@@ -2,7 +2,9 @@
 
 use strict;
 
-@ARGV = qw( SQLite myisam innodb Pg Oracle ) unless @ARGV;
+# note to the observant - this list represents the lists of RDBMSes
+# the maintainer is hopefully testing releases on :-)
+@ARGV = qw( SQLite SQLite2 myisam innodb Pg ) unless @ARGV;
 
 delete $ENV{LANG};
 
