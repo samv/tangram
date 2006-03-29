@@ -45,7 +45,7 @@ my @cp = ($db_cs, $DBConfig::user, $DBConfig::passwd);
 
 my $dbh = DBI->connect( @cp, { PrintError => 0 } )
     or skip "could not connect to database", 1;
-eval { Tangram::Relational->retreat($schema, $dbh, { PrintError => 0 }) };
+eval { Tangram::Relational->retreat($schema, $dbh) };
 eval { Tangram::Relational->deploy($schema, $dbh) };
 is( $@, "", "Fascists deployed!" );
 my $result = $output->release_stdout();
