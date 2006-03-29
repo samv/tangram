@@ -25,13 +25,24 @@ the unary C<!> operator or C<!!> idiom, respectively.
 
 =back
 
-=head1 RELEASE 2.10
+=head1 RELEASE 2.10, 29 Mar 2006
 
 This release is the first step in the major refactoring of Tangram,
 which is API-backwards compatible.  The differences between 2.09 and
 2.10 are limited to namespace re-organisation.  The test suite still
 succeeds unmodified, but has been tweaked to suppress warnings that
 deprecated modules are being used.
+
+=over
+
+=item *
+
+Sync release with 2.09.  svk this time made this extremely painful,
+but we must forgive it because after all trying to support distributed
+source management tool atop of a synchronised versioning filesystem is
+pushing shit uphill.
+
+=back
 
 =head2 DEV. RELEASE 2.09_02, 21 Nov 2005
 
@@ -66,10 +77,20 @@ C<:compat_quiet>.  to be documented.
 
 =back
 
-=head1 RELEASE 2.09, slated for October 2005
+=head1 RELEASE 2.09, 29 Mar 2006
 
-Unless more critical bugs are reported, the latest 2.08_XX release
-will be released as 2.09 in August^WSeptember^WOctober^WRSN!
+=over
+
+=item *
+
+Disable some tests on MySQL, that try to do things far too difficult
+for its little brain.
+
+=item *
+
+Suppress a warning in the test suite.
+
+=back
 
 =head2 DEV. RELEASE 2.08_06, 21 Nov 2005
 
