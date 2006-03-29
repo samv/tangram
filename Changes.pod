@@ -1,10 +1,20 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
-=head1 RELEASE 2.09, slated for October 2005
+=head1 RELEASE 2.09, 29 Mar 2006
 
-Unless more critical bugs are reported, the latest 2.08_XX release
-will be released as 2.09 in August^WSeptember^WOctober^WRSN!
+=over
+
+=item *
+
+Disable some tests on MySQL, that try to do things far too difficult
+for its little brain.
+
+=item *
+
+Suppress a warning in the test suite.
+
+=back
 
 =head2 DEV. RELEASE 2.08_06, 21 Nov 2005
 
