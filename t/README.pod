@@ -23,12 +23,20 @@ helpdesk application.  See F<t/rt/RT.pod> for documentation.
 an example schema modeled after the test database for Class::DBI, the
 schema for which is available at
 L<http://www.class-dbi.com/cgi-bin/wiki/index.cgi?ERD>.  Sections from
-this test suite are slated for inclusion in L</APP2ed>.
+this test suite are included in L</APP2ed>.
 
 =item F<t/timeseries/>
 
 This schema is for problems that relate to I<time series databases>,
 such as transaction record processing, system performance logs, etc.
+
+=item F<t/orange/>
+
+This is a "Hello, world" type demo.  No tests yet.
+
+=item F<t/moose/>
+
+Tests related to interoperating between L<Moose> and Tangram.
 
 =back
 
@@ -66,6 +74,9 @@ example.  C<springfield> will be kept around for as long as it is
 needed.  Once the coverage from the other test suites is complete, it
 will be marked as end-of-life and phased out.
 
+C<orange> is a real world example, and I challenge anyone who claims
+otherwise.
+
 =item B<the test scripts should be good reading>
 
 Well coded and presented examples will greatly assist new coders from
@@ -86,8 +97,7 @@ documentation for each schema.
 
 =item APP2ed
 
-_Advanced Programming Perl, 2nd Edition_.  Not published as of
-December 2004.  An O'Reilly book, the authors include Simon Cozens.
+_Advanced Programming Perl, 2nd Edition_, Simon Cozens.
 
 =back
 
