@@ -685,7 +685,8 @@ sub _insert
 		my @sql = $engine->get_insert_statements($class);
 		printf $Tangram::TRACE ">-\n%s\n".(@{$fields[$i]}?"-- with:\n    /* (%s) */\n":"%s")."...\n",
 		$sql[$i],
-		join(', ', map { $_ || 'NULL' } @state[ @{ $fields[$i] } ] )
+		join(', ', map { defined($_)?$dbh->quote($_):"NULL" }
+		     @state[ @{ $fields[$i] } ] )
 	  }
 
 	  my $sth = $sths->[$i];
