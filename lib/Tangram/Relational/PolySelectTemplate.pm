@@ -72,8 +72,6 @@ sub instantiate {
     # add outer join clauses
     if ( my $owhere = $o{owhere} or $o{any_outer} ) {
 
-	$DB::single = 1;
-	#kill 2, $$;
 	my $ofrom = $o{ofrom};
 
 	# ugh.  we need to add a new clause for every join, and in
@@ -413,7 +411,7 @@ sub extract {
 
     my $slice = $self->[-1]{$class_id}
 	or do {
-	    kill 2, $$;
+	    #kill 2, $$;
 	    Carp::croak("unexpected class id '$class_id' (OK: "
 			.(join(",",keys %{$self->[-1]})).")");
 	};

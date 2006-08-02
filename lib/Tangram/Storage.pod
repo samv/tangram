@@ -443,9 +443,12 @@ objects.  These tables are joined with an outer join clause.
 
 The outer join related code is extremely hairy, and you are advised to
 ensure that you test each outer join query that you are going to use
-with new versions of Tangram.  In particular, having classes in the
-outer section of a join which involve more than two underlying tables
-is currently TODO.
+with new versions of Tangram.
+
+Do not try to combine inheritance and outer joins if you want to run
+your application on toy databases, currently this means SQLite and
+MySQL.  SQLite does not parse SQL nested join syntax and MySQL just
+gets the join all wrong.  At least, on my testbed system.  YMMV.
 
 =head2 sum( $expr, [$filter] )
 
