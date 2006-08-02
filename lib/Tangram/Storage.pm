@@ -12,6 +12,10 @@ use Scalar::Util qw(weaken refaddr);
 
 use vars qw( %storage_class );
 
+BEGIN {
+    *pretty = *Tangram::Core::pretty;
+}
+
 sub new
 {
     my $pkg = shift;
