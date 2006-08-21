@@ -52,7 +52,7 @@ a Tangram schema structure.
 
 If you are looking for a tool that implements I<SQL abstraction> only,
 you have probably missed the point (of this module, anyway), and a
-well-supported module like L<Class::DBI>, or an interactive SQL
+well-supported module like L<DBIx::Class>, or an interactive SQL
 modeller like L<Alzabo> will likely suit your needs better.
 
 Tangram is beginning to include preliminary support for aggregation
@@ -71,7 +71,7 @@ make new derived classes; you have to use your database SQL and create
 corresponding Tangram classes manually to do that.
 
 Tangram has a web site at L<http://tangram.utsl.gen.nz/>, currently
-sponsored by MarketView (New Zealand) Ltd.
+sponsored by Catalyst IT (NZ) Ltd.
 
 =head1 DOCUMENTATION INDEX
 
