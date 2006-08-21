@@ -1,11 +1,11 @@
 =head1 NAME
 
-Tangram::Type/Hash/Scalar - map Perl hash of scalar keys and values
+Tangram::Type::Hash::Scalar - map Perl hash of scalar keys and values
 
 =head1 SYNOPSIS
 
    use Tangram::Core;
-   use Tangram::Type/Hash/Scalar; # always
+   use Tangram::Type::Hash::Scalar; # always
 
    $schema = Tangram::Schema->new(
       classes => { NaturalPerson => { fields => {
