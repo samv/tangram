@@ -165,5 +165,12 @@ it generates a new STH for each object.
 You should not need to explicitly add new classes to a schema if a
 superclass of them is already in the schema.
 
+=head1 UNDOCUMENTED
+
+=head2 sub-selects in query expressions
+
+It is possible to make <tt>Tangram::Expr</tt> objects that contain
+sub-selects; however the syntax is not documented.
+
 =cut
 
