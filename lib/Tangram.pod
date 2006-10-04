@@ -82,7 +82,7 @@ sponsored by MarketView (New Zealand) Ltd.
 =item L<Tangram::Tour>
 
 The original "Guided Tour" of the features of Tangram, by Jean-Louis
-LeRoy.
+Leroy.
 
 =item L<Tangram::Intro>
 
