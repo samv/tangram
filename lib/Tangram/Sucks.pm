@@ -79,7 +79,8 @@ just sticks in an integer etc.
 
 Where it is impractical or undesirable to load all of a collection
 into memory, when you are adding a member and then updating the
-container, it should be possible to 
+container, it should be possible to do this without loading the
+entire collection into memory.
 
 This could actually be achieved with a new Tangram::Type.
 
@@ -91,23 +92,43 @@ This could actually be achieved with a new Tangram::Type.
 
 =item B<concise query expressions>
 
-For simple selects, this is too long:
-
-  ...
+For simple selects, the query syntax is too long.  Getting remote
+objects should take less code.
 
 =item B<non-ID joins>
 
+We can't join on anything but "ID" values
+
 =item B<tables with no primary key>
+
+We can't map tables unless they have a primary key, and it is called
+"id" (or, at least, the same name as the rest of the schema).
 
 =item B<tables with multi-column primary keys>
 
+We can't map tables when they have multiple primary keys.  Well, you
+can, but only if you make a view with an ID column which is
+functionally derived from the multi-part keys.  But that sucks.
+
 =item B<tables with auto_increment keys>
+
+These suck, but Tangram could still support them without requiring
+schema hacks.
 
 =item B<tables without a `type' column>
 
+The 'type' column is unneeded for base tables which do not have
+sub-classes.
+
 =item B<tables with custom `type' columns>
 
+For mapping schemata where some clever person has invented their own
+special way of representing types using discrete column values.
+
 =item B<tables with implicit (presence) `type' columns>
+
+It should be possible to infer the type value based on knowledge of
+the schema, and the tables which have rows.
 
 =item B<fully symmetric relationships>
 
@@ -116,12 +137,17 @@ back-refs are read-only.
 =item B<bulk inserts>
 
 Inserting lots of similar objects should be more efficient.  Right now
-it generates a new STH for each object.
+it generates a new DBI statement handler for each object.
 
 =item B<`empty subclass' schema support>
 
 You should not need to explicitly add new classes to a schema if a
 superclass of them is already in the schema.
+
+=item B<warn about column redefinitions>
+
+Defining a column twice should be an error.  Reported by Mark
+Lawrence.
 
 =back
 
