@@ -287,7 +287,7 @@ sub in
 			    # FIXME - what about table aliases?  Hmm...
 			    map {( blessed($_)
 				   ? $storage->export_object($_)
-				   : $_ )}
+				   : $storage->{db}->quote($_) )}
 			    @items )
 		     . ')');
 	} else {
