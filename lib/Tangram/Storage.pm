@@ -768,7 +768,8 @@ sub _update
 		my @sql = $engine->get_update_statements($class);
 		printf $Tangram::TRACE ">-\n%s\n-- with\n    /* (%s) */\n...\n",
 		$sql[$i],
-		join(', ', map { $_ || 'NULL' } @state[ @{ $fields[$i] } ] )
+		join(', ', map { defined($_)?$dbh->quote($_):"NULL" }
+		     @state[ @{ $fields[$i] } ] )
 	  }
 
 	  my $sth = $sths->[$i];
