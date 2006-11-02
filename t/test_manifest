@@ -2,6 +2,7 @@ misc/new_opers.t
 misc/bughunt.t
 misc/include.t
 misc/new_types.t
+misc/back-inflation.t
 springfield/00-deploy.t
 springfield/01-mappings.t
 springfield/02-cursor.t

@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 10;
+use lib "t";
+use TestNeeds qw(Class::Tangram::Generator DBD::SQLite DBConfig);
+use Test::More tests => 11;
 
 BEGIN {
     use_ok('Tangram');
@@ -34,13 +36,11 @@ my $schemahash = {
 };
 
 my $schema = Tangram::Schema->new($schemahash);
-my $file = "/tmp/tangram$$.db";
-my @cp = ("dbi:SQLite:$file");
 
-unlink($file);
-Tangram::Relational->deploy($schema, @cp);
+DBConfig->setup($schema);
+
 my $gen     = Class::Tangram::Generator->new($schema);
-my $storage = Tangram::Relational->connect($schema, @cp);
+my $storage = Tangram::Relational->connect($schema, DBConfig->cparm);
 
 my $hat = $gen->new('Hat', colour => 'blue');
 my $person = $gen->new('NaturalPerson', name => 'tangram');
@@ -52,6 +52,8 @@ $storage->insert($person);
 undef $person;
 undef $hat;
 
+$storage->recycle;
+
 ($person) = $storage->select('NaturalPerson');
 ok(ref($person) eq 'NaturalPerson', 'person inserted and retrieved');
 
@@ -60,6 +62,9 @@ ok(ref($hat) eq 'Hat', 'person has a hat');
 
 (my $owner) = $hat->owner;
 ok(ref($owner) eq 'NaturalPerson', 'owner of hat is a person');
+
+use Scalar::Util qw(refaddr);
+is(refaddr($owner), refaddr($person), "same person");
 
 ok(@{$owner->hats}, 'owner of hat has hats');
 

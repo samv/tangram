@@ -48,4 +48,18 @@ sub cparm {
     return ($cs, $user, $passwd);
 }
 
+sub setup {
+    my $class = shift if UNIVERSAL::isa($_[0], __PACKAGE__);
+    $class ||= __PACKAGE__;
+    my $schema = shift;
+    my ($dsn, $u, $p) = $class->cparm;
+    my $dbh = DBI->connect($dsn, $u, $p);
+    eval {
+	local $dbh->{RaiseError};
+	local $dbh->{PrintError};
+	Tangram::Relational->retreat($schema, $dbh);
+    };
+    Tangram::Relational->deploy($schema, $dbh);
+}
+
 1;
