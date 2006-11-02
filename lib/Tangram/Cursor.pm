@@ -286,12 +286,18 @@ sub _next
 
 	    my $class = $storage->{id2class}{$classId} or die "unknown class id $classId";
 
-	    # even if object is already loaded we must read it so that @rpw only contains residue
-	    my $obj = $storage->read_object($id, $class, $state);
+	    my $obj = $storage->{objects}{$id};
+
+	    # even if object is already loaded we must read it so
+	    # that @row only contains residue, with -retrieve
+	    if ( !defined($obj) or $self->{-retrieve} ) {
+		$obj = $storage->read_object($id, $class, $state);
+	    } else {
+		# just pretend we did it.
+		@row = ();
+	    }
 
 	    # if object is already loaded return previous copy
-	    $obj = $storage->{objects}{$id} if exists $storage->{objects}{$id};
-
 	    $self->{-current} = $obj;
 
 	} else {
