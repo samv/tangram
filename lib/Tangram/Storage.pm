@@ -1017,18 +1017,44 @@ sub read_object
 
     my $schema = $self->{schema};
 
-    my $obj = $schema->{make_object}->($class);
+    my ($obj, $target, $is_dummy);
 
-    unless (exists $self->{objects}{$id} && defined $self->{objects}{$id}) {
-      # do this only if object is not loaded yet
-      # otherwise we're just skipping columns in $row
-      $self->welcome($obj, $id);
+    if (exists $self->{objects}{$id} && defined $self->{objects}{$id}) {
+	# it's already in the cache, just return it.
+	$obj = $self->{objects}{$id};
+
+	# XXX - we are only doing this because we don't have an easy
+	# way of knowing how many columns each of the importers for
+	# this column type are returning.  It would be better to
+	# improve the importer protocol, and then just shift off the
+	# unneeded columns.
+
+	# the only reason we need to shift them off is for
+	# $cursor->residue(), which would otherwise return a variable
+	# number of items depending on whether we already had the row
+	# hot or not.
+
+	$target = bless {}, "dummy";
+	if ( $Tangram::TRACE ) {
+	    print $Tangram::TRACE __PACKAGE__.": made dummy object "
+		."$target\n";
+	}
+	$is_dummy = 1;
+    } else {
+	# do this only if object is not loaded yet
+	$obj = $schema->{make_object}->($class);
+	$self->welcome($obj, $id);
+	$target = $obj;
     }
 
-    _row_to_object($self, $obj, $id, $class, $row, @parts);
-
+    _row_to_object($self, $target, $id, $class, $row, @parts);
+    CORE::bless $target, "dummy" if $is_dummy;
     return $obj;
   }
+{
+package dummy;
+sub AUTOLOAD { }
+}
 
 sub _row_to_object
   {
