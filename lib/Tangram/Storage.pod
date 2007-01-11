@@ -475,6 +475,9 @@ This function does I<not> support counting multiple columns by passing
 an array ref.  However, this can be achieved using the
 C<-E<gt>count()> remote expression function (see L<Tangram::Expr>).
 
+If your filter is simple enough, then you can just pass the filter in
+without an C<$expr>.
+
 =head2 cursor
 
    $cursor = $storage->cursor( $remote );
