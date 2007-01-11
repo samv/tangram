@@ -3,4 +3,4 @@ blib
 Makefile
 Makefile.old
 META.yml
-t/CONFIG
+t/CONFIG*
