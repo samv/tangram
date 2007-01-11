@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use lib "t";
-use TestNeeds qw(Class::Tangram::Generator DBD::SQLite DBConfig);
+use TestNeeds qw(Class::Tangram::Generator DBConfig);
 use Test::More tests => 11;
 
 BEGIN {
