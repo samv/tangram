@@ -7,7 +7,7 @@ use lib "t/musicstore";
 use Prerequisites;
 use strict;
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 use Tangram::Storage;
 
 # various items that will "persist" between test blocks
@@ -135,7 +135,10 @@ is($CD::c, 0, "no objects leaked");
 
     # if we just wanted the count:
     my ($count) = $storage->count($filter);
-    is($count, 3, "Can do simple COUNT() queries");
+    is($count, 3, "Can do simple COUNT() queries - compat");
+
+    my ($count) = $storage->count($r_cd, $filter);
+    is($count, 3, "Can do simple COUNT() queries - proper");
 
     # maybe some other aggregation type queries:
     ($row) = $storage->select
