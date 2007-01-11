@@ -288,11 +288,18 @@ sub _next
 
 	    my $obj = $storage->{objects}{$id};
 
-	    # even if object is already loaded we must read it so
-	    # that @row only contains residue, with -retrieve
-	    if ( !defined($obj) or $self->{-retrieve} ) {
+	    # even if object is already loaded we must read it so that
+	    # @row only contains residue, with -retrieve, and so that
+	    # any foreign/intrusive collections can get the
+	    # information they need.
+	    if ( !defined($obj) or $self->{-retrieve} or
+		 $self->{-no_skip_read} ) {
+		print $Tangram::TRACE __PACKAGE__.": reading object $id\n"
+		    if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 0;
 		$obj = $storage->read_object($id, $class, $state);
 	    } else {
+		print $Tangram::TRACE __PACKAGE__.": not reading object $id\n"
+		    if $Tangram::TRACE and $Tangram::DEBUG_LEVEL > 0;
 		# just pretend we did it.
 		@row = ();
 	    }
