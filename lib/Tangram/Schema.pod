@@ -179,10 +179,11 @@ Sequences are emulated on pretend databases like MySQL.
 This is a I<closure> that is expected to return an unique ID.  It is
 called like this:
 
-   $make_id->($class_id, $storage)
+   $make_id->($class_id, $storage, $object)
 
 Where C<$class_id> is the Class identifier for_the newly created
 object, and C<$storage> is the B<Tangram::Storage> object.
+The C<$object> is the instance of the object to be inserted.
 
 =item * cid
 

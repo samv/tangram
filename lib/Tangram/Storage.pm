@@ -307,7 +307,7 @@ sub prepare
 # XXX - lots of options here not tested by test suite
 sub make_id
   {
-    my ($self, $class_id) = @_;
+    my ($self, $class_id, $o) = @_;
 
     # see if the class has its own ID generator
     my $cname = $self->{id2class}{$class_id};
@@ -315,7 +315,7 @@ sub make_id
 
     my $id;
     if ( $classdef->{make_id} ) {
-	$id = $classdef->{make_id}->($class_id, $self);
+	$id = $classdef->{make_id}->($class_id, $self, $o);
 	print $Tangram::TRACE "Tangram: custom per-class ($cname) make ID function returned ".(pretty($id))."\n" if $Tangram::TRACE;
     } elsif ( $classdef->{oid_sequence} ) {
 	eval { $id = $self->get_sequence($classdef->{oid_sequence}) };
@@ -324,7 +324,7 @@ sub make_id
 
     # maybe the entire schema has its own ID generator
     if ( !defined($id) and $self->{schema}{sql}{make_id} ) {
-	$id = $self->{schema}{sql}{make_id}->($class_id, $self);
+	$id = $self->{schema}{sql}{make_id}->($class_id, $self, $o);
 	print $Tangram::TRACE "Tangram: custom schema make ID function returned "
 	    .(pretty($id))."\n" if $Tangram::TRACE;
     } elsif ( !defined($id) &&
@@ -651,7 +651,7 @@ sub _insert
 
     my $class = $self->{schema}->classdef($class_name);
 
-    my $id = $self->make_id($classId);
+    my $id = $self->make_id($classId, $obj);
 
     $self->welcome($obj, $id);
     $self->tx_on_rollback( sub { $self->goodbye($obj, $id) } );
