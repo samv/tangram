@@ -1,10 +1,11 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
-=head1 RELEASE 2.11
+=head1 RELEASE 2.10_01, 29 Jan 2007
 
-This release is starting to fix some of the design problems, and
-slowly make changes to the API to fix the brokenness where it exists.
+After so many contributed features, I thought it must be time for a
+dev. release.  Go at it!  No big new features in this version, should
+be just stability fixes.
 
 =over
 
