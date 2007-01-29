@@ -23,6 +23,12 @@ Query objects (C<Tangram::Expr::QueryObject>'s, as returned by
 L<Tangram::Storage/remote> support C<IS NULL> and C<IS NOT NULL>, via
 the unary C<!> operator or C<!!> idiom, respectively.
 
+=item *
+
+The C<make_id> function that you supply to C<Tangram::Schema-E<gt>new> 
+is now passed an extra argument, the instance that is having its ID
+made.
+
 =back
 
 =head1 RELEASE 2.10, 29 Mar 2006
