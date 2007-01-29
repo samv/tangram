@@ -139,5 +139,12 @@ are careful to flush Tangram's object cache, before you start doing
 selects that lock rows for update, then you can easily write
 transaction protected programs.
 
+=head1 FURTHER READING
+
+The original L<Tangram::Tour> is still worth reading - but bear in
+mind the above - Tangram can map schemas richly or simply, and the
+choice is up to you.  See also L<Tangram::Sucks> for the things which
+need to be improved.
+
 =cut
 
