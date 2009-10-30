@@ -166,7 +166,7 @@ sub _open
 		}
 	  }
 	  if ($id) {
-	    $self->{ids}{refaddr($obj)} = $id;
+	    $self->{ids}{refaddr($obj)} = [$id, \$self->{objects}{$id}];
 	  } else {
 	    delete $self->{ids}{refaddr($obj)};
 	  }
@@ -180,18 +180,18 @@ sub _open
 		      return undef };
 	  my $id = $self->{ids}{$address};
 	  # refaddr's can be re-used, but weakrefs are magic :-)
-	  if ( $id and !defined $self->{objects}{$id} ) {
+	  if ( $id and !defined ${$id->[1]} ) {
 	      delete $self->{ids}{$address};
-	      delete $self->{objects}{$id};
+	      delete $self->{objects}{$id->[0]};
 	      $id = undef;
-	  } elsif ( $id and refaddr($self->{objects}{$id}) != $address ) {
+	  } elsif ( $id and refaddr($self->{objects}{$id->[0]}) != $address ) {
 	      delete $self->{ids}{$address};
 	      $id = undef;
 	  }
 	  if ($Tangram::TRACE && ($Tangram::DEBUG_LEVEL > 2)) {
-		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id" : "not in storage")."\n";
+		print $Tangram::TRACE "Tangram: $obj is ".($id?"oid $id->[0]" : "not in storage")."\n";
 	  }
-	  return $id;
+	  return $id->[0];
 	};
 
     return $self;
@@ -978,9 +978,9 @@ sub reload
 sub welcome
   {
     my ($self, $obj, $id) = @_;
-    $self->{set_id}->($obj, $id);
-
+    delete $self->{objects}{$id};
     weaken( $self->{objects}{$id} = $obj );
+    $self->{set_id}->($obj, $id);
   }
 
 sub goodbye
