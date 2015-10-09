@@ -11,6 +11,13 @@ First production Tangram 2 release in over 9 years ;-)
 
 Fix compatibility with newer Perls.  Thanks Doug Schoular!
 
+=item *
+
+Fix compatibility with newer MySQL which expects C<ENGINE=InnoDB>
+instead of C<TYPE=InnoDB>.  Breaks compatibility with any database
+which really wants C<TYPE=X> instead, but AFAIK no such beast exists.
+Tested with MariaDB 10.0.0
+
 =back
 
 =head1 RELEASE 2.10_01, 29 Jan 2007

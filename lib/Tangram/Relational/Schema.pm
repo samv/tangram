@@ -63,7 +63,7 @@ sub deploy
 		      ? ("PRIMARY KEY( $id_col )")
 		      : () ),
 		  ),
-	      "\n) ".($type?" TYPE=$type":""));
+	      "\n) ".($type?" ENGINE=$type":""));
 
     }
 
@@ -85,7 +85,7 @@ sub deploy
 	    unless $made_sequence{$sequence}++;
 
     } else {
-    $do->( <<SQL . ($table_type?" TYPE=$table_type":"") );
+    $do->( <<SQL . ($table_type?" ENGINE=$table_type":"") );
 CREATE TABLE $control
 (
 layout INTEGER NOT NULL,
