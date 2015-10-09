@@ -5,3 +5,4 @@ Makefile.old
 META.yml
 t/CONFIG*
 /MYMETA*
+/MANIFEST
