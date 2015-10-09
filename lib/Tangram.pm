@@ -19,7 +19,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK @KEYWORDS $KEYWORDS_RE);
 @EXPORT_OK = qw(pretty d);
 
 { local($^W) = 0;
-$VERSION = '2.11';
+$VERSION = '2.12';
 my $force_numeric = $VERSION + 0;
 }
 

@@ -6,3 +6,7 @@ META.yml
 t/CONFIG*
 /MYMETA*
 /MANIFEST
+/SIGNATURE
+/Tangram-*.tar.gz
+/Tangram-*.tar
+/MANIFEST.bak
