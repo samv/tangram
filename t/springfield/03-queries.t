@@ -130,9 +130,6 @@ SKIP:{
    skip "MySQL known to return incorrect results for nested joins", 2
        if DBConfig->dialect =~ /mysql/i;
 
-   skip "MySQL known to return incorrect results for nested joins", 2
-       if DBConfig->dialect =~ /mysql/i;
-
 # first, setup some test data
 {
    my $storage = Springfield::connect(undef, { dbh => $dbh });
