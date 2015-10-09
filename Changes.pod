@@ -1,7 +1,11 @@
 
 =head1 WHAT'S NEW IN TANGRAM
 
-=head1 RELEASE 2.10, 8 Oct 2015.
+=head1 RELEASE 2.12, 9 Oct 2015.
+
+Just to fix a couple of typos in the release.
+
+=head1 RELEASE 2.11, 8 Oct 2015.
 
 First production Tangram 2 release in over 9 years ;-)
 
@@ -9,7 +13,7 @@ First production Tangram 2 release in over 9 years ;-)
 
 =item *
 
-Fix compatibility with newer Perls.  Thanks Doug Schoular!
+Fix compatibility with newer Perls.  Thanks Doug Scoular!
 
 =item *
 
