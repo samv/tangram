@@ -15,7 +15,7 @@ my %required =
      DBI => 0,
     );
 
-my %required_soft = map{$_=>1} qw( Time::Piece Class::Date );
+my %required_soft = map{$_=>1} qw( Class::Accessor::Assert Class::Tangram Class::Tangram::Generator YAML Time::Piece Class::Date );
 my %required_hard = map{$_=>1} qw( Set::Object Scalar::Util  DBI Data::Lazy );
 
 my ($skip_tests, $bomb_out);

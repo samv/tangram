@@ -333,7 +333,7 @@ use overload
         '/'    => \&div,
         'cos'  => \&cos, 
         'sin'  => \&sin,
-        'acos' => \&acos,
+#        'acos' => \&acos,
 # END ks.perl@kurtstephens.com 2002/06/25
 	"==" => \&eq,
 	"eq" => \&eq,

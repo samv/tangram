@@ -137,7 +137,7 @@ is($CD::c, 0, "no objects leaked");
     my ($count) = $storage->count($filter);
     is($count, 3, "Can do simple COUNT() queries - compat");
 
-    my ($count) = $storage->count($r_cd, $filter);
+    $count = $storage->count($r_cd, $filter);
     is($count, 3, "Can do simple COUNT() queries - proper");
 
     # maybe some other aggregation type queries:

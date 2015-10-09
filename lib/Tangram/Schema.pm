@@ -192,7 +192,7 @@ sub check_class
 sub classdef
 {
    my ($self, $class) = @_;
-   return $self->{classes}{$class} or confess "unknown class '$class'";
+   return $self->{classes}{$class} || confess "unknown class '$class'";
 }
 
 *get_class_by_name = \&classdef;

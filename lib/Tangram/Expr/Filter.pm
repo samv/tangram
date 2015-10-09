@@ -144,7 +144,7 @@ use overload
   '/'    => \&Tangram::Expr::div,
   'cos'  => \&Tangram::Expr::cos, 
   'sin'  => \&Tangram::Expr::sin,
-  'acos' => \&Tangram::Expr::acos,
+#  'acos' => \&Tangram::Expr::acos,
   "=="   => \&Tangram::Expr::eq,
   "eq"   => \&Tangram::Expr::eq,
   "!="   => \&Tangram::Expr::ne,
