@@ -90,7 +90,7 @@ unless ($configured)
     my ($use_tx, $use_subsel, $table_type) = (1, 1);
     my $cs;
     my ($user, $passwd);
-    if (eval { require Test::Database; 1;} && prompt('use Test::Database?','Y')) {
+    if (eval { require Test::Database; 1;} && lc(prompt('use Test::Database?','Y')) eq 'y') {
         my @db_handles = Test::Database->handles();
         my $db;
         foreach my $d (@db_handles) {
@@ -107,9 +107,9 @@ unless ($configured)
 Please give me the login and password for accessing the test database.
 I must be able to create and drop tables in that database.};
 
-       print "\n1) DBI connect string (omit the \'DBI:\' part): ";
-       $cs = <STDIN>;
-       chop $cs;
+       $cs = prompt("\n1) DBI connect string (omit the \'DBI:\' part): ");
+       chomp $cs;
+       do { $skip_tests = 1; goto NOTESTS } unless $cs;
 
        $cs = "dbi:$cs" unless $cs =~ /^dbi\:/i;
 
@@ -151,13 +151,11 @@ You have selected the SQLite back-end.  Sub-selects will be disabled.
            $user = $passwd = "";
        } else {
 
-           print "2) Login: ";
-           $user = <STDIN>;
-           chop $user;
+           $user = prompt('2) Login: ');
+           chomp $user;
 
-           print "3) Password: ";
-           $passwd = <STDIN>;
-           chop $passwd;
+           $passwd = prompt('3) Password:');
+           chomp $passwd;
 
        }
    
