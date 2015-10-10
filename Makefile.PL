@@ -1,3 +1,4 @@
+use 5.006; #our, weaken
 use strict;
 
 use ExtUtils::MakeMaker;

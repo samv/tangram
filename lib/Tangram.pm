@@ -2,9 +2,10 @@
 
 package Tangram;
 
+use 5.006;
 use strict;
 
-use vars qw( $TRACE $DEBUG_LEVEL );
+our ( $TRACE, $DEBUG_LEVEL );
 
 $TRACE = (\*STDOUT, \*STDERR)[$ENV{TANGRAM_TRACE} - 1] || \*STDERR
   if exists $ENV{TANGRAM_TRACE} && $ENV{TANGRAM_TRACE};

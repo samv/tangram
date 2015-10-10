@@ -5,6 +5,7 @@ package Tangram::Relational;
 use Tangram::Relational::Engine;
 
 use Carp qw(cluck);
+use 5.006;
 use strict;
 
 sub new { bless { }, shift }

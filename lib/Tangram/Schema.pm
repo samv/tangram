@@ -5,6 +5,7 @@ package Tangram::Schema;
 use Tangram::Schema::ClassHash;
 use Tangram::Schema::Class;
 
+use 5.006; #our, weaken
 use strict;
 #our @ISA = qw( SelfLoader );
 use Carp;
