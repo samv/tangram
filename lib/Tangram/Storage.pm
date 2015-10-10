@@ -1,5 +1,6 @@
 package Tangram::Storage;
 
+use 5.006;
 use strict;
 
 use Tangram::Storage::Statement;
