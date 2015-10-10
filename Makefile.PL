@@ -44,14 +44,12 @@ use lib '.';
 
 sub yes
 {
-    print ' (Y/n) ';
-    return <STDIN> =~ /^(Y(e(s)?)?|A(YE|II+!*))?\n?$/i;
+    return prompt(' (Y/n) ','Y') =~ /^(Y(e(s)?)?|A(YE|II+!*))?\n?$/i;
 }
 
 sub yeah_no  # it's an antipodean thing
 {
-    print ' (N/y) ';
-    return <STDIN> =~ /^(Y(e(s)?)?|A(YE|II+!*))\n?$/i;
+    return prompt(' (N/y) ','N') =~ /^(Y(e(s)?)?|A(YE|II+!*))\n?$/i;
 
 }
 
