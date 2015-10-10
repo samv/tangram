@@ -50,7 +50,6 @@ sub yes
 sub yeah_no  # it's an antipodean thing
 {
     return prompt(' (N/y) ','N') =~ /^(Y(e(s)?)?|A(YE|II+!*))\n?$/i;
-
 }
 
 print q{Do you plan to run the test suite?
@@ -88,20 +87,35 @@ connection information from a previous installation. Should I use it?};
 
 unless ($configured)
 {
-   print q{
+    my ($use_tx, $use_subsel, $table_type) = (1, 1);
+    my $cs;
+    my ($user, $passwd);
+    if (eval { require Test::Database; 1;} && prompt('use Test::Database?','Y')) {
+        my @db_handles = Test::Database->handles();
+        my $db;
+        foreach my $d (@db_handles) {
+             my $t = $d->dbd;
+             next if $t eq 'CSV' || $t eq 'DBM';
+             $db = $d;
+        }
+        do { $skip_tests = 1; goto NOTESTS } unless $db;
+        $cs = $db->dsn();
+        $user = $db->username();
+        $passwd = $db->password();
+    } else {
+       print q{
 Please give me the login and password for accessing the test database.
 I must be able to create and drop tables in that database.};
 
-   print "\n1) DBI connect string (omit the \'DBI:\' part): ";
-   my $cs = <STDIN>;
-   chop $cs;
+       print "\n1) DBI connect string (omit the \'DBI:\' part): ";
+       $cs = <STDIN>;
+       chop $cs;
 
-   $cs = "dbi:$cs" unless $cs =~ /^dbi\:/i;
+       $cs = "dbi:$cs" unless $cs =~ /^dbi\:/i;
 
-   my ($use_tx, $use_subsel, $table_type) = (1, 1);
 
-   if ($cs =~ m/:mysql:/i) {
-       print q{
+       if ($cs =~ m/:mysql:/i) {
+           print q{
 You have selected the MySQL back-end.  Normally, subselects and
 transactions are disabled for this database.  However, if you are
 using MySQL-Max, or some other MySQL version with InnoDB support
@@ -117,44 +131,43 @@ sub-select tests.  It is not possible to use sub-selects with InnoDB
 table types.
 
 Use InnoDB tables};
-       unless (yeah_no()) {
-	   $use_tx = 0;
+           unless (yeah_no()) {
+               $use_tx = 0;
 
-	   print "Use sub-selects";
-	   unless (yeah_no()) {
-	       $use_subsel = 0;
-	   }
-       } else {
-	   $table_type = "InnoDB";
+	          print "Use sub-selects";
+              unless (yeah_no()) {
+	              $use_subsel = 0;
+        	   }
+           } else {
+	           $table_type = "InnoDB";
+           }
        }
-   }
 
-   my ($user, $passwd);
-   if ( $cs =~ /:sqlite:/i ) {
-       print q{
+       if ( $cs =~ /:sqlite:/i ) {
+           print q{
 You have selected the SQLite back-end.  Sub-selects will be disabled.
 };
-       $use_subsel = 0;
-       $user = $passwd = "";
-   } else {
+           $use_subsel = 0;
+           $user = $passwd = "";
+       } else {
 
-       print "2) Login: ";
-       $user = <STDIN>;
-       chop $user;
+           print "2) Login: ";
+           $user = <STDIN>;
+           chop $user;
 
-       print "3) Password: ";
-       $passwd = <STDIN>;
-       chop $passwd;
+           print "3) Password: ";
+           $passwd = <STDIN>;
+           chop $passwd;
 
-   }
+       }
    
-   print <<'MSG';
+       print <<'MSG';
 
 Thank you. I am going to save this information to 't/CONFIG'.
 If you have given me sensitive information, make sure to destroy
 the file when the tests have been completed.
 MSG
-
+   }
    open CONFIG, '>t/CONFIG' or die "Cannot create 't/CONFIG', reason: $!";
    print CONFIG "$cs\n$user\n$passwd\ntx_do = $use_tx\nsubselects = $use_subsel\n".($table_type?"table_type = $table_type\n":"");
    close CONFIG;
