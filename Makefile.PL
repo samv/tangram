@@ -25,13 +25,13 @@ while (my ($module, $min_ver) = each %required) {
     eval "use $mod_ver;";
     if($@) {
 	if (exists $required_hard{$module}) {
-	    $bomb_out = 1;
+	    #$bomb_out = 1;
 	    print STDERR ("$mod_ver not found.\n");
 	} elsif ( exists $required_soft{$module} ) {
 	    print STDERR ("$mod_ver not found.  Some tests and/or "
 			  ."functionality may be missing.\n");
 	} else {
-	    $skip_tests = 1;
+	    #$skip_tests = 1;
 	    print STDERR ("$mod_ver not found.  You will not be able "
 			  ."to run the test suite.\n");
 	}
